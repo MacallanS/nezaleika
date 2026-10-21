@@ -8,7 +8,13 @@ load_dotenv(Path(__file__).resolve().parent.parent.parent / '.env')
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-insecure-nezaleika-change-me')
-DEBUG = os.environ.get('DEBUG', '1') == '1'
+
+_on_render = bool(os.environ.get('RENDER_EXTERNAL_HOSTNAME') or os.environ.get('RENDER'))
+_debug_raw = os.environ.get('DEBUG')
+if _debug_raw is None:
+    DEBUG = not _on_render
+else:
+    DEBUG = _debug_raw.strip().lower() in ('1', 'true', 'yes', 'on')
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
 if _render_host and _render_host not in ALLOWED_HOSTS:
@@ -139,6 +145,18 @@ else:
     else:
         CORS_ALLOWED_ORIGINS = ['https://macallans.github.io']
     CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
+
+# GitHub Pages + token auth (Authorization header on preflight)
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True

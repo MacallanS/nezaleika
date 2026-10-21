@@ -4,12 +4,8 @@
       <h1>Незалейка</h1>
       <p class="sub">Поливай вовремя — не залей</p>
       <form @submit.prevent="onSubmit">
-        <AuthRRField label="Логин">
-          <AuthRRInputText v-model="username" autocomplete="username" />
-        </AuthRRField>
-        <AuthRRField label="Пароль">
-          <AuthRRInputPassword v-model="password" autocomplete="current-password" />
-        </AuthRRField>
+        <AuthRRInputText v-model="username" label="Логин" autocomplete="username" />
+        <AuthRRInputPassword v-model="password" autocomplete="current-password" />
         <p v-if="error" class="error">{{ error }}</p>
         <AuthRRButton type="submit" :disabled="loading" class="submit">
           Войти
@@ -20,12 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  AuthRRButton,
-  AuthRRField,
-  AuthRRInputPassword,
-  AuthRRInputText,
-} from 'bibli/shared/ui/rr'
+import { AuthRRButton, AuthRRInputPassword, AuthRRInputText } from 'bibli/shared/ui/rr'
 
 definePageMeta({ layout: false, middleware: [] })
 
@@ -41,8 +32,12 @@ async function onSubmit() {
   try {
     await auth.login(username.value, password.value)
     await navigateTo('/')
-  } catch {
-    error.value = 'Неверный логин или пароль'
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : ''
+    error.value =
+      msg.includes('Network') || msg.includes('CORS')
+        ? 'Не удалось связаться с сервером. Подождите и попробуйте снова.'
+        : 'Неверный логин или пароль'
   } finally {
     loading.value = false
   }
