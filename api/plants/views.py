@@ -1,14 +1,15 @@
 from datetime import date, timedelta
 
+from django.http import Http404, HttpResponse
 from django.utils import timezone
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from plants.models import PlantSpecies
+from plants.models import PlantSpecies, UserPlant
 from plants.queries import household_plants_queryset, household_waterings_queryset
 from plants.serializers import (
     FeedPlantSerializer,
@@ -17,7 +18,7 @@ from plants.serializers import (
     WateringEventSerializer,
     plant_photo_url,
 )
-from plants.services.photos import photo_to_data_url
+from plants.services.photos import InvalidPhoto, decode_data_url, photo_digest, photo_to_data_url
 from plants.services.schedule import (
     display_name,
     feed_sort_key,
@@ -95,7 +96,10 @@ class UserPlantViewSet(viewsets.ModelViewSet):
         photo = request.FILES.get('photo')
         if not photo:
             return Response({'detail': 'Файл photo обязателен.'}, status=status.HTTP_400_BAD_REQUEST)
-        plant.photo_data = photo_to_data_url(photo)
+        try:
+            plant.photo_data = photo_to_data_url(photo)
+        except InvalidPhoto as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         plant.save(update_fields=['photo_data', 'updated_at'])
         return Response(self.get_serializer(plant).data)
 
@@ -113,6 +117,22 @@ class UserPlantViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='stats')
     def stats(self, request, pk=None):
         return Response(plant_stats(self.get_object()))
+
+
+class PlantPhotoView(APIView):
+    """Public, content-addressed photo URL so <img> works without auth headers and caches forever."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk: int, digest: str):
+        plant = UserPlant.objects.filter(pk=pk).only('photo_data').first()
+        if not plant or not plant.photo_data or photo_digest(plant.photo_data) != digest:
+            raise Http404
+        content_type, body = decode_data_url(plant.photo_data)
+        response = HttpResponse(body, content_type=content_type)
+        response['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return response
 
 
 class WateringDestroyView(generics.DestroyAPIView):

@@ -8,11 +8,11 @@
     <section class="panel">
       <h2>Уведомления</h2>
       <label class="row">
-        <input v-model="prefs.enabled" type="checkbox" @change="savePrefs" />
+        <input v-model="prefs.enabled" type="checkbox" @change="savePrefs()" />
         Push-напоминания
       </label>
       <AuthRRField label="Время">
-        <input v-model="prefs.remind_time" type="time" class="time" @change="savePrefs" />
+        <input v-model="prefs.remind_time" type="time" class="time" @change="savePrefs()" />
       </AuthRRField>
       <AuthRRButton v-if="pushSupported" class="full" @click="enablePush">
         Подключить push на этом устройстве
@@ -46,15 +46,31 @@ onMounted(async () => {
   await ensureAuth()
   const { data } = await getApi().get('/api/me/notification-prefs')
   Object.assign(prefs, data)
+  prefs.remind_time = String(prefs.remind_time).slice(0, 5)
 })
 
-async function savePrefs() {
+function deviceTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || prefs.timezone_name
+  } catch {
+    return prefs.timezone_name
+  }
+}
+
+async function savePrefs(silent = false) {
   await ensureAuth()
-  await getApi().patch('/api/me/notification-prefs', prefs)
+  prefs.timezone_name = deviceTimezone()
+  try {
+    await getApi().patch('/api/me/notification-prefs', prefs)
+    if (!silent) notify('Сохранено', 'success')
+  } catch {
+    notify('Не удалось сохранить настройки', 'warn')
+  }
 }
 
 async function enablePush() {
   const ok = await subscribe()
+  if (ok) await savePrefs(true)
   notify(ok ? 'Push подключён' : 'Не удалось подключить push', ok ? 'success' : 'warn')
 }
 

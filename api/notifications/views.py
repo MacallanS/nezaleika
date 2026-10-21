@@ -1,14 +1,14 @@
-import json
+import hmac
 
 from django.conf import settings
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from notifications.models import PushSubscription
-from notifications.push import send_web_push
-from notifications.cron import today_payload, urgent_plants
+from notifications.push import push_configured, send_web_push
+from notifications.cron import send_scheduled_push, today_payload, urgent_plants
 from notifications.serializers import PushSubscribeSerializer
 
 
@@ -52,14 +52,34 @@ class PushTestView(APIView):
         subs = PushSubscription.objects.filter(user=request.user)
         if not subs.exists():
             return Response({'detail': 'Нет push-подписки.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not push_configured():
+            return Response({'detail': 'Push не настроен на сервере.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         payload = {
             'title': 'Незалейка',
             'body': 'Тестовое уведомление — всё работает!',
             'url': '/',
         }
-        for sub in subs:
-            send_web_push(sub, payload)
-        return Response({'ok': True, 'sent': subs.count()})
+        sent = sum(1 for sub in list(subs) if send_web_push(sub, payload))
+        if not sent:
+            return Response(
+                {'detail': 'Не удалось доставить. Подключите push на этом устройстве заново.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        return Response({'ok': True, 'sent': sent})
+
+
+class CronPushView(APIView):
+    """Called by the external scheduler (GitHub Actions) every 15 minutes."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        secret = settings.CRON_SECRET
+        given = request.headers.get('X-Cron-Secret', '')
+        if not secret or not hmac.compare_digest(given, secret):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return Response({'ok': True, 'sent': send_scheduled_push()})
 
 
 class PushNotifyPlantsView(APIView):

@@ -7,8 +7,12 @@ from pywebpush import WebPushException, webpush
 logger = logging.getLogger(__name__)
 
 
+def push_configured() -> bool:
+    return bool(settings.VAPID_PRIVATE_KEY and settings.VAPID_PUBLIC_KEY)
+
+
 def send_web_push(subscription, payload: dict) -> bool:
-    if not settings.VAPID_PRIVATE_KEY or not settings.VAPID_PUBLIC_KEY:
+    if not push_configured():
         logger.warning('VAPID keys not configured, skip push')
         return False
     sub_info = {

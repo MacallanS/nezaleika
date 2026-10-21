@@ -11,6 +11,7 @@ class NotificationPrefs(models.Model):
         default=True,
         help_text='Только просроченные и на сегодня',
     )
+    last_sent_on = models.DateField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Настройки уведомлений'

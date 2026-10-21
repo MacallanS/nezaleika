@@ -65,15 +65,29 @@ const photoFile = ref<File | null>(null)
 const preview = ref('')
 const saving = ref(false)
 
-async function searchSpecies() {
-  await ensureAuth()
-  const { data } = await getApi().get<{ results?: Species[] } | Species[]>('/api/species', {
-    params: { q: query.value },
-  })
-  species.value = Array.isArray(data) ? data : (data.results ?? [])
+let searchSeq = 0
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+
+async function loadSpecies() {
+  const seq = ++searchSeq
+  try {
+    await ensureAuth()
+    const { data } = await getApi().get<{ results?: Species[] } | Species[]>('/api/species', {
+      params: { q: query.value.trim() },
+    })
+    if (seq === searchSeq) species.value = Array.isArray(data) ? data : (data.results ?? [])
+  } catch {
+    if (seq === searchSeq) notify('Не удалось загрузить список растений', 'error')
+  }
 }
 
-onMounted(() => searchSpecies())
+function searchSpecies() {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(loadSpecies, 250)
+}
+
+onMounted(loadSpecies)
+onBeforeUnmount(() => clearTimeout(searchTimer))
 
 function selectSpecies(s: Species) {
   selected.value = s
@@ -106,10 +120,16 @@ async function submit() {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     const watered = lastWatered.value === todayIso ? new Date() : wateredAt
-    await api.post(`/api/plants/${data.id}/waterings/`, { watered_at: watered.toISOString() })
-    await plantsStore.fetchAgenda()
+    let wateringSaved = true
+    try {
+      await api.post(`/api/plants/${data.id}/waterings/`, { watered_at: watered.toISOString() })
+    } catch {
+      wateringSaved = false
+    }
+    await plantsStore.fetchAgenda().catch(() => undefined)
     await router.replace('/')
-    notify(`${name.value} добавлен`)
+    if (wateringSaved) notify(`${name.value} добавлен`)
+    else notify(`${name.value} добавлен, но полив не записался — отметьте его в карточке`, 'warn')
   } catch {
     notify('Не удалось сохранить растение', 'error')
     saving.value = false

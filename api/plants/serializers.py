@@ -5,7 +5,7 @@ from django.utils.dateparse import parse_datetime
 from rest_framework import serializers
 
 from plants.models import PlantSpecies, UserPlant, WateringEvent
-from plants.services.photos import photo_to_data_url
+from plants.services.photos import InvalidPhoto, photo_digest, photo_to_data_url
 from plants.services.schedule import (
     days_until_due,
     display_name,
@@ -19,7 +19,8 @@ from plants.services.schedule import (
 
 def plant_photo_url(obj: UserPlant, request=None) -> str | None:
     if obj.photo_data:
-        return obj.photo_data
+        path = f'/api/photos/{obj.pk}/{photo_digest(obj.photo_data)}.jpg'
+        return request.build_absolute_uri(path) if request else path
     if obj.photo:
         try:
             return request.build_absolute_uri(obj.photo.url) if request else obj.photo.url
@@ -142,7 +143,10 @@ class UserPlantSerializer(serializers.ModelSerializer):
     def _apply_photo(self, validated_data):
         upload = validated_data.pop('photo', None)
         if upload:
-            validated_data['photo_data'] = photo_to_data_url(upload)
+            try:
+                validated_data['photo_data'] = photo_to_data_url(upload)
+            except InvalidPhoto as e:
+                raise serializers.ValidationError({'photo': str(e)}) from e
 
     def create(self, validated_data):
         request = self.context['request']

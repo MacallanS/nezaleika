@@ -5,12 +5,19 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from accounts.views import CsrfView, LoginView, LogoutView, MeView, NotificationPrefsView
-from notifications.views import PushNotifyPlantsView, PushSubscribeView, PushTestView, VapidPublicKeyView
+from notifications.views import (
+    CronPushView,
+    PushNotifyPlantsView,
+    PushSubscribeView,
+    PushTestView,
+    VapidPublicKeyView,
+)
 from plants.views import (
     AgendaView,
     CalendarView,
     DashboardView,
     FeedWateringView,
+    PlantPhotoView,
     PlantSpeciesListView,
     UserPlantViewSet,
     WateringDestroyView,
@@ -34,10 +41,12 @@ urlpatterns = [
     path('api/widget/next', WidgetNextView.as_view()),
     path('api/dashboard', DashboardView.as_view()),
     path('api/waterings/<int:pk>', WateringDestroyView.as_view()),
+    path('api/photos/<int:pk>/<str:digest>.jpg', PlantPhotoView.as_view()),
     path('api/push/vapid-public-key', VapidPublicKeyView.as_view()),
     path('api/push/subscribe', PushSubscribeView.as_view()),
     path('api/push/test', PushTestView.as_view()),
     path('api/push/notify-urgent', PushNotifyPlantsView.as_view()),
+    path('api/push/cron', CronPushView.as_view()),
     path('api/', include(router.urls)),
 ]
 

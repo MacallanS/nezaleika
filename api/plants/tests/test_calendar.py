@@ -1,8 +1,11 @@
 from datetime import date, datetime, timedelta
+from io import BytesIO
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from PIL import Image
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -48,13 +51,15 @@ class PlannedDatesTests(ScheduleTestBase):
         self.assertEqual(dates[0], TODAY + timedelta(days=7))
 
 
-class CalendarApiTests(ScheduleTestBase):
+class ApiTestBase(ScheduleTestBase):
     def setUp(self):
         super().setUp()
         self.client = APIClient()
         token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
+
+class CalendarApiTests(ApiTestBase):
     def test_agenda_groups_plants(self):
         overdue = self.plant(TODAY - timedelta(days=20), 'Old')
         due_today = self.plant(TODAY - timedelta(days=7), 'Today')
@@ -97,6 +102,34 @@ class CalendarApiTests(ScheduleTestBase):
         res = self.client.delete(f'/api/waterings/{w.id}')
         self.assertEqual(res.status_code, 204)
         self.assertFalse(WateringEvent.objects.filter(pk=w.id).exists())
+
+
+class PhotoTests(ApiTestBase):
+    def upload(self, plant, content: bytes, name='p.jpg'):
+        return self.client.post(
+            f'/api/plants/{plant.id}/photo/', {'photo': SimpleUploadedFile(name, content)}, format='multipart'
+        )
+
+    def test_agenda_links_photo_instead_of_inlining_it(self):
+        p = self.plant(TODAY)
+        buf = BytesIO()
+        Image.new('RGB', (1200, 800), 'green').save(buf, format='PNG')
+        self.assertEqual(self.upload(p, buf.getvalue(), 'p.png').status_code, 200)
+
+        url = self.client.get('/api/agenda').data['plants'][str(p.id)]['photo_url']
+        self.assertRegex(url, rf'/api/photos/{p.id}/[0-9a-f]{{20}}\.jpg$')
+
+        anon = APIClient()
+        res = anon.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res['Content-Type'], 'image/jpeg')
+        self.assertIn('immutable', res['Cache-Control'])
+        self.assertEqual(Image.open(BytesIO(res.content)).size, (900, 600))
+        self.assertEqual(anon.get(f'/api/photos/{p.id}/{"0" * 20}.jpg').status_code, 404)
+
+    def test_rejects_non_image(self):
+        p = self.plant(TODAY)
+        self.assertEqual(self.upload(p, b'not an image').status_code, 400)
 
 
 class StatsTests(ScheduleTestBase):

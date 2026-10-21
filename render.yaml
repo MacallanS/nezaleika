@@ -34,3 +34,11 @@ services:
         value: https://macallans.github.io/nezaleika
       - key: NEZALEIKA_USER_PASSWORD
         value: Nezaleika2026!
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_CLAIMS_EMAIL
+        sync: false
+      - key: CRON_SECRET
+        sync: false

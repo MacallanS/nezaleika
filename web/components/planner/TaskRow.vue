@@ -107,7 +107,8 @@ function close() {
 function onCheck() {
   if (props.busy) return
   close()
-  emit(props.done ? 'uncheck' : 'check')
+  if (props.done) emit('uncheck')
+  else emit('check')
 }
 
 function onSnooze() {

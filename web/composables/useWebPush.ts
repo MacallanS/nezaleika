@@ -22,17 +22,30 @@ export function useWebPush() {
     }
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return false
-    const reg = await navigator.serviceWorker.ready
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(data.publicKey),
-    })
-    const json = sub.toJSON()
-    await getApi().post('/api/push/subscribe', {
-      endpoint: json.endpoint,
-      keys: json.keys,
-    })
-    return true
+    try {
+      const reg = await navigator.serviceWorker.ready
+      const options = {
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(data.publicKey),
+      }
+      let sub: PushSubscription
+      try {
+        sub = await reg.pushManager.subscribe(options)
+      } catch {
+        // A subscription made with another VAPID key must be dropped first.
+        await (await reg.pushManager.getSubscription())?.unsubscribe()
+        sub = await reg.pushManager.subscribe(options)
+      }
+      const json = sub.toJSON()
+      await getApi().post('/api/push/subscribe', {
+        endpoint: json.endpoint,
+        keys: json.keys,
+      })
+      return true
+    } catch (e) {
+      console.warn('[push] subscribe failed', e)
+      return false
+    }
   }
 
   async function sendTest() {

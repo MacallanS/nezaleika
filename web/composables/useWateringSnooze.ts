@@ -1,8 +1,8 @@
 const SNOOZE_PREFIX = 'nezaleika_snooze_'
 
-function tomorrowEnd(): string {
+/** Hidden for the rest of today; tomorrow the plant is due again. */
+function todayEnd(): string {
   const d = new Date()
-  d.setDate(d.getDate() + 1)
   d.setHours(23, 59, 59, 999)
   return d.toISOString()
 }
@@ -21,7 +21,7 @@ export function useWateringSnooze() {
 
   function snoozeUntilTomorrow(plantId: number) {
     if (!import.meta.client) return
-    localStorage.setItem(`${SNOOZE_PREFIX}${plantId}`, tomorrowEnd())
+    localStorage.setItem(`${SNOOZE_PREFIX}${plantId}`, todayEnd())
   }
 
   function filterSnoozed<T extends { id: number }>(items: T[]): T[] {

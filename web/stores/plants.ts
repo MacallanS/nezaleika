@@ -96,6 +96,9 @@ const emptySections = (): Agenda['sections'] => ({
   later: [],
 })
 
+/** Only the latest calendar request may write to the store (fast month swiping). */
+let calendarSeq = 0
+
 export const usePlantsStore = defineStore('plants', {
   state: () => ({
     agenda: null as Agenda | null,
@@ -115,9 +118,10 @@ export const usePlantsStore = defineStore('plants', {
       this.agenda = { ...data, sections: { ...emptySections(), ...data.sections } }
     },
     async fetchCalendar(from: string, to: string) {
+      const seq = ++calendarSeq
       await ensureAuth()
       const { data } = await getApi().get<CalendarRange>('/api/calendar', { params: { from, to } })
-      this.calendar = data
+      if (seq === calendarSeq) this.calendar = data
     },
     async fetchList() {
       await ensureAuth()
