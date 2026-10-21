@@ -51,9 +51,8 @@ export const usePlantsStore = defineStore('plants', {
     },
     async waterPlant(id: number, wateredAt?: string) {
       await ensureAuth()
-      await getApi().post(`/api/plants/${id}/waterings/`, {
-        watered_at: wateredAt || new Date().toISOString(),
-      })
+      const body = wateredAt ? { watered_at: wateredAt } : {}
+      await getApi().post(`/api/plants/${id}/waterings/`, body)
       await this.refreshFeed()
     },
     async fetchPlant(id: number) {

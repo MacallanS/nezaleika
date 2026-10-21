@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { AuthRRButton, AuthRRField } from 'bibli/shared/ui/rr'
 import { ensureAuth, getApi } from '~/utils/api'
+import { notify } from '~/utils/toast'
 
 const auth = useAuthStore()
 const { supported: pushSupported, subscribe, sendTest } = useWebPush()
@@ -53,11 +54,14 @@ async function savePrefs() {
 }
 
 async function enablePush() {
-  await subscribe()
+  const ok = await subscribe()
+  notify(ok ? 'Push подключён' : 'Не удалось подключить push', ok ? 'success' : 'warn')
 }
 
 async function testPush() {
-  await sendTest()
+  const result = await sendTest()
+  if (result.ok) notify('Тестовое уведомление отправлено')
+  else notify(result.detail || 'Ошибка push', 'warn')
 }
 
 async function logout() {

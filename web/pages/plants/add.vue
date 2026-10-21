@@ -1,14 +1,14 @@
 <template>
-  <div class="nz-page add">
-    <header class="head">
-      <NuxtLink to="/plants">← Назад</NuxtLink>
-      <h1>{{ step === 1 ? 'Выберите вид' : 'Ваш цветок' }}</h1>
-    </header>
+  <div class="nz-page nz-page--rr add-page">
+    <AppPageHeaderRR
+      :title="step === 1 ? 'Выберите вид' : 'Новый цветок'"
+      child-page
+      parent-title="Мои растения"
+      parent-to="/plants"
+    />
 
-    <div v-if="step === 1" class="step">
-      <AuthRRField label="Поиск">
-        <AuthRRInputText v-model="query" placeholder="Монстера, фикус…" @input="searchSpecies" />
-      </AuthRRField>
+    <div v-if="step === 1" class="add-page__body">
+      <AuthRRInputText v-model="query" label="Поиск" placeholder="Монстера, фикус…" @input="searchSpecies" />
       <ul class="species-list">
         <li v-for="s in species" :key="s.id">
           <button type="button" class="species-item" @click="selectSpecies(s)">
@@ -19,11 +19,9 @@
       </ul>
     </div>
 
-    <form v-else class="step" @submit.prevent="submit">
+    <form v-else class="add-page__body" @submit.prevent="submit">
       <p class="picked">{{ selected?.name_ru }}</p>
-      <AuthRRField label="Имя у вас дома">
-        <AuthRRInputText v-model="name" required />
-      </AuthRRField>
+      <AuthRRInputText v-model="name" label="Имя у вас дома" required />
       <AuthRRField label="Дата добавления">
         <input v-model="addedDate" type="date" class="date-input" required />
       </AuthRRField>
@@ -31,18 +29,21 @@
         <input type="file" accept="image/*" capture="environment" @change="onFile" />
         <div v-if="preview" class="preview" :style="{ backgroundImage: `url(${preview})` }" />
       </AuthRRField>
-      <AuthRRButton type="submit" :disabled="saving" class="submit">Сохранить</AuthRRButton>
+      <AuthRRButton type="submit" :disabled="saving" class="submit">
+        {{ saving ? 'Сохраняем…' : 'Сохранить' }}
+      </AuthRRButton>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useToast } from 'bibli/shared/ui/legacy/Toast'
+import { AppPageHeaderRR } from 'bibli/widgets/Layout/rr'
 import { AuthRRButton, AuthRRField, AuthRRInputText } from 'bibli/shared/ui/rr'
 import { ensureAuth, getApi } from '~/utils/api'
+import { notify } from '~/utils/toast'
 
-const toast = useToast()
 const plantsStore = usePlantsStore()
+const router = useRouter()
 
 interface Species {
   id: number
@@ -85,78 +86,82 @@ function onFile(e: Event) {
 }
 
 async function submit() {
-  if (!selected.value) return
+  if (!selected.value || saving.value) return
   saving.value = true
   try {
     await ensureAuth()
     const api = getApi()
     const addedAt = new Date(`${addedDate.value}T12:00:00`).toISOString()
     const form = new FormData()
-    form.append('name', name.value)
+    form.append('name', name.value.trim())
     form.append('species_id', String(selected.value.id))
     form.append('added_at', addedAt)
     if (photoFile.value) form.append('photo', photoFile.value)
-    const { data } = await api.post('/api/plants/', form, {
+    const { data } = await api.post<{ id: number }>('/api/plants/', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     await plantsStore.refreshFeed()
-    toast.success(`${name.value} добавлен в коллекцию`)
-    await navigateTo(`/?plant=${data.id}`)
-  } finally {
+    await router.replace(`/?plant=${data.id}`)
+    notify(`${name.value} добавлен`)
+  } catch {
+    notify('Не удалось сохранить растение', 'error')
     saving.value = false
   }
 }
 </script>
 
 <style scoped>
-.head {
-  padding: 16px;
+.add-page {
+  background: var(--rr-color-bg-surface-primary, #f2f3f7);
 }
-.head a {
-  color: #2e7d32;
-  text-decoration: none;
-  font-weight: 600;
-}
-.head h1 {
-  margin: 8px 0 0;
-  font-size: 22px;
-}
-.step {
+.add-page__body {
   padding: 0 16px 24px;
+  max-width: 560px;
+  margin: 0 auto;
 }
 .species-list {
   list-style: none;
   margin: 16px 0 0;
   padding: 0;
-  max-height: 60vh;
+  max-height: calc(100dvh - 220px);
   overflow: auto;
+  border-radius: 16px;
+  background: var(--rr-color-bg-surface-secondary, #fff);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 .species-item {
   width: 100%;
   text-align: left;
-  padding: 14px 12px;
+  padding: 14px 16px;
   border: none;
-  border-bottom: 1px solid #eee;
-  background: #fff;
+  border-bottom: 1px solid var(--rr-color-border-subtle, #eee);
+  background: transparent;
   cursor: pointer;
+}
+.species-item:last-child {
+  border-bottom: none;
 }
 .species-item strong {
   display: block;
+  font-size: 15px;
 }
 .species-item span {
   font-size: 12px;
-  color: #888;
+  color: var(--rr-color-text-secondary, #888);
 }
 .picked {
   font-weight: 700;
   color: #2e7d32;
+  margin: 0 0 8px;
 }
 .date-input {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--rr-color-border-subtle, #ddd);
   font: inherit;
+  box-sizing: border-box;
+  background: var(--rr-color-bg-surface-secondary, #fff);
 }
 .preview {
   margin-top: 12px;

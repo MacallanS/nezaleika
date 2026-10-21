@@ -37,7 +37,16 @@ export function useWebPush() {
 
   async function sendTest() {
     await ensureAuth()
-    await getApi().post('/api/push/test')
+    try {
+      await getApi().post('/api/push/test')
+      return { ok: true as const }
+    } catch (e: unknown) {
+      const detail =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined
+      return { ok: false as const, detail: detail || 'Сначала подключите push на этом устройстве.' }
+    }
   }
 
   return { supported, subscribe, sendTest }

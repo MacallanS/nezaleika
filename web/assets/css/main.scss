@@ -24,6 +24,10 @@ body {
   box-sizing: border-box;
 }
 
+.nz-page--rr {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
 .nz-accent {
   color: #2e7d32;
 }

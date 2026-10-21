@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import serializers
 
 from plants.models import PlantSpecies, UserPlant, WateringEvent
@@ -34,9 +37,17 @@ class WateringEventSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at')
 
     def validate_watered_at(self, value):
-        if value > timezone.now():
+        now = timezone.now()
+        if value > now + timedelta(minutes: 2):
             raise serializers.ValidationError('Дата полива не может быть в будущем.')
+        if value > now:
+            return now
         return value
+
+    def create(self, validated_data):
+        if 'watered_at' not in validated_data or validated_data['watered_at'] is None:
+            validated_data['watered_at'] = timezone.now()
+        return super().create(validated_data)
 
 
 class UserPlantSerializer(serializers.ModelSerializer):
@@ -108,7 +119,18 @@ class UserPlantSerializer(serializers.ModelSerializer):
         return obj.added_at.isoformat()
 
     def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
+        request = self.context['request']
+        if 'added_at' not in validated_data:
+            raw = request.data.get('added_at')
+            if raw:
+                parsed = parse_datetime(str(raw))
+                if parsed:
+                    if timezone.is_naive(parsed):
+                        parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                    validated_data['added_at'] = parsed
+        if 'added_at' not in validated_data:
+            validated_data['added_at'] = timezone.now()
+        validated_data['user'] = request.user
         return super().create(validated_data)
 
 

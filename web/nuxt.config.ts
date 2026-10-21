@@ -160,8 +160,8 @@ export default defineNuxtConfig({
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
       globIgnores: ['**/200.html', '**/404.html'],
       maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-      // Shell must be precached; directory URL /nezaleika/ is not a file.
-      navigateFallback: 'index.html',
+      // Must match a precached shell URL (see manifest: /nezaleika/ or index.html at base).
+      navigateFallback: basePath,
       navigateFallbackDenylist: [/^\/api\//, /\/sw\.js$/, /\/workbox-.*\.js$/],
       cleanupOutdatedCaches: true,
       clientsClaim: true,
