@@ -1,34 +1,42 @@
 <template>
   <div class="nz-page profile">
-    <header class="head">
-      <h1>Профиль</h1>
-      <p v-if="auth.user">{{ auth.user.first_name || auth.user.username }}</p>
-    </header>
+    <NzHeader title="Профиль" :subtitle="displayName" />
 
-    <section class="panel">
-      <h2>Уведомления</h2>
-      <label class="row">
-        <input v-model="prefs.enabled" type="checkbox" @change="savePrefs()" />
-        Push-напоминания
-      </label>
-      <AuthRRField label="Время">
-        <input v-model="prefs.remind_time" type="time" class="time" @change="savePrefs()" />
-      </AuthRRField>
-      <AuthRRButton v-if="pushSupported" class="full" @click="enablePush">
-        Подключить push на этом устройстве
-      </AuthRRButton>
-      <AuthRRButton class="full mt" @click="testPush">
-        Тестовое уведомление
-      </AuthRRButton>
-      <p class="hint">На iPhone: добавьте приложение на экран «Домой», затем включите push.</p>
-    </section>
+    <div class="nz-body">
+      <section class="nz-card" aria-label="Уведомления">
+        <h2 class="nz-card__title">Уведомления</h2>
+        <label class="nz-setting">
+          <span>Напоминания</span>
+          <input v-model="prefs.enabled" class="nz-switch" type="checkbox" @change="savePrefs()" />
+        </label>
+        <label class="nz-setting" :class="{ 'is-off': !prefs.enabled }">
+          <span>Время</span>
+          <input
+            v-model="prefs.remind_time"
+            class="nz-time"
+            type="time"
+            :disabled="!prefs.enabled"
+            @change="savePrefs()"
+          />
+        </label>
+      </section>
 
-    <AuthRRButton class="logout full" @click="logout">Выйти</AuthRRButton>
+      <section class="nz-card nz-card--pad">
+        <AuthRRButton v-if="pushSupported" @click="enablePush">Подключить на этом телефоне</AuthRRButton>
+        <AuthRRButton variant="neutral-secondary" @click="testPush">Проверить уведомление</AuthRRButton>
+        <p class="nz-hint">На iPhone сначала добавьте приложение на экран «Домой», потом включите напоминания.</p>
+      </section>
+
+      <section class="nz-card">
+        <button type="button" class="nz-setting nz-setting--danger" @click="logout">Выйти</button>
+      </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { AuthRRButton, AuthRRField } from 'bibli/shared/ui/rr'
+import { AuthRRButton } from 'bibli/shared/ui/rr'
+import NzHeader from '~/components/planner/NzHeader.vue'
 import { ensureAuth, getApi } from '~/utils/api'
 import { notify } from '~/utils/toast'
 
@@ -41,6 +49,8 @@ const prefs = reactive({
   timezone_name: 'Europe/Moscow',
   only_urgent: true,
 })
+
+const displayName = computed(() => auth.user?.first_name || auth.user?.username || '')
 
 onMounted(async () => {
   await ensureAuth()
@@ -57,12 +67,11 @@ function deviceTimezone() {
   }
 }
 
-async function savePrefs(silent = false) {
+async function savePrefs() {
   await ensureAuth()
   prefs.timezone_name = deviceTimezone()
   try {
     await getApi().patch('/api/me/notification-prefs', prefs)
-    if (!silent) notify('Сохранено', 'success')
   } catch {
     notify('Не удалось сохранить настройки', 'warn')
   }
@@ -70,14 +79,17 @@ async function savePrefs(silent = false) {
 
 async function enablePush() {
   const ok = await subscribe()
-  if (ok) await savePrefs(true)
-  notify(ok ? 'Push подключён' : 'Не удалось подключить push', ok ? 'success' : 'warn')
+  if (ok) {
+    prefs.enabled = true
+    await savePrefs()
+  }
+  notify(ok ? 'Напоминания подключены' : 'Не удалось подключить напоминания', ok ? 'success' : 'warn')
 }
 
 async function testPush() {
   const result = await sendTest()
-  if (result.ok) notify('Тестовое уведомление отправлено')
-  else notify(result.detail || 'Ошибка push', 'warn')
+  if (result.ok) notify('Проверочное уведомление отправлено')
+  else notify(result.detail || 'Уведомление не отправилось', 'warn')
 }
 
 async function logout() {
@@ -89,51 +101,5 @@ async function logout() {
 <style scoped>
 .profile {
   min-height: 100%;
-  background: #f4f6f5;
-}
-.head {
-  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 14px;
-}
-.head h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.head p {
-  margin: 2px 0 0;
-  color: #7b868c;
-}
-.panel {
-  margin: 0 12px;
-  padding: 16px;
-  background: #fff;
-  border-radius: 16px;
-}
-.row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.time {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-.full {
-  width: 100%;
-}
-.mt {
-  margin-top: 8px;
-}
-.hint {
-  font-size: 12px;
-  color: #666;
-  margin-top: 12px;
-}
-.logout {
-  margin: 24px 16px;
 }
 </style>

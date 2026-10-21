@@ -1,9 +1,8 @@
 <template>
   <div class="nz-page plist">
-    <header class="plist__head">
-      <h1>Растения</h1>
+    <NzHeader title="Растения">
       <NuxtLink to="/plants/add" class="plist__add" aria-label="Добавить растение">+</NuxtLink>
-    </header>
+    </NzHeader>
 
     <div class="plist__search">
       <input v-model="query" type="search" placeholder="Поиск по имени, виду, комнате" aria-label="Поиск" />
@@ -39,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import NzHeader from '~/components/planner/NzHeader.vue'
 import type { PlantDetail } from '~/stores/plants'
 import { formatDayMonth, pluralDays } from '~/utils/dates'
 
@@ -88,19 +88,6 @@ function statusText(p: PlantDetail) {
 .plist {
   min-height: 100%;
   padding-bottom: 24px;
-  background: #f4f6f5;
-}
-.plist__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 10px;
-}
-.plist__head h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
 }
 .plist__add {
   width: 40px;
@@ -116,7 +103,7 @@ function statusText(p: PlantDetail) {
   text-decoration: none;
 }
 .plist__search {
-  padding: 0 12px 12px;
+  padding: 0 16px 12px;
 }
 .plist__search input {
   width: 100%;
@@ -150,7 +137,7 @@ function statusText(p: PlantDetail) {
 }
 .plist__list {
   list-style: none;
-  margin: 0 12px 12px;
+  margin: 0 16px 12px;
   padding: 0;
   border-radius: 16px;
   overflow: hidden;

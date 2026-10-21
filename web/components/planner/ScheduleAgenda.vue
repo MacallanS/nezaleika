@@ -122,7 +122,7 @@ function rowLabel(row: BoardRow): string {
   padding-bottom: 8px;
 }
 .day {
-  margin: 0 12px 12px;
+  margin: 0 16px 12px;
   scroll-margin-top: 8px;
 }
 .day__head {
@@ -134,7 +134,7 @@ function rowLabel(row: BoardRow): string {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 4px 6px;
-  background: #f4f6f5;
+  background: #f2f3f7;
 }
 .day__head h2 {
   margin: 0;

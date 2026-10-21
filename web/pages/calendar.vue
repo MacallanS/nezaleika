@@ -178,21 +178,26 @@ function open(id: number) {
 .cal {
   min-height: 100%;
   padding-bottom: 24px;
-  background: #f4f6f5;
 }
 .cal__head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: calc(env(safe-area-inset-top, 0px) + 14px) 12px 8px;
+  min-height: 40px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  background: #f2f3f7;
 }
 .cal__title {
   margin: 0 2px;
   white-space: nowrap;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
   letter-spacing: -0.02em;
-  color: #1c2326;
+  color: #101012;
 }
 .cal__nav {
   width: 34px;
@@ -254,7 +259,7 @@ function open(id: number) {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .cal__board {
-  margin: 0 12px;
+  margin: 0 16px;
   padding: 10px 0 8px;
   border-radius: 16px;
   background: #fff;
@@ -292,7 +297,7 @@ function open(id: number) {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: 18px 16px 10px 20px;
+  margin: 16px 16px 8px;
   min-height: 30px;
 }
 .cal__day-title {

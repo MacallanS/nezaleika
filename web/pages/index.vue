@@ -1,10 +1,6 @@
 <template>
   <div class="nz-page today">
-    <header class="today__head">
-      <div class="today__titles">
-        <h1>График</h1>
-        <p>{{ subtitle }}</p>
-      </div>
+    <NzHeader title="График" :subtitle="subtitle">
       <div class="ring" :aria-label="`Полито ${doneToday} из ${totalToday}`">
         <svg viewBox="0 0 44 44" aria-hidden="true">
           <circle cx="22" cy="22" r="18" class="ring__track" />
@@ -19,7 +15,7 @@
         </svg>
         <span class="ring__text">{{ doneToday }}/{{ totalToday }}</span>
       </div>
-    </header>
+    </NzHeader>
 
     <div v-if="!plants.calendar && loading" class="today__skeleton">
       <div v-for="i in 5" :key="i" class="today__skeleton-row" />
@@ -51,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import NzHeader from '~/components/planner/NzHeader.vue'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
 import { buildBoard } from '~/utils/scheduleBoard'
 import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
@@ -154,26 +151,6 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 .today {
   min-height: 100%;
   padding-bottom: 24px;
-  background: #f4f6f5;
-}
-.today__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 8px;
-}
-.today__titles h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #1c2326;
-}
-.today__titles p {
-  margin: 2px 0 0;
-  font-size: 14px;
-  color: #7b868c;
 }
 .ring {
   position: relative;
@@ -223,7 +200,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   100% { background-position: -100% 0; }
 }
 .today__empty {
-  margin: 28px 20px;
+  margin: 8px 16px 16px;
   padding: 28px 20px;
   border-radius: 18px;
   background: #fff;

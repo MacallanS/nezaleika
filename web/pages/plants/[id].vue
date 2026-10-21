@@ -1,11 +1,6 @@
 <template>
   <div class="nz-page detail">
-    <header class="detail__bar">
-      <button type="button" class="detail__back" aria-label="Назад" @click="goBack">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>
-      </button>
-      <span class="detail__bar-title">{{ plant?.name ?? '' }}</span>
-    </header>
+    <NzHeader :title="plant?.name || 'Растение'" back @back="goBack" />
 
     <div v-if="!plant" class="detail__loading">Загружаем…</div>
 
@@ -82,6 +77,7 @@
 
 <script setup lang="ts">
 import { AuthRRButton, AuthRRInputText } from 'bibli/shared/ui/rr'
+import NzHeader from '~/components/planner/NzHeader.vue'
 import HabitHeatmap from '~/components/planner/HabitHeatmap.vue'
 import type { PlantDetail, PlantStats, WateringRecord } from '~/stores/plants'
 import { ensureAuth, getApi } from '~/utils/api'
@@ -234,45 +230,6 @@ function goBack() {
 .detail {
   min-height: 100%;
   padding-bottom: 28px;
-  background: #f4f6f5;
-}
-.detail__bar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: calc(env(safe-area-inset-top, 0px) + 8px) 8px 8px;
-  background: rgba(244, 246, 245, 0.92);
-  backdrop-filter: blur(10px);
-}
-.detail__back {
-  width: 38px;
-  height: 38px;
-  border: none;
-  border-radius: 50%;
-  background: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.detail__back svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: #1c2326;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.detail__bar-title {
-  font-weight: 700;
-  font-size: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .detail__loading {
   padding: 32px 20px;
@@ -282,7 +239,7 @@ function goBack() {
   position: relative;
   display: block;
   height: 220px;
-  margin: 0 12px 12px;
+  margin: 0 16px 12px;
   border-radius: 20px;
   overflow: hidden;
   background: linear-gradient(135deg, #a5d6a7, #2e7d32) center / cover;
@@ -307,7 +264,7 @@ function goBack() {
   pointer-events: none;
 }
 .card {
-  margin: 0 12px 12px;
+  margin: 0 16px 12px;
   padding: 16px;
   border-radius: 16px;
   background: #fff;
