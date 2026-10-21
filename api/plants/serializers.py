@@ -38,7 +38,7 @@ class WateringEventSerializer(serializers.ModelSerializer):
 
     def validate_watered_at(self, value):
         now = timezone.now()
-        if value > now + timedelta(minutes: 2):
+        if value > now + timedelta(minutes=2):
             raise serializers.ValidationError('Дата полива не может быть в будущем.')
         if value > now:
             return now
