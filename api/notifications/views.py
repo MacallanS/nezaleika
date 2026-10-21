@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from notifications.models import PushSubscription
 from notifications.push import send_web_push
 from notifications.serializers import PushSubscribeSerializer
-from plants.models import UserPlant
+from plants.queries import household_plants_queryset
 from plants.services.schedule import feed_sort_key, watering_status
 
 
@@ -69,7 +69,7 @@ class PushNotifyPlantsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        plants = list(UserPlant.objects.filter(user=request.user).select_related('species').prefetch_related('waterings'))
+        plants = list(household_plants_queryset())
         urgent = [p for p in plants if watering_status(p) in ('overdue', 'due_today')]
         if not urgent:
             return Response({'detail': 'Нет срочных поливов.'}, status=status.HTTP_400_BAD_REQUEST)

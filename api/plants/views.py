@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from plants.models import PlantSpecies, UserPlant, WateringEvent
+from plants.queries import household_plants_queryset, household_waterings_queryset
 from plants.serializers import FeedPlantSerializer, PlantSpeciesSerializer, UserPlantSerializer, WateringEventSerializer
 from plants.services.schedule import feed_sort_key, interval_days, last_watering_at, next_due_at
 
@@ -35,7 +36,7 @@ class UserPlantViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        return UserPlant.objects.filter(user=self.request.user).select_related('species').prefetch_related('waterings')
+        return household_plants_queryset()
 
     @action(detail=True, methods=['post'], url_path='photo')
     def upload_photo(self, request, pk=None):
@@ -89,14 +90,14 @@ class WateringDestroyView(generics.DestroyAPIView):
     serializer_class = WateringEventSerializer
 
     def get_queryset(self):
-        return WateringEvent.objects.filter(user_plant__user=self.request.user)
+        return household_waterings_queryset()
 
 
 class FeedWateringView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        plants = list(UserPlant.objects.filter(user=request.user).select_related('species').prefetch_related('waterings'))
+        plants = list(household_plants_queryset())
         plants.sort(key=lambda p: feed_sort_key(p))
         data = FeedPlantSerializer(plants, many=True, context={'request': request}).data
         return Response(data)
@@ -106,7 +107,7 @@ class WidgetNextView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        plants = list(UserPlant.objects.filter(user=request.user).select_related('species').prefetch_related('waterings'))
+        plants = list(household_plants_queryset())
         plants.sort(key=lambda p: feed_sort_key(p))
         top = plants[:3]
         return Response(FeedPlantSerializer(top, many=True, context={'request': request}).data)
@@ -116,7 +117,7 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        plants = UserPlant.objects.filter(user=request.user).select_related('species').prefetch_related('waterings')
+        plants = household_plants_queryset()
         overdue = due_today = due_soon = ok = 0
         for p in plants:
             from plants.services.schedule import watering_status

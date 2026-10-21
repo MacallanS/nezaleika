@@ -5,14 +5,14 @@ from django.contrib.auth import get_user_model
 
 from notifications.models import NotificationPrefs, PushSubscription
 from notifications.push import send_web_push
-from plants.models import UserPlant
+from plants.queries import household_plants_queryset
 from plants.services.schedule import feed_sort_key, watering_status
 
 User = get_user_model()
 
 
-def _urgent_plants(user):
-    plants = list(UserPlant.objects.filter(user=user).select_related('species').prefetch_related('waterings'))
+def _urgent_plants(_user):
+    plants = list(household_plants_queryset())
     if not plants:
         return []
     urgent = [p for p in plants if watering_status(p) in ('overdue', 'due_today')]
