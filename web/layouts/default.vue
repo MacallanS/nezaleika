@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRussRedesignShell } from 'bibli/shared/theme/rr'
 import { AppShellRR } from 'bibli/widgets/Layout/rr'
 import type { AppUserChipMenuItem } from 'bibli/widgets/Layout/rr'
 import NotificationBell from '~/components/shell/NotificationBell.vue'
@@ -40,13 +41,19 @@ import {
 } from '~/composables/useNezaleikaShell'
 import { addDays, isoDate, parseIsoDate } from '~/utils/dates'
 
+useRussRedesignShell({ colorMode: 'light', density: '100', mobileBreakpoint: 1024 })
+
 const auth = useAuthStore()
 const plants = usePlantsStore()
 const chrome = usePageChromeState()
 const notif = useNotificationsPanel()
-const mobileTabs = useNezaleikaMobileTabs()
+const allMobileTabs = useNezaleikaMobileTabs()
 const navItems = useNezaleikaNavItems()
 const logoUrl = useNezaleikaLogoUrl()
+
+/** Таббар только ≤1024 — иначе shell думает, что это мобилка и на десктопе. */
+const isPhoneOrTablet = useMediaQuery('(max-width: 1024px)')
+const mobileTabs = computed(() => (isPhoneOrTablet.value ? allMobileTabs : []))
 
 const userName = computed(() => auth.user?.first_name || auth.user?.username || 'Профиль')
 const userRole = computed(() => '')
