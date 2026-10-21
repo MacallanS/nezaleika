@@ -7,6 +7,8 @@ from rest_framework.routers import DefaultRouter
 from accounts.views import CsrfView, LoginView, LogoutView, MeView, NotificationPrefsView
 from notifications.views import PushNotifyPlantsView, PushSubscribeView, PushTestView, VapidPublicKeyView
 from plants.views import (
+    AgendaView,
+    CalendarView,
     DashboardView,
     FeedWateringView,
     PlantSpeciesListView,
@@ -27,6 +29,8 @@ urlpatterns = [
     path('api/me/notification-prefs', NotificationPrefsView.as_view()),
     path('api/species', PlantSpeciesListView.as_view()),
     path('api/feed/watering', FeedWateringView.as_view()),
+    path('api/agenda', AgendaView.as_view()),
+    path('api/calendar', CalendarView.as_view()),
     path('api/widget/next', WidgetNextView.as_view()),
     path('api/dashboard', DashboardView.as_view()),
     path('api/waterings/<int:pk>', WateringDestroyView.as_view()),

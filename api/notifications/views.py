@@ -8,9 +8,8 @@ from rest_framework.views import APIView
 
 from notifications.models import PushSubscription
 from notifications.push import send_web_push
+from notifications.cron import today_payload, urgent_plants
 from notifications.serializers import PushSubscribeSerializer
-from plants.queries import household_plants_queryset
-from plants.services.schedule import feed_sort_key, watering_status
 
 
 class VapidPublicKeyView(APIView):
@@ -69,22 +68,11 @@ class PushNotifyPlantsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        plants = list(household_plants_queryset())
-        urgent = [p for p in plants if watering_status(p) in ('overdue', 'due_today')]
+        urgent = urgent_plants()
         if not urgent:
             return Response({'detail': 'Нет срочных поливов.'}, status=status.HTTP_400_BAD_REQUEST)
-        urgent.sort(key=lambda p: feed_sort_key(p))
-        plant = urgent[0]
-        photo_url = None
-        if plant.photo:
-            photo_url = request.build_absolute_uri(plant.photo.url)
-        payload = {
-            'title': f'Пора полить: {plant.name}',
-            'body': plant.species.name_ru,
-            'url': f'/plants/{plant.id}',
-            'image': photo_url,
-        }
+        payload = today_payload(urgent)
         subs = PushSubscription.objects.filter(user=request.user)
         for sub in subs:
             send_web_push(sub, payload)
-        return Response({'ok': True, 'plant_id': plant.id})
+        return Response({'ok': True, 'count': len(urgent)})

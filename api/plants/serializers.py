@@ -5,12 +5,27 @@ from django.utils.dateparse import parse_datetime
 from rest_framework import serializers
 
 from plants.models import PlantSpecies, UserPlant, WateringEvent
+from plants.services.photos import photo_to_data_url
 from plants.services.schedule import (
     days_until_due,
+    display_name,
+    interval_days,
+    last_watering,
     next_due_at,
     season_hint,
     watering_status,
 )
+
+
+def plant_photo_url(obj: UserPlant, request=None) -> str | None:
+    if obj.photo_data:
+        return obj.photo_data
+    if obj.photo:
+        try:
+            return request.build_absolute_uri(obj.photo.url) if request else obj.photo.url
+        except ValueError:
+            return None
+    return None
 
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
@@ -31,10 +46,16 @@ class PlantSpeciesSerializer(serializers.ModelSerializer):
 
 
 class WateringEventSerializer(serializers.ModelSerializer):
+    watered_by_name = serializers.SerializerMethodField()
+
     class Meta:
         model = WateringEvent
-        fields = ('id', 'watered_at', 'note', 'created_at')
-        read_only_fields = ('id', 'created_at')
+        fields = ('id', 'watered_at', 'note', 'created_at', 'watered_by_name')
+        read_only_fields = ('id', 'created_at', 'watered_by_name')
+        extra_kwargs = {'watered_at': {'required': False}}
+
+    def get_watered_by_name(self, obj):
+        return display_name(obj.watered_by)
 
     def validate_watered_at(self, value):
         now = timezone.now()
@@ -53,14 +74,17 @@ class WateringEventSerializer(serializers.ModelSerializer):
 class UserPlantSerializer(serializers.ModelSerializer):
     species_detail = PlantSpeciesSerializer(source='species', read_only=True)
     species_id = serializers.PrimaryKeyRelatedField(
-        queryset=PlantSpecies.objects.all(), source='species', write_only=True
+        queryset=PlantSpecies.objects.all(), source='species', write_only=True, required=False
     )
+    photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
     photo_url = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     next_due = serializers.SerializerMethodField()
     days_until = serializers.SerializerMethodField()
     season_hint = serializers.SerializerMethodField()
+    interval_days = serializers.SerializerMethodField()
     last_watered_at = serializers.SerializerMethodField()
+    last_watered_by = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPlant
@@ -78,48 +102,52 @@ class UserPlantSerializer(serializers.ModelSerializer):
             'next_due',
             'days_until',
             'season_hint',
+            'interval_days',
             'last_watered_at',
+            'last_watered_by',
             'created_at',
             'updated_at',
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'photo_url')
+        extra_kwargs = {'added_at': {'required': False}}
 
     def get_photo_url(self, obj):
-        request = self.context.get('request')
-        if obj.photo and request:
-            return request.build_absolute_uri(obj.photo.url)
-        if obj.photo:
-            return obj.photo.url
-        return None
-
-    def _schedule_fields(self, obj):
-        return {
-            'status': watering_status(obj),
-            'next_due': next_due_at(obj).isoformat(),
-            'days_until': days_until_due(obj),
-            'season_hint': season_hint(obj.species),
-        }
+        return plant_photo_url(obj, self.context.get('request'))
 
     def get_status(self, obj):
-        return self._schedule_fields(obj)['status']
+        return watering_status(obj)
 
     def get_next_due(self, obj):
-        return self._schedule_fields(obj)['next_due']
+        return next_due_at(obj).isoformat()
 
     def get_days_until(self, obj):
-        return self._schedule_fields(obj)['days_until']
+        return days_until_due(obj)
 
     def get_season_hint(self, obj):
-        return self._schedule_fields(obj)['season_hint']
+        return season_hint(obj.species)
+
+    def get_interval_days(self, obj):
+        return interval_days(obj.species)
 
     def get_last_watered_at(self, obj):
-        last = obj.waterings.order_by('-watered_at').first()
+        last = last_watering(obj)
         if last:
             return last.watered_at.isoformat()
         return obj.added_at.isoformat()
 
+    def get_last_watered_by(self, obj):
+        last = last_watering(obj)
+        return display_name(last.watered_by) if last else ''
+
+    def _apply_photo(self, validated_data):
+        upload = validated_data.pop('photo', None)
+        if upload:
+            validated_data['photo_data'] = photo_to_data_url(upload)
+
     def create(self, validated_data):
         request = self.context['request']
+        if 'species' not in validated_data:
+            raise serializers.ValidationError({'species_id': 'Выберите вид растения.'})
         if 'added_at' not in validated_data:
             raw = request.data.get('added_at')
             if raw:
@@ -131,7 +159,12 @@ class UserPlantSerializer(serializers.ModelSerializer):
         if 'added_at' not in validated_data:
             validated_data['added_at'] = timezone.now()
         validated_data['user'] = request.user
+        self._apply_photo(validated_data)
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        self._apply_photo(validated_data)
+        return super().update(instance, validated_data)
 
 
 class FeedPlantSerializer(UserPlantSerializer):
@@ -147,5 +180,7 @@ class FeedPlantSerializer(UserPlantSerializer):
             'next_due',
             'days_until',
             'season_hint',
+            'interval_days',
             'room',
+            'last_watered_by',
         )

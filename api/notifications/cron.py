@@ -10,14 +10,27 @@ from plants.services.schedule import feed_sort_key, watering_status
 
 User = get_user_model()
 
+MAX_NAMES = 3
 
-def _urgent_plants(_user):
-    plants = list(household_plants_queryset())
+
+def urgent_plants():
+    plants = [p for p in household_plants_queryset() if watering_status(p) in ('overdue', 'due_today')]
+    plants.sort(key=lambda p: feed_sort_key(p))
+    return plants
+
+
+def today_payload(plants) -> dict:
     if not plants:
-        return []
-    urgent = [p for p in plants if watering_status(p) in ('overdue', 'due_today')]
-    urgent.sort(key=lambda p: feed_sort_key(p))
-    return urgent
+        return {'title': 'Незалейка', 'body': 'Сегодня всё полито. Загляните в календарь.', 'url': '/'}
+    names = ', '.join(p.name for p in plants[:MAX_NAMES])
+    extra = len(plants) - MAX_NAMES
+    if extra > 0:
+        names += f' +{extra}'
+    overdue = sum(1 for p in plants if watering_status(p) == 'overdue')
+    title = f'Сегодня полить: {len(plants)}'
+    if overdue:
+        title += f' (просрочено {overdue})'
+    return {'title': title, 'body': names, 'url': '/', 'tag': 'nezaleika-today'}
 
 
 def send_scheduled_push():
@@ -31,31 +44,14 @@ def send_scheduled_push():
         local = now_utc.astimezone(tz)
         if local.minute >= 15:
             continue
-        target_hour = prefs.remind_time.hour
-        if local.hour != target_hour:
+        if local.hour != prefs.remind_time.hour:
             continue
         subs = PushSubscription.objects.filter(user=prefs.user)
         if not subs.exists():
             continue
-        urgent = _urgent_plants(prefs.user)
+        urgent = urgent_plants()
         if prefs.only_urgent and not urgent:
             continue
-        if urgent:
-            plant = urgent[0]
-            title = f'Пора полить: {plant.name}'
-            body = plant.species.name_ru
-            url = f'/plants/{plant.id}'
-            image = plant.photo.url if plant.photo else None
-            if image and not image.startswith('http'):
-                from django.conf import settings
-
-                image = f'{settings.PUBLIC_BASE_URL.rstrip("/")}{image}'
-            payload = {'title': title, 'body': body, 'url': url, 'image': image}
-        else:
-            payload = {
-                'title': 'Незалейка',
-                'body': 'Проверьте график полива ваших растений.',
-                'url': '/',
-            }
+        payload = today_payload(urgent)
         for sub in subs:
             send_web_push(sub, payload)

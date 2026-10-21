@@ -3,7 +3,7 @@
     <AppPageHeaderRR
       :title="step === 1 ? 'Выберите вид' : 'Новый цветок'"
       child-page
-      parent-title="Мои растения"
+      parent-title="Растения"
       parent-to="/plants"
     />
 
@@ -22,8 +22,9 @@
     <form v-else class="add-page__body" @submit.prevent="submit">
       <p class="picked">{{ selected?.name_ru }}</p>
       <AuthRRInputText v-model="name" label="Имя у вас дома" required />
-      <AuthRRField label="Дата добавления">
-        <input v-model="addedDate" type="date" class="date-input" required />
+      <AuthRRInputText v-model="room" label="Где стоит" placeholder="Кухня, спальня…" />
+      <AuthRRField label="Когда последний раз поливали">
+        <input v-model="lastWatered" type="date" class="date-input" :max="todayIso" required />
       </AuthRRField>
       <AuthRRField label="Фото">
         <input type="file" accept="image/*" capture="environment" @change="onFile" />
@@ -40,6 +41,7 @@
 import { AppPageHeaderRR } from 'bibli/widgets/Layout/rr'
 import { AuthRRButton, AuthRRField, AuthRRInputText } from 'bibli/shared/ui/rr'
 import { ensureAuth, getApi } from '~/utils/api'
+import { isoDate } from '~/utils/dates'
 import { notify } from '~/utils/toast'
 
 const plantsStore = usePlantsStore()
@@ -56,7 +58,9 @@ const query = ref('')
 const species = ref<Species[]>([])
 const selected = ref<Species | null>(null)
 const name = ref('')
-const addedDate = ref(new Date().toISOString().slice(0, 10))
+const todayIso = isoDate(new Date())
+const room = ref('')
+const lastWatered = ref(todayIso)
 const photoFile = ref<File | null>(null)
 const preview = ref('')
 const saving = ref(false)
@@ -91,17 +95,20 @@ async function submit() {
   try {
     await ensureAuth()
     const api = getApi()
-    const addedAt = new Date(`${addedDate.value}T12:00:00`).toISOString()
+    const wateredAt = new Date(`${lastWatered.value}T12:00:00`)
     const form = new FormData()
     form.append('name', name.value.trim())
+    form.append('room', room.value.trim())
     form.append('species_id', String(selected.value.id))
-    form.append('added_at', addedAt)
+    form.append('added_at', wateredAt.toISOString())
     if (photoFile.value) form.append('photo', photoFile.value)
     const { data } = await api.post<{ id: number }>('/api/plants/', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    await plantsStore.refreshFeed()
-    await router.replace(`/?plant=${data.id}`)
+    const watered = lastWatered.value === todayIso ? new Date() : wateredAt
+    await api.post(`/api/plants/${data.id}/waterings/`, { watered_at: watered.toISOString() })
+    await plantsStore.fetchAgenda()
+    await router.replace('/')
     notify(`${name.value} добавлен`)
   } catch {
     notify('Не удалось сохранить растение', 'error')

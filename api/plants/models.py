@@ -49,6 +49,7 @@ class UserPlant(models.Model):
     species = models.ForeignKey(PlantSpecies, on_delete=models.PROTECT, related_name='user_plants')
     name = models.CharField(max_length=200)
     photo = models.ImageField(upload_to='plants/%Y/%m/', blank=True, null=True)
+    photo_data = models.TextField(blank=True, help_text='Сжатое фото как data URL; диск Render не постоянный')
     room = models.CharField(max_length=120, blank=True)
     note = models.TextField(blank=True)
     added_at = models.DateTimeField()
@@ -67,6 +68,13 @@ class UserPlant(models.Model):
 class WateringEvent(models.Model):
     user_plant = models.ForeignKey(UserPlant, on_delete=models.CASCADE, related_name='waterings')
     watered_at = models.DateTimeField()
+    watered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='waterings',
+    )
     note = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

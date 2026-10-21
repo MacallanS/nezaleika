@@ -4,8 +4,8 @@ export function useNezaleikaMobileTabs(): MobileTabBarItemRR[] {
   return [
     {
       slot: 0,
-      key: 'feed',
-      label: 'Лента',
+      key: 'today',
+      label: 'Сегодня',
       to: '/',
       iconKey: 'home',
       state: 'link',
@@ -13,11 +13,12 @@ export function useNezaleikaMobileTabs(): MobileTabBarItemRR[] {
     },
     {
       slot: 1,
-      key: 'plants',
-      label: 'Мои',
-      to: '/plants',
-      iconKey: 'products',
+      key: 'calendar',
+      label: 'Календарь',
+      to: '/calendar',
+      iconKey: 'shifts',
       state: 'link',
+      matchExact: true,
     },
     {
       slot: 2,
@@ -26,13 +27,16 @@ export function useNezaleikaMobileTabs(): MobileTabBarItemRR[] {
       to: '/plants/add',
       iconKey: 'onboarding',
       state: 'link',
+      matchExact: true,
     },
     {
       slot: 3,
-      key: 'spacer',
-      label: '',
-      iconKey: 'home',
-      state: 'empty',
+      key: 'plants',
+      label: 'Растения',
+      to: '/plants',
+      iconKey: 'products',
+      state: 'link',
+      matchExact: true,
     },
     {
       slot: 4,

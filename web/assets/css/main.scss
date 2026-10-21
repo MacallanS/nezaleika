@@ -14,7 +14,7 @@ html {
 body {
   margin: 0;
   font-family: Manrope, system-ui, sans-serif;
-  background: var(--rr-color-bg-surface-primary, #f2f3f7);
+  background: #f4f6f5;
   color: var(--rr-color-text-primary, #1a1a1a);
   -webkit-font-smoothing: antialiased;
 }
@@ -28,8 +28,4 @@ body {
 
 .nz-accent {
   color: #2e7d32;
-}
-
-.nz-gradient-overlay {
-  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
 }

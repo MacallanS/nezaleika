@@ -47,7 +47,7 @@ export default defineNuxtConfig({
       title: 'Незалейка',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-        { name: 'theme-color', content: '#e8f5e9' },
+        { name: 'theme-color', content: '#f4f6f5' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
         { name: 'apple-mobile-web-app-title', content: 'Незалейка' },
@@ -60,7 +60,7 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2025-01-01',
   devtools: { enabled: false },
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', 'nuxt-swiper'],
+  modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
   css: ['~/assets/css/main.scss'],
   pinia: {
     storesDirs: ['./stores/**'],
@@ -134,10 +134,10 @@ export default defineNuxtConfig({
     manifest: {
       name: 'Незалейка',
       short_name: 'Незалейка',
-      description: 'Poliv komnatnyh rastenij',
+      description: 'Планировщик полива комнатных растений',
       lang: 'ru',
-      theme_color: '#e8f5e9',
-      background_color: '#e8f5e9',
+      theme_color: '#f4f6f5',
+      background_color: '#f4f6f5',
       display: 'standalone',
       orientation: 'portrait',
       scope: basePath,

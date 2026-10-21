@@ -2,7 +2,7 @@
   <div class="nz-page profile">
     <header class="head">
       <h1>Профиль</h1>
-      <p v-if="auth.user">@{{ auth.user.username }}</p>
+      <p v-if="auth.user">{{ auth.user.first_name || auth.user.username }}</p>
     </header>
 
     <section class="panel">
@@ -71,14 +71,25 @@ async function logout() {
 </script>
 
 <style scoped>
+.profile {
+  min-height: 100%;
+  background: #f4f6f5;
+}
 .head {
-  padding: 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 14px;
 }
 .head h1 {
   margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.head p {
+  margin: 2px 0 0;
+  color: #7b868c;
 }
 .panel {
-  margin: 0 16px;
+  margin: 0 12px;
   padding: 16px;
   background: #fff;
   border-radius: 16px;
