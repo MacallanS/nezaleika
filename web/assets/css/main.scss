@@ -3,6 +3,7 @@
 @import '@fontsource/manrope/700.css';
 @import 'bibli/shared/tokens/index.css';
 @import 'bibli/shared/theme/theme.css';
+@import './shell.scss';
 
 html {
   &[data-rr] {
@@ -19,13 +20,10 @@ body {
 }
 
 .nz-page {
-  min-height: 100dvh;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
-}
-
-.nz-page--rr {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
 }
 
 .nz-accent {

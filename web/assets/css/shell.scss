@@ -1,0 +1,75 @@
+@import 'bibli/widgets/Layout/rr/app-mobile-tab-bar-rr.css';
+@import 'bibli/widgets/Layout/rr/app-page-layout-rr.css';
+
+html.app-rr-shell,
+html.app-rr-shell body,
+html.app-rr-shell #__nuxt {
+  height: var(--app-shell-height, 100dvh);
+  min-height: var(--app-shell-height, 100dvh);
+  max-height: var(--app-shell-height, 100dvh);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.app-rr-shell body {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+}
+
+.content-wrapper--scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.content-wrapper--feed-immersive {
+  overflow: hidden;
+}
+
+html.app-rr-feed-lock .app-mobile-tab-bar-rr {
+  background: rgba(0, 0, 0, 0.94);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+html.app-rr-feed-lock .app-mobile-tab-bar-rr__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+html.app-rr-feed-lock .app-mobile-tab-bar-rr__btn.is-active .app-mobile-tab-bar-rr__label {
+  color: #fff;
+}
+
+.page-main--rr {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.page-content--feed-immersive {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0 !important;
+  overflow: hidden;
+  max-width: 100vw;
+}

@@ -33,6 +33,7 @@
 
     <WaterFeedSwiper
       ref="feedRef"
+      class="tt-home__feed"
       :items="feedPlants"
       :focus-plant-id="focusPlantId"
       @water="onWater"
@@ -110,12 +111,21 @@ function onSnooze(id: number) {
 
 <style scoped>
 .tt-home {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  min-height: 100dvh;
+  overflow: hidden;
   background: #000;
 }
+.tt-home__feed {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+}
 .tt-home__top {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;

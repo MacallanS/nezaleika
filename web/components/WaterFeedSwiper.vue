@@ -206,12 +206,12 @@ async function onWater(item: FeedPlant, fromDoubleTap = false) {
 
 <style scoped>
 .tt-feed {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-  z-index: 1;
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
   background: #000;
 }
 .tt-feed--empty {
@@ -261,7 +261,7 @@ async function onWater(item: FeedPlant, fromDoubleTap = false) {
 .tt-rail {
   position: absolute;
   right: 10px;
-  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   z-index: 3;
   display: flex;
   flex-direction: column;
