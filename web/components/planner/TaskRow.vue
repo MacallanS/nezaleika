@@ -1,7 +1,7 @@
 <template>
   <div class="task" :class="[`task--${tone}`, { 'task--done': done, 'task--open': offset < 0 }]">
     <div class="task__actions" aria-hidden="true">
-      <button v-if="!done" type="button" class="task__action task__action--snooze" tabindex="-1" @click="onSnooze">
+      <button v-if="canSnooze" type="button" class="task__action task__action--snooze" tabindex="-1" @click="onSnooze">
         Завтра
       </button>
       <button type="button" class="task__action task__action--open" tabindex="-1" @click="onOpen">
@@ -63,13 +63,16 @@ const props = withDefaults(
     tone?: 'overdue' | 'today' | 'normal'
     busy?: boolean
     checkable?: boolean
+    snoozable?: boolean
   }>(),
-  { done: false, doneBy: '', dueLabel: '', tone: 'normal', busy: false, checkable: true },
+  { done: false, doneBy: '', dueLabel: '', tone: 'normal', busy: false, checkable: true, snoozable: false },
 )
 
 const emit = defineEmits<{ check: []; uncheck: []; snooze: []; open: [] }>()
 
-const ACTIONS_WIDTH = 168
+const ACTION_WIDTH = 84
+const canSnooze = computed(() => props.snoozable && !props.done)
+const actionsWidth = computed(() => ACTION_WIDTH * (canSnooze.value ? 2 : 1))
 const offset = ref(0)
 let startX = 0
 let startY = 0
@@ -92,11 +95,11 @@ function onTouchMove(e: TouchEvent) {
   }
   if (tracking !== 'x') return
   e.preventDefault()
-  offset.value = Math.max(-ACTIONS_WIDTH, Math.min(0, startOffset + dx))
+  offset.value = Math.max(-actionsWidth.value, Math.min(0, startOffset + dx))
 }
 
 function onTouchEnd() {
-  if (tracking === 'x') offset.value = offset.value < -ACTIONS_WIDTH / 2 ? -ACTIONS_WIDTH : 0
+  if (tracking === 'x') offset.value = offset.value < -actionsWidth.value / 2 ? -actionsWidth.value : 0
   tracking = null
 }
 

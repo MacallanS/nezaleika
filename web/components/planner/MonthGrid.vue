@@ -14,21 +14,23 @@
           'month__day--today': cell.iso === today,
           'month__day--selected': cell.iso === selected,
         }"
-        :aria-label="formatDayMonth(cell.iso)"
+        :aria-label="cell.label"
         :aria-pressed="cell.iso === selected"
         @click="$emit('select', cell.iso)"
       >
         <span class="month__num">{{ cell.day }}</span>
-        <DayDots :day="days[cell.iso]" :is-past="cell.iso < today" />
+        <span v-if="cell.names.length" class="month__names">
+          <span class="month__chip" :class="`month__chip--${cell.tone}`">{{ cell.names[0] }}</span>
+          <span v-if="cell.names.length > 1" class="month__more">+{{ cell.names.length - 1 }}</span>
+        </span>
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { CalendarDay } from '~/stores/plants'
+import type { CalendarDay, PlantInfo } from '~/stores/plants'
 import { addDays, formatDayMonth, isoDate, startOfWeek } from '~/utils/dates'
-import DayDots from './DayDots.vue'
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
@@ -37,16 +39,38 @@ const props = defineProps<{
   selected: string
   today: string
   days: Record<string, CalendarDay>
+  plants?: Record<string, PlantInfo>
 }>()
 
 const emit = defineEmits<{ select: [iso: string]; shift: [delta: number] }>()
+
+function namesFor(iso: string): { names: string[]; tone: 'overdue' | 'planned' | 'done' } {
+  const bucket = props.days[iso]
+  if (!bucket) return { names: [], tone: 'planned' }
+  const doneIds = new Set(bucket.done.map((item) => item.plant_id))
+  const name = (id: number) => props.plants?.[String(id)]?.name
+  const overdue = [...new Set(bucket.overdue)].filter((id) => !doneIds.has(id))
+  const planned = iso >= props.today ? [...new Set(bucket.planned)].filter((id) => !doneIds.has(id)) : []
+  const ids = [...overdue, ...planned.filter((id) => !overdue.includes(id)), ...bucket.done.map((item) => item.plant_id)]
+  const tone: 'overdue' | 'planned' | 'done' = overdue.length ? 'overdue' : planned.length ? 'planned' : 'done'
+  return { names: ids.map(name).filter((n): n is string => !!n), tone }
+}
 
 const cells = computed(() => {
   const first = new Date(props.month.getFullYear(), props.month.getMonth(), 1)
   const start = startOfWeek(first)
   return Array.from({ length: 42 }, (_, i) => {
     const d = addDays(start, i)
-    return { iso: isoDate(d), day: d.getDate(), inMonth: d.getMonth() === first.getMonth() }
+    const iso = isoDate(d)
+    const info = namesFor(iso)
+    return {
+      iso,
+      day: d.getDate(),
+      inMonth: d.getMonth() === first.getMonth(),
+      names: info.names,
+      tone: info.tone,
+      label: info.names.length ? `${formatDayMonth(iso)}: ${info.names.join(', ')}` : formatDayMonth(iso),
+    }
   })
 })
 
@@ -85,9 +109,12 @@ function onTouchEnd(e: TouchEvent) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  height: 48px;
-  padding: 4px 0 0;
+  gap: 2px;
+  min-width: 0;
+  min-height: 48px;
+  height: auto;
+  padding: 2px 1px 3px;
+  overflow: hidden;
   border: none;
   background: none;
   font: inherit;
@@ -116,5 +143,37 @@ function onTouchEnd(e: TouchEvent) {
 .month__day--selected .month__num {
   background: #2e7d32;
   color: #fff;
+}
+.month__names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 14px;
+  padding: 0 1px;
+}
+.month__chip,
+.month__more {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.month__chip--overdue {
+  color: #d32f2f;
+}
+.month__chip--planned {
+  color: #1565c0;
+}
+.month__chip--done {
+  color: #2e7d32;
+}
+.month__more {
+  color: #7b868c;
+  font-weight: 600;
 }
 </style>

@@ -5,7 +5,7 @@ export function useNezaleikaMobileTabs(): MobileTabBarItemRR[] {
     {
       slot: 0,
       key: 'today',
-      label: 'Сегодня',
+      label: 'График',
       to: '/',
       iconKey: 'home',
       state: 'link',

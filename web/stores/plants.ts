@@ -143,13 +143,17 @@ export const usePlantsStore = defineStore('plants', {
       const { data } = await getApi().get<PlantStats>(`/api/plants/${id}/stats/`)
       return data
     },
-    /** Optimistically moves the plant to "done today" and returns the new watering id. */
+    /** Optimistically ticks the plant off the schedule and returns the new watering id. */
     async water(plantId: number, wateredAt?: string): Promise<number | null> {
       if (this.pending[plantId]) return null
       this.pending[plantId] = true
-      const snapshot = this.agenda ? JSON.parse(JSON.stringify(this.agenda)) as Agenda : null
-      const isToday = !wateredAt || wateredAt.slice(0, 10) === this.agenda?.today
-      if (this.agenda && isToday) {
+      const agendaSnapshot = this.agenda ? (JSON.parse(JSON.stringify(this.agenda)) as Agenda) : null
+      const calendarSnapshot = this.calendar ? (JSON.parse(JSON.stringify(this.calendar)) as CalendarRange) : null
+      const today = this.calendar?.today ?? this.agenda?.today
+      const whenIso = wateredAt ? wateredAt.slice(0, 10) : today
+      const wateringNow = !wateredAt || whenIso === today
+      const by = useAuthStore().user?.first_name || ''
+      if (this.agenda && wateringNow) {
         for (const key of Object.keys(this.agenda.sections) as AgendaSectionKey[]) {
           this.agenda.sections[key] = this.agenda.sections[key].filter((i) => i.plant_id !== plantId)
         }
@@ -157,8 +161,24 @@ export const usePlantsStore = defineStore('plants', {
           plant_id: plantId,
           watering_id: -1,
           watered_at: new Date().toISOString(),
-          watered_by_name: useAuthStore().user?.first_name || '',
+          watered_by_name: by,
         })
+      }
+      if (this.calendar && whenIso) {
+        const days: CalendarRange['days'] = JSON.parse(JSON.stringify(this.calendar.days))
+        for (const [iso, bucket] of Object.entries(days)) {
+          if (wateringNow || iso === whenIso) bucket.planned = bucket.planned.filter((id) => id !== plantId)
+          if (wateringNow || iso === whenIso || iso === today) bucket.overdue = bucket.overdue.filter((id) => id !== plantId)
+        }
+        const bucket = days[whenIso] ?? { done: [], planned: [], overdue: [] }
+        bucket.done.unshift({
+          plant_id: plantId,
+          watering_id: -1,
+          watered_at: new Date().toISOString(),
+          watered_by_name: by,
+        })
+        days[whenIso] = bucket
+        this.calendar = { ...this.calendar, days }
       }
       try {
         await ensureAuth()
@@ -167,7 +187,8 @@ export const usePlantsStore = defineStore('plants', {
         void this.refreshAll()
         return data.id
       } catch (e) {
-        if (snapshot) this.agenda = snapshot
+        if (agendaSnapshot) this.agenda = agendaSnapshot
+        if (calendarSnapshot) this.calendar = calendarSnapshot
         throw e
       } finally {
         delete this.pending[plantId]

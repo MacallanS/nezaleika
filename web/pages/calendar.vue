@@ -39,6 +39,7 @@
         :selected="selected"
         :today="todayIso"
         :days="days"
+        :plants="plants.calendar?.plants"
         @select="select"
         @shift="shift"
       />
@@ -59,91 +60,32 @@
     </div>
 
     <div class="cal__day-head">
-      <h2 class="cal__day-title">{{ dayTitle }}</h2>
+      <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
       <button v-if="selected !== todayIso" type="button" class="cal__today" @click="goToday">К сегодня</button>
     </div>
 
     <div v-if="loading && !plants.calendar" class="cal__placeholder">Загружаем…</div>
-
-    <template v-else>
-      <p v-if="isEmptyDay" class="cal__placeholder">
-        {{ isFuture ? 'На этот день поливов не запланировано' : 'В этот день ничего не поливали' }}
-      </p>
-
-      <TaskSection v-if="overdue.length" :title="isToday ? 'Просрочено' : 'Пропущено'" :count="overdue.length" tone="overdue">
-        <TaskRow
-          v-for="id in overdue"
-          :key="`o-${id}`"
-          :plant="plant(id)"
-          tone="overdue"
-          :due-label="isToday ? 'нужно полить' : 'было запланировано'"
-          :busy="plants.pending[id]"
-          @check="waterOn(id)"
-          @open="open(id)"
-        />
-      </TaskSection>
-
-      <TaskSection v-if="planned.length" :title="isToday ? 'Полить сегодня' : 'По плану'" :count="planned.length">
-        <TaskRow
-          v-for="id in planned"
-          :key="`p-${id}`"
-          :plant="plant(id)"
-          :tone="isToday ? 'today' : 'normal'"
-          :checkable="isToday"
-          :busy="plants.pending[id]"
-          @check="waterOn(id)"
-          @open="open(id)"
-        />
-      </TaskSection>
-
-      <TaskSection v-if="done.length" title="Полито" :count="done.length" tone="done">
-        <TaskRow
-          v-for="d in done"
-          :key="`d-${d.watering_id}`"
-          :plant="plant(d.plant_id)"
-          done
-          :done-by="d.watered_by_name"
-          :due-label="`${formatTime(d.watered_at)}${d.watered_by_name ? ` · ${d.watered_by_name}` : ''}`"
-          @uncheck="unwater(d.watering_id)"
-          @open="open(d.plant_id)"
-        />
-      </TaskSection>
-
-      <TaskSection
-        v-if="isPast && others.length"
-        title="Отметить полив за этот день"
-        :count="others.length"
-        :default-open="false"
-      >
-        <TaskRow
-          v-for="id in others"
-          :key="`r-${id}`"
-          :plant="plant(id)"
-          :busy="plants.pending[id]"
-          @check="waterOn(id)"
-          @open="open(id)"
-        />
-      </TaskSection>
-    </template>
+    <ScheduleAgenda
+      v-else-if="plants.calendar"
+      :days="days"
+      :plants="plants.calendar.plants"
+      :from="agendaFrom"
+      :to="agendaTo"
+      :today="todayIso"
+      :highlight="selected"
+      :pending="plants.pending"
+      @check="onCheck"
+      @uncheck="unwater"
+      @open="open"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import MonthGrid from '~/components/planner/MonthGrid.vue'
-import TaskRow from '~/components/planner/TaskRow.vue'
-import TaskSection from '~/components/planner/TaskSection.vue'
+import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
 import WeekStrip from '~/components/planner/WeekStrip.vue'
-import type { PlantInfo } from '~/stores/plants'
-import {
-  addDays,
-  formatDayMonth,
-  formatMonthYear,
-  formatTime,
-  formatWeekday,
-  isoDate,
-  parseIsoDate,
-  startOfWeek,
-} from '~/utils/dates'
+import { addDays, formatMonthYear, isoDate, parseIsoDate, startOfWeek } from '~/utils/dates'
 
 const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
@@ -171,42 +113,12 @@ const title = computed(() => {
   return formatMonthYear(base)
 })
 
-const isToday = computed(() => selected.value === todayIso.value)
-const isPast = computed(() => selected.value < todayIso.value)
-const isFuture = computed(() => selected.value > todayIso.value)
-
-const dayTitle = computed(() => {
-  if (isToday.value) return `Сегодня, ${formatDayMonth(selected.value)}`
-  return `${formatWeekday(selected.value)}, ${formatDayMonth(selected.value)}`
+const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))
+const agendaTo = computed(() => {
+  if (mode.value === 'week') return range.value.to
+  const m = month.value
+  return isoDate(new Date(m.getFullYear(), m.getMonth() + 1, 0))
 })
-
-const day = computed(() => days.value[selected.value])
-const done = computed(() => day.value?.done ?? [])
-const doneIds = computed(() => new Set(done.value.map((d) => d.plant_id)))
-const overdue = computed(() => [...new Set(day.value?.overdue ?? [])].filter((id) => !doneIds.value.has(id)))
-const planned = computed(() => (isPast.value ? [] : (day.value?.planned ?? []).filter((id) => !doneIds.value.has(id))))
-const others = computed(() => {
-  const shown = new Set([...doneIds.value, ...overdue.value])
-  return Object.keys(plants.calendar?.plants ?? {})
-    .map(Number)
-    .filter((id) => !shown.has(id))
-})
-const isEmptyDay = computed(() => !done.value.length && !overdue.value.length && !planned.value.length)
-
-const fallbackPlant: PlantInfo = {
-  id: 0,
-  name: '…',
-  species_name: '',
-  room: '',
-  photo_url: null,
-  interval_days: 0,
-  last_watered_at: null,
-  last_watered_by: '',
-}
-
-function plant(id: number): PlantInfo {
-  return plants.calendar?.plants[String(id)] ?? { ...fallbackPlant, id }
-}
 
 function select(iso: string) {
   selected.value = iso
@@ -215,6 +127,9 @@ function select(iso: string) {
     month.value = new Date(d.getFullYear(), d.getMonth(), 1)
   }
   weekStart.value = startOfWeek(d)
+  void nextTick(() => {
+    document.getElementById(`day-${iso}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 function shift(delta: number) {
@@ -249,12 +164,9 @@ async function load() {
 watch(range, load)
 onMounted(load)
 
-function waterOn(id: number) {
-  if (isPast.value) {
-    void water(id, new Date(`${selected.value}T12:00:00`).toISOString())
-  } else {
-    void water(id)
-  }
+function onCheck(id: number, iso: string, past: boolean) {
+  if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
+  else void water(id)
 }
 
 function open(id: number) {
