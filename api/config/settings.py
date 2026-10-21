@@ -13,6 +13,10 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,1
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
 if _render_host and _render_host not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_render_host)
+if not DEBUG:
+    for _default_host in ('nezaleika-api.onrender.com',):
+        if _default_host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_default_host)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
