@@ -1,5 +1,5 @@
 <template>
-  <nav class="tab-bar" aria-label="Навигация">
+  <nav class="tab-bar" :class="{ 'tab-bar--immersive': immersive }" aria-label="Навигация">
     <NuxtLink to="/" class="tab" :class="{ active: route.path === '/' }">
       Полив
       <span v-if="badge > 0" class="badge">{{ badge }}</span>
@@ -17,6 +17,7 @@
 const route = useRoute()
 const plants = usePlantsStore()
 const badge = computed(() => plants.dashboard.overdue + plants.dashboard.due_today)
+const immersive = computed(() => route.path === '/')
 </script>
 
 <style scoped>
@@ -31,6 +32,17 @@ const badge = computed(() => plants.dashboard.overdue + plants.dashboard.due_tod
   background: var(--rr-color-bg-surface-primary, #fff);
   border-top: 1px solid var(--rr-color-border-subtle, #e0e0e0);
   z-index: 50;
+}
+.tab-bar--immersive {
+  background: rgba(0, 0, 0, 0.92);
+  border-top-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+.tab-bar--immersive .tab {
+  color: rgba(255, 255, 255, 0.55);
+}
+.tab-bar--immersive .tab.active {
+  color: #fff;
 }
 .tab {
   position: relative;

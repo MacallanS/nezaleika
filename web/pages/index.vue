@@ -1,65 +1,101 @@
 <template>
-  <div class="nz-page home" :class="{ 'home--immersive': feedFull }">
-    <header v-show="!feedFull" class="home__header">
-      <div class="home__title-row">
-        <h1>Полив</h1>
-        <button type="button" class="home__full-btn" @click="feedFull = true">
-          На весь экран
+  <div class="tt-home">
+    <header class="tt-home__top">
+      <FeedStoriesStrip
+        :plants="widgetPlants"
+        :active-id="activePlantId"
+        @select="onStorySelect"
+      />
+      <div class="tt-home__tabs" role="tablist" aria-label="Режим ленты">
+        <button
+          type="button"
+          role="tab"
+          class="tt-home__tab"
+          :class="{ 'tt-home__tab--active': feedMode === 'urgent' }"
+          :aria-selected="feedMode === 'urgent'"
+          @click="feedMode = 'urgent'"
+        >
+          Срочные
+          <span v-if="urgentCount" class="tt-home__tab-badge">{{ urgentCount }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tt-home__tab"
+          :class="{ 'tt-home__tab--active': feedMode === 'all' }"
+          :aria-selected="feedMode === 'all'"
+          @click="feedMode = 'all'"
+        >
+          Все
         </button>
       </div>
-      <p v-if="plants.dashboard.overdue" class="banner">
-        {{ plants.dashboard.overdue }} просрочено — не забудьте полить
-      </p>
     </header>
-    <WaterWidgetCard
-      v-show="!feedFull"
-      :plants="widgetPlants"
-      :loading="watering"
-      @water="onWater"
-      @snooze="onSnooze"
-    />
-    <button
-      v-if="feedFull"
-      type="button"
-      class="home__close-full"
-      aria-label="Закрыть полноэкранный режим"
-      @click="feedFull = false"
-    >
-      ✕
-    </button>
+
     <WaterFeedSwiper
+      ref="feedRef"
       :items="feedPlants"
-      :fullscreen="feedFull"
       :focus-plant-id="focusPlantId"
       @water="onWater"
+      @snooze="onSnooze"
+      @active-change="activePlantId = $event"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { FeedPlant } from '~/stores/plants'
+
 const route = useRoute()
 const plants = usePlantsStore()
 const { filterSnoozed, snoozeUntilTomorrow } = useWateringSnooze()
-const watering = ref(false)
-const feedFull = ref(false)
+
+const feedRef = ref<{ slideNext: () => void; slideToPlant: (id: number) => void } | null>(null)
+const feedMode = ref<'urgent' | 'all'>('urgent')
 const focusPlantId = ref<number | null>(null)
+const activePlantId = ref<number | null>(null)
+const watering = ref(false)
 
 const widgetPlants = computed(() => filterSnoozed(plants.widget))
-const feedPlants = computed(() => filterSnoozed(plants.feed))
+
+const urgentCount = computed(
+  () =>
+    filterSnoozed(plants.feed).filter((p) =>
+      ['overdue', 'due_today', 'due_soon'].includes(p.status),
+    ).length,
+)
+
+function isUrgent(p: FeedPlant) {
+  return p.status === 'overdue' || p.status === 'due_today' || p.status === 'due_soon'
+}
+
+const feedPlants = computed(() => {
+  const base = filterSnoozed(plants.feed)
+  if (feedMode.value === 'all') return base
+  const urgent = base.filter(isUrgent)
+  return urgent.length ? urgent : base
+})
 
 onMounted(async () => {
   await plants.refreshFeed()
   const q = route.query.plant
   if (q) {
     focusPlantId.value = Number(q)
-    feedFull.value = true
+    feedMode.value = 'all'
   }
 })
 
+function onStorySelect(id: number) {
+  focusPlantId.value = id
+  feedRef.value?.slideToPlant(id)
+}
+
 async function onWater(id: number) {
+  if (watering.value) return
   watering.value = true
   try {
     await plants.waterPlant(id)
+    await nextTick()
+    feedRef.value?.slideNext()
   } finally {
     watering.value = false
   }
@@ -68,55 +104,70 @@ async function onWater(id: number) {
 function onSnooze(id: number) {
   snoozeUntilTomorrow(id)
   plants.refreshFeed()
+  feedRef.value?.slideNext()
 }
 </script>
 
 <style scoped>
-.home--immersive {
-  padding-bottom: 0;
+.tt-home {
+  position: relative;
+  min-height: 100dvh;
+  background: #000;
 }
-.home__header {
-  padding: 16px 16px 0;
-}
-.home__title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.home__header h1 {
-  margin: 0;
-  font-size: 28px;
-}
-.home__full-btn {
-  border: none;
-  background: #e8f5e9;
-  color: #2e7d32;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 8px 12px;
-  border-radius: 999px;
-}
-.home__close-full {
+.tt-home__top {
   position: fixed;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  right: 16px;
-  z-index: 50;
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  border: none;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  font-size: 18px;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding-top: env(safe-area-inset-top, 0px);
+  pointer-events: none;
 }
-.banner {
-  margin: 8px 0 0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #ffebee;
-  color: #b71c1c;
-  font-weight: 600;
-  font-size: 14px;
+.tt-home__top > * {
+  pointer-events: auto;
+}
+.tt-home__tabs {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 4px 16px 10px;
+}
+.tt-home__tab {
+  position: relative;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tt-home__tab--active {
+  color: #fff;
+}
+.tt-home__tab--active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 28px;
+  height: 3px;
+  margin-left: -14px;
+  border-radius: 2px;
+  background: #fff;
+}
+.tt-home__tab-badge {
+  display: inline-block;
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #c62828;
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  vertical-align: middle;
 }
 </style>
