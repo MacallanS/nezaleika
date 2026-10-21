@@ -3,12 +3,14 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const localBibliRoot = resolve(__dirname, '../../bibli')
+const vendoredBibliRoot = resolve(__dirname, './bibli')
+const monorepoBibliRoot = resolve(__dirname, '../../bibli')
 const nodeBibliRoot = resolve(__dirname, './node_modules/bibli')
-const useLocalBibli =
-  process.env.NUXT_BIBLI_LOCAL === '1' &&
-  existsSync(resolve(localBibliRoot, 'package.json'))
-const bibliAlias = useLocalBibli ? localBibliRoot : nodeBibliRoot
+const bibliAlias = existsSync(resolve(vendoredBibliRoot, 'shared/theme/theme.css'))
+  ? vendoredBibliRoot
+  : process.env.NUXT_BIBLI_LOCAL === '1' && existsSync(resolve(monorepoBibliRoot, 'package.json'))
+    ? monorepoBibliRoot
+    : nodeBibliRoot
 
 const apiTarget = (process.env.NUXT_DEV_API_PROXY_TARGET || 'http://127.0.0.1:8000').replace(/\/$/, '')
 const useDevApiProxy = process.env.NODE_ENV !== 'production'

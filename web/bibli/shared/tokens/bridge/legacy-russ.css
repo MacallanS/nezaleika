@@ -1,0 +1,53 @@
+/**
+ * Мост RR → legacy --russ-* (старые компоненты shared/ui/legacy).
+ * Opt-in: `bibli/shared/tokens/bridge` (не входит в tokens/index.css).
+ * Подключать с generated tokens и data-rr на <html>.
+ */
+:root[data-rr] {
+  --russ-bg: var(--rr-backgrounds-primary, #ffffff);
+  --russ-bg-secondary: var(--rr-backgrounds-secondary, #f8fafc);
+  --russ-bg-tertiary: var(--rr-backgrounds-tetriary, #f1f5f9);
+  --russ-bg-elevated: var(--rr-backgrounds-primary, #ffffff);
+
+  --russ-text-primary: var(--rr-backgrounds-neutral-primary-default, #1f2937);
+  --russ-text-secondary: var(--rr-backgrounds-neutral-secondary-default, #374151);
+  --russ-text-tertiary: var(--rr-neutral-6, #6b7280);
+  --russ-text-inverse: var(--rr-neutral-0, #ffffff);
+
+  --russ-border: var(--rr-backgrounds-tetriary, #e5e7eb);
+  --russ-border-light: var(--rr-backgrounds-quaternary, #e2e8f0);
+
+  --russ-primary: var(
+    --rr-button-neutral-primary-background-default,
+  var(--rr-backgrounds-neutral-primary-default, #213e89)
+  );
+  --russ-primary-hover: var(
+    --rr-button-neutral-primary-background-hover,
+    var(--rr-backgrounds-neutral-primary-hover, #1b3170)
+  );
+  --russ-primary-active: var(
+    --rr-button-neutral-primary-background-active,
+    var(--rr-backgrounds-neutral-primary-active, #162954)
+  );
+  --russ-primary-dark: var(--rr-backgrounds-neutral-primary-active, #162954);
+
+  --russ-error: var(--rr-status-error-default, #dc3545);
+  --russ-success: var(--rr-status-success-default, #22c55e);
+  --russ-warning: var(--rr-status-warning-default, #f59e0b);
+  --russ-info: var(--rr-status-info-default, #3b82f6);
+
+  --russ-input-border: var(--rr-backgrounds-tetriary, #ced4da);
+  --russ-input-border-focus: var(--rr-backgrounds-neutral-primary-hover, #3b82f6);
+  --russ-input-border-error: var(--rr-status-error-default, #d60000);
+  --russ-input-bg: var(--rr-backgrounds-primary, #ffffff);
+  --russ-input-text: var(--rr-backgrounds-neutral-primary-default, #374151);
+  --russ-input-placeholder: var(--rr-neutral-6, #6b7280);
+
+  --ui-input-height: var(--rr-size-3-xl, var(--filter-control-height-md, 40px));
+  --ui-input-padding-x: var(--rr-spacing-padding-xl, 16px);
+  --ui-input-font-size: var(--rr-font-size-font-size-m, var(--filter-control-font-size-md, 14px));
+  --ui-input-font-family: var(--rr-font-family-font-family, var(--russ-font-family)), system-ui, sans-serif;
+  --ui-input-radius: var(--rr-radius-l, var(--filter-control-radius, 10px));
+
+  --russ-focus-ring: rgba(16, 16, 18, 0.12);
+}

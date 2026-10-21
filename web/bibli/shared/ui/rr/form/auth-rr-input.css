@@ -1,0 +1,783 @@
+/**
+ * Auth RR inputs — только var(--rr-*).
+ */
+
+.auth-rr-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.auth-rr-field > .auth-rr-field__label,
+.auth-rr-field__label-row .auth-rr-field__label {
+  display: block;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-xs, var(--rr-font-size-font-size-xs));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-xs, var(--rr-line-height-line-height-xs));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  color: var(--rr-labels-neutral-secondary);
+}
+
+.auth-rr-field > .auth-rr-field__label {
+  margin-bottom: var(--rr-spacing-margin-m);
+}
+
+.auth-rr-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rr-spacing-padding-m);
+  margin: 0 0 var(--rr-spacing-margin-m);
+}
+
+.auth-rr-field__label-link {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--rr-radius-xs);
+  background: none;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-xs, var(--rr-font-size-font-size-xs));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-xs, var(--rr-line-height-line-height-xs));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  text-align: right;
+  color: var(--rr-labels-brand-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.auth-rr-field__label-link:hover {
+  opacity: 0.85;
+}
+
+.auth-rr-field__label-link:focus-visible {
+  outline: none;
+  border-color: var(--rr-input-border-active);
+}
+
+.auth-rr-field__control {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.auth-rr-field__error {
+  margin: 4px 0 0;
+  text-align: left;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-xs, var(--rr-font-size-font-size-xs));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-xs, var(--rr-line-height-line-height-xs));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  color: var(--rr-labels-danger-primary);
+}
+
+.auth-rr-input__control {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: var(--auth-rr-control-h, var(--rr-size-3-xl));
+  padding: 0 var(--rr-spacing-padding-xl);
+  border: 1px solid var(--rr-input-border-default);
+  border-radius: var(--rr-radius-l);
+  background-color: var(--rr-backgrounds-quaternary);
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m));
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m));
+  text-align: center;
+  color: var(--rr-input-text-fill);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.auth-rr-input__control:hover:not(:disabled):not([readonly]):not(.auth-rr-input__control--error):not(
+    :focus
+  ):not(:focus-visible) {
+  border-color: var(--rr-input-border-hover);
+  background-color: var(--rr-input-background-hover);
+}
+
+.auth-rr-input__control::placeholder {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-align: center;
+  color: var(--rr-input-text-default);
+}
+
+.auth-rr-input__control:focus,
+.auth-rr-input__control:focus-visible {
+  outline: none;
+  border: 1px solid var(--rr-input-border-active);
+  background-color: var(--rr-backgrounds-quaternary);
+}
+
+.auth-rr-input__control:disabled,
+.auth-rr-input__control[readonly] {
+  border-color: var(--rr-input-border-disable);
+  background-color: var(--rr-backgrounds-quaternary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.auth-rr-input__control--error,
+.auth-rr-input__control--error:hover,
+.auth-rr-input__control--error:focus,
+.auth-rr-input__control--error:focus-visible {
+  border-color: var(--rr-input-border-error);
+  background-color: var(--rr-backgrounds-quaternary);
+}
+
+.auth-rr-input__control--align-left {
+  text-align: left;
+}
+
+.auth-rr-input__control--align-left::placeholder {
+  text-align: left;
+}
+
+/*
+ * Список autofill-состояний всегда внутри :is() — он прощающий.
+ * Обычный список через запятую убил бы правило целиком в Firefox и Safari:
+ * они не знают :-internal-autofill-*, а невалидный селектор в списке
+ * по спеке инвалидирует весь список.
+ * :autofill — стандарт (Chrome 108+, Safari 15.5+, Firefox 86+),
+ * :-webkit-autofill — старые Chrome/Safari/Edge, :-moz-autofill — старый Firefox.
+ */
+.auth-rr-input__control:is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed),
+.auth-rr-input__control:is(:-webkit-autofill, :autofill, :-moz-autofill):hover {
+  -webkit-text-fill-color: var(--rr-input-text-fill);
+  caret-color: var(--rr-input-text-fill);
+  border: 1px solid var(--rr-input-border-default);
+  box-shadow: 0 0 0 1000px var(--rr-backgrounds-quaternary) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--rr-backgrounds-quaternary) inset;
+  background-color: var(--rr-backgrounds-quaternary);
+  background-image: none;
+  filter: none;
+  transition: background-color 99999s ease-out 0s;
+  animation: auth-rr-autofill-start 0.001s ease-out;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.auth-rr-input__control:is(:-webkit-autofill, :autofill, :-moz-autofill):is(:focus, :focus-visible) {
+  -webkit-text-fill-color: var(--rr-input-text-fill);
+  caret-color: var(--rr-input-text-fill);
+  border: 1px solid var(--rr-input-border-active);
+  box-shadow: 0 0 0 1000px var(--rr-backgrounds-quaternary) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--rr-backgrounds-quaternary) inset;
+}
+
+.auth-rr-input-phone {
+  --auth-rr-phone-h: var(--auth-rr-control-h, var(--rr-size-4-xl));
+  --auth-rr-phone-inner-h: calc(var(--auth-rr-phone-h) - 2px);
+  --auth-rr-phone-indent: 0px;
+  /* Фон поля одной переменной: ею же глушим голубую подсветку autofill. */
+  --auth-rr-phone-bg: var(--rr-backgrounds-quaternary);
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  height: var(--auth-rr-phone-h);
+  min-height: var(--auth-rr-phone-h);
+  max-height: var(--auth-rr-phone-h);
+  border: 1px solid var(--rr-input-border-default);
+  border-radius: var(--rr-radius-l);
+  background-color: var(--auth-rr-phone-bg);
+  overflow: hidden;
+  cursor: text;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Все chrome-состояния только на оболочке — не на внутреннем input */
+.auth-rr-input-phone:hover:not(.auth-rr-input-phone--error):not(:focus-within) {
+  --auth-rr-phone-bg: var(--rr-input-background-hover);
+  border-color: var(--rr-input-border-hover);
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone:active:not(.auth-rr-input-phone--error):not(:focus-within) {
+  --auth-rr-phone-bg: var(--rr-input-background-hover);
+  border-color: var(--rr-input-border-hover);
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone:focus-within:not(.auth-rr-input-phone--error) {
+  --auth-rr-phone-bg: var(--rr-backgrounds-quaternary);
+  border-color: var(--rr-input-border-active);
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone--error,
+.auth-rr-input-phone--error:hover,
+.auth-rr-input-phone--error:active,
+.auth-rr-input-phone--error:focus-within {
+  --auth-rr-phone-bg: var(--rr-backgrounds-quaternary);
+  border-color: var(--rr-input-border-error);
+  background-color: var(--auth-rr-phone-bg);
+}
+
+/*
+ * На фокусе indent сразу (ещё до JS-замера) — caret не улетает при первом символе.
+ * Точное px-значение потом пишет syncPrefixIndent.
+ */
+.auth-rr-input-phone:focus-within,
+.auth-rr-input-phone--filled {
+  --auth-rr-phone-indent: -3ch;
+}
+
+.auth-rr-input-phone__editor,
+.auth-rr-input-phone__value,
+.auth-rr-input-phone__local,
+.auth-rr-input-phone__flag,
+.auth-rr-input-phone__prefix,
+.auth-rr-input-phone__display,
+.auth-rr-input-phone__input,
+.auth-rr-input-phone__clear {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  transition: none;
+}
+
+.auth-rr-input-phone__flag {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  margin: 0 0 0 var(--rr-spacing-padding-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rr-radius-s);
+  pointer-events: none;
+}
+
+.auth-rr-input-phone__flag img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+
+.auth-rr-input-phone__editor {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: stretch;
+  min-width: 0;
+  height: 100%;
+  padding: 0 var(--rr-spacing-padding-s) 0 0;
+}
+
+.auth-rr-input-phone--clearable .auth-rr-input-phone__editor {
+  padding-right: 0;
+}
+
+.auth-rr-input-phone__clear {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 var(--rr-spacing-padding-m) 0 0;
+  padding: 0;
+  border-radius: var(--rr-radius-xs);
+  color: var(--rr-input-text-default);
+  cursor: pointer;
+}
+
+.auth-rr-input-phone__clear:hover,
+.auth-rr-input-phone__clear:focus,
+.auth-rr-input-phone__clear:focus-visible,
+.auth-rr-input-phone__clear:active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  opacity: 0.85;
+}
+
+.auth-rr-input-phone__clear--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.auth-rr-input-phone__clear img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.auth-rr-input-phone__value {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  text-align: left;
+}
+
+/* Один набор метрик для +7, цифр и маски — без разных line-height. */
+.auth-rr-input-phone__prefix,
+.auth-rr-input-phone__local,
+.auth-rr-input-phone__display,
+.auth-rr-input-phone__typed,
+.auth-rr-input-phone__mask,
+.auth-rr-input-phone__input,
+.auth-rr-input-phone__probe {
+  font-family: var(--auth-rr-font-regular) !important;
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m)) !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m)) !important;
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m)) !important;
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.auth-rr-input-phone__prefix {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  user-select: none;
+  pointer-events: none;
+}
+
+.auth-rr-input-phone__cc {
+  color: var(--rr-input-text-fill, #101012);
+}
+
+.auth-rr-input-phone__paren {
+  color: var(--rr-input-text-default, rgba(60, 60, 67, 0.72));
+}
+
+.auth-rr-input-phone__paren--filled {
+  color: var(--rr-input-text-fill, #101012);
+}
+
+/* local — рядом с prefix; одинаковый шрифт → одинаковый размер/высота. */
+.auth-rr-input-phone__local {
+  position: relative;
+  flex: 1 1 auto;
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  cursor: text;
+}
+
+/*
+ * Слой с цифрами всегда выше input: и при ручном вводе, и при autofill
+ * номер рисует он одним и тем же цветом. Фона у слоя нет — caret из input
+ * под ним виден.
+ */
+.auth-rr-input-phone__display {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.auth-rr-input-phone__typed {
+  color: var(--rr-input-text-fill, #101012);
+}
+
+.auth-rr-input-phone__typed-plain {
+  color: inherit;
+}
+
+/* Кастомная подсветка: нативный ::selection у прозрачного input почти не виден / кривой. */
+.auth-rr-input-phone__typed-sel {
+  color: var(--rr-input-text-fill, #101012);
+  background-color: color-mix(in srgb, var(--rr-accent-blue, #5696ff) 34%, transparent);
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@supports not (background-color: color-mix(in srgb, red 40%, transparent)) {
+  .auth-rr-input-phone__typed-sel {
+    background-color: rgba(86, 150, 255, 0.34);
+  }
+}
+
+.auth-rr-input-phone__mask {
+  color: var(--rr-input-text-default, rgba(60, 60, 67, 0.72));
+}
+
+.auth-rr-input-phone__probe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.auth-rr-input-phone__input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  text-align: left;
+  white-space: pre;
+  /* value «+7 (…»; indent уводит префикс влево под визуальный +7. Текст прозрачный. */
+  text-indent: var(--auth-rr-phone-indent, 0px);
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: var(--rr-input-text-fill, #101012);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/*
+ * Выделение и autofill из профиля браузера:
+ * — input всегда прозрачный, номер рисуют prefix + display (как при ручном вводе);
+ * — НЕ переключаемся на «нативный» текст и НЕ двигаем left/width — от этого
+ *   всё «уезжало» при подстановке из password manager;
+ * — на время UA-превью накрываем local фоном, чтобы мелкий чужой шрифт
+ *   не просвечивал под цифрами.
+ */
+.auth-rr-input-phone--autofilling .auth-rr-input-phone__local,
+.auth-rr-input-phone:has(
+    .auth-rr-input-phone__input:is(:-internal-autofill-previewed, :-moz-autofill-preview)
+  )
+  .auth-rr-input-phone__local {
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone--autofilling .auth-rr-input-phone__display,
+.auth-rr-input-phone:has(
+    .auth-rr-input-phone__input:is(:-internal-autofill-previewed, :-moz-autofill-preview)
+  )
+  .auth-rr-input-phone__display {
+  position: relative;
+  z-index: 2;
+  background-color: var(--auth-rr-phone-bg);
+  box-shadow: 0 0 0 12px var(--auth-rr-phone-bg);
+}
+
+/* Нативное выделение скрыто — рисуем .auth-rr-input-phone__typed-sel. */
+.auth-rr-input-phone__input::selection,
+.auth-rr-input-phone__input::-moz-selection {
+  background-color: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/*
+ * :not(:is(...)) вместо цепочки :not(:-webkit-autofill):not(:autofill):
+ * иначе эти правила перебивали бы маску autofill на hover/focus, а неизвестный
+ * движку псевдокласс внутри :not() уронил бы правило.
+ */
+.auth-rr-input-phone
+  .auth-rr-input-phone__input:is(:hover, :focus, :focus-visible, :active):not(
+    :is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed)
+  ) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Детектор autofill: сам кадр ничего не меняет, нужен только animationstart. */
+@keyframes auth-rr-autofill-start {
+  from {
+    background-color: var(--auth-rr-phone-bg, var(--rr-backgrounds-quaternary, #f2f3f7));
+  }
+
+  to {
+    background-color: var(--auth-rr-phone-bg, var(--rr-backgrounds-quaternary, #f2f3f7));
+  }
+}
+
+/*
+ * Autofill телефона: фон как у обычного поля, без смены layout.
+ * Safari сбрасывает padding/line-height — повторяем их здесь.
+ * :has() есть не везде (Firefox с 121, Safari с 15.4) — это не страшно:
+ * базовое правило оболочки уже красит её в --auth-rr-phone-bg.
+ */
+.auth-rr-input-phone:has(
+    .auth-rr-input-phone__input:is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed)
+  ) {
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone:has(
+    .auth-rr-input-phone__input:is(:-webkit-autofill, :autofill, :-moz-autofill)
+  ):focus-within:not(.auth-rr-input-phone--error) {
+  border-color: var(--rr-input-border-active);
+  background-color: var(--auth-rr-phone-bg);
+}
+
+.auth-rr-input-phone__input:is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed) {
+  /*
+   * Голубую подсветку Chrome ставит из UA-таблицы с !important — авторский
+   * background-color её не перебьёт, глушим inset-тенью в цвет поля.
+   * Текст всегда прозрачный: номер рисует display, layout не прыгает.
+   */
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: var(--rr-input-text-fill, #101012);
+  background-color: var(--auth-rr-phone-bg) !important;
+  background-clip: padding-box !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 1000px var(--auth-rr-phone-bg) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--auth-rr-phone-bg) inset !important;
+  filter: none !important;
+  border: none !important;
+  outline: none !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  text-align: left;
+  text-indent: var(--auth-rr-phone-indent, 0px);
+  font-family: var(--auth-rr-font-regular) !important;
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m)) !important;
+  font-weight: 400 !important;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m)) !important;
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m)) !important;
+  animation: auth-rr-autofill-start 0.001s ease-out;
+  transition: background-color 99999s ease-out 0s;
+}
+
+/*
+ * Windows High Contrast: система принудительно перекрашивает color/background
+ * и не рисует box-shadow, поэтому ни прозрачный текст input, ни серая заплатка
+ * поверх подсветки не гарантированы. Отдаём отрисовку номера самому input,
+ * а слой-дублёр убираем, иначе цифры задвоятся.
+ */
+@media (forced-colors: active) {
+  .auth-rr-input-phone__display {
+    display: none;
+  }
+
+  /* Класс оболочки в селекторе — чтобы перебить :is(:hover…):not(:is(autofill…)) выше. */
+  .auth-rr-input-phone .auth-rr-input-phone__input,
+  .auth-rr-input-phone
+    .auth-rr-input-phone__input:is(
+      :hover,
+      :focus,
+      :focus-visible,
+      :active,
+      :-webkit-autofill,
+      :autofill,
+      :-moz-autofill,
+      :-moz-autofill-preview,
+      :-internal-autofill-selected,
+      :-internal-autofill-previewed
+    ) {
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+    caret-color: CanvasText;
+    background: Canvas !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+  }
+}
+
+.auth-rr-input-password {
+  position: relative;
+  width: 100%;
+}
+
+.auth-rr-input-password .auth-rr-input__control {
+  padding-right: calc(var(--rr-spacing-padding-xl) + var(--rr-size-xl));
+  font-family: var(--rr-font-family-font-family, Manrope), system-ui, sans-serif;
+}
+
+/* Native password type keeps system bullets (Firefox). Revealed / CSS-masked stay Manrope. */
+.auth-rr-input-password .auth-rr-input__control[type='password'] {
+  font-family: var(--auth-rr-font-password);
+}
+
+.auth-rr-input-password .auth-rr-input__control[type='text'] {
+  font-family: var(--rr-font-family-font-family, Manrope), system-ui, sans-serif !important;
+}
+
+.auth-rr-input-password .auth-rr-input__control--masked {
+  -webkit-text-security: disc;
+}
+
+.auth-rr-input-password .auth-rr-input__control:not(.auth-rr-input__control--masked) {
+  -webkit-text-security: none;
+}
+
+.auth-rr-input-password
+  .auth-rr-input__control[type='password']:is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed) {
+  font-family: var(--auth-rr-font-password) !important;
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m)) !important;
+  font-weight: normal !important;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m)) !important;
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m)) !important;
+}
+
+.auth-rr-input-password
+  .auth-rr-input__control[type='text']:is(:-webkit-autofill, :autofill, :-moz-autofill, :-moz-autofill-preview, :-internal-autofill-selected, :-internal-autofill-previewed) {
+  font-family: var(--rr-font-family-font-family, Manrope), system-ui, sans-serif !important;
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m)) !important;
+  font-weight: normal !important;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m)) !important;
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m)) !important;
+}
+
+.auth-rr-input-password__toggle {
+  position: absolute;
+  right: var(--rr-spacing-padding-m);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--rr-radius-xs);
+  background: transparent;
+  color: var(--rr-input-text-default);
+  cursor: pointer;
+}
+
+.auth-rr-input-password__toggle:focus-visible {
+  outline: none;
+  border-color: var(--rr-input-border-active);
+}
+
+.auth-rr-input-password__toggle img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* Text / email — clear как у телефона */
+.auth-rr-input-text {
+  position: relative;
+  width: 100%;
+}
+
+.auth-rr-input-text--clearable .auth-rr-input__control {
+  padding-right: calc(var(--rr-spacing-padding-xl) + var(--rr-size-xl));
+}
+
+.auth-rr-input-text__clear {
+  position: absolute;
+  right: var(--rr-spacing-padding-m);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--rr-radius-xs);
+  background: transparent;
+  color: var(--rr-input-text-default);
+  cursor: pointer;
+}
+
+.auth-rr-input-text__clear:hover,
+.auth-rr-input-text__clear:focus,
+.auth-rr-input-text__clear:focus-visible,
+.auth-rr-input-text__clear:active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  opacity: 0.85;
+}
+
+.auth-rr-input-text__clear--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.auth-rr-input-text__clear img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* Пока фокус в другом поле — соседний hover не подсвечивается серым */
+.auth-rr-body:has(
+    .auth-rr-input-phone:focus-within,
+    .auth-rr-input__control:focus,
+    .auth-rr-input__control:focus-visible
+  )
+  .auth-rr-input-phone:not(:focus-within):hover:not(.auth-rr-input-phone--error),
+.auth-rr-body:has(
+    .auth-rr-input-phone:focus-within,
+    .auth-rr-input__control:focus,
+    .auth-rr-input__control:focus-visible
+  )
+  .auth-rr-input__control:not(:focus):not(:focus-visible):hover:not(
+    .auth-rr-input__control--error
+  ) {
+  --auth-rr-phone-bg: var(--rr-backgrounds-quaternary);
+  border-color: var(--rr-input-border-default);
+  background-color: var(--auth-rr-phone-bg);
+}

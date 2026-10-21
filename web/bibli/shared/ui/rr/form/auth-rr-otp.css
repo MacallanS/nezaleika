@@ -1,0 +1,125 @@
+/**
+ * Auth RR — OTP (6 ячеек), только var(--rr-*).
+ * Одно поле для autofill iOS/Android + визуальные ячейки.
+ */
+
+.auth-rr-otp,
+.auth-rr-shell {
+  --auth-rr-otp-gap: var(--rr-spacing-padding-m, 8px);
+}
+
+@media (min-width: 1440px) {
+  .auth-rr-otp,
+  .auth-rr-shell {
+    --auth-rr-otp-gap: var(--rr-spacing-padding-l, 12px);
+  }
+}
+
+.auth-rr-otp {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.auth-rr-otp__code-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  opacity: 0.001;
+  cursor: text;
+}
+
+.auth-rr-otp__code-input:focus {
+  outline: none;
+}
+
+.auth-rr-otp__cells {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--auth-rr-otp-gap);
+  width: 100%;
+  pointer-events: none;
+}
+
+.auth-rr-otp__cell {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  border: 1.3px solid transparent;
+  border-radius: var(--rr-radius-m);
+  background: var(--rr-backgrounds-quaternary, #F2F3F7);
+  pointer-events: auto;
+  cursor: text;
+  transition: border-color 0.15s ease;
+}
+
+.auth-rr-otp__cell--filled {
+  background: var(--rr-backgrounds-quaternary, #F2F3F7);
+}
+
+.auth-rr-otp__cell--active {
+  background: var(--rr-backgrounds-quaternary, #F2F3F7);
+  border: 1.3px solid var(--rr-border-brand-strong, #5B7DEC);
+}
+
+.auth-rr-otp--error .auth-rr-otp__cell,
+.auth-rr-otp--error .auth-rr-otp__cell--active,
+.auth-rr-otp--error .auth-rr-otp__cell--filled {
+  border: 1.3px solid var(--rr-input-border-error);
+}
+
+.auth-rr-otp__placeholder,
+.auth-rr-otp__digit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--auth-rr-font-medium);
+  font-size: clamp(22px, 5.5vw, 32px);
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: var(--rr-tracking-tracking-2xl);
+  text-align: center;
+  user-select: none;
+}
+
+.auth-rr-otp__placeholder {
+  align-items: flex-end;
+  color: transparent;
+}
+
+.auth-rr-otp__placeholder::before {
+  content: '';
+  width: 42%;
+  max-width: 32px;
+  height: 2px;
+  margin-bottom: 22%;
+  border-radius: 999px;
+  background: var(--rr-labels-neutral-tertiary, #3C3C4385);
+}
+
+.auth-rr-otp__digit {
+  color: var(--rr-labels-neutral-primary);
+}
+
+@media (min-width: 1440px) {
+  .auth-rr-otp__placeholder,
+  .auth-rr-otp__digit {
+    font-size: var(--rr-font-size-font-size-3xl, 32px);
+  }
+}

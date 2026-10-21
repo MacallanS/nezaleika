@@ -1,0 +1,178 @@
+/**
+ * Профиль → О приложении / Служба поддержки (мобильный RR).
+ */
+
+.profile-about {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.profile-about__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+}
+
+.profile-about__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #000000;
+}
+
+.profile-about__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: invert(1);
+}
+
+.profile-about__name {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  font-weight: 600;
+  font-style: normal;
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  letter-spacing: var(--rr-tracking-tracking-m, 0px);
+  text-align: center;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.profile-about__row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  height: auto;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-about__row .profile-security-row__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.profile-about__row .profile-security-row__label {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+  white-space: normal;
+}
+
+.profile-about__row .profile-security-row__chevron {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 22px;
+  line-height: 1;
+  color: rgba(60, 60, 67, 0.36);
+}
+
+.profile-about__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px 24px;
+  text-align: center;
+}
+
+.profile-about__version,
+.profile-about__copy,
+.profile-about__partner {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  font-weight: 400;
+  font-style: normal;
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  letter-spacing: var(--rr-tracking-tracking-m, 0px);
+  text-align: center;
+  color: var(--rr-labels-neutral-secondary, #3c3c43b8);
+}
+
+.profile-about__email {
+  margin-top: 4px;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  font-weight: 400;
+  font-style: normal;
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  letter-spacing: var(--rr-tracking-tracking-m, 0px);
+  text-align: center;
+  color: var(--rr-labels-brand-primary, #1c4ae5);
+  text-decoration: none;
+}
+
+.profile-about__email:hover {
+  text-decoration: underline;
+}
+
+/* --- Support --- */
+.profile-support-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 8px;
+}
+
+/* Почта — та же высота/хром, что у телефона */
+.profile-support-email :deep(.auth-rr-input__control) {
+  --auth-rr-control-h: var(--rr-size-4-xl, 56px);
+  height: var(--auth-rr-control-h);
+  min-height: var(--auth-rr-control-h);
+}
+
+.profile-support-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-support-field__label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-support-field__textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  min-height: 140px;
+  padding: 14px 16px;
+  border: 1px solid var(--rr-input-border-default, transparent);
+  border-radius: var(--rr-radius-l, 14px);
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  color: var(--rr-labels-neutral-primary, #101012);
+  font: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  outline: none;
+  resize: vertical;
+}
+
+.profile-support-field__textarea::placeholder {
+  color: rgba(60, 60, 67, 0.42);
+}
+
+.profile-support-field__textarea:focus,
+.profile-support-field__textarea:focus-visible {
+  border-color: var(--rr-input-border-active, #101012);
+}
+
+.profile-security-shell__footer .auth-rr-button {
+  width: 100%;
+}

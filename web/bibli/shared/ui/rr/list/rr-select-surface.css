@@ -1,0 +1,13 @@
+/**
+ * Общая обводка и тень RR-селектов (триггер-чип и выпадающая панель).
+ */
+:root,
+[data-rr] {
+  --rr-select-border: var(--Border-Neutral-Subtle, #DEDEE3);
+  --rr-select-shadow: 0px 0px 10px 0px #0000001A;
+}
+
+.rr-select-surface {
+  border: 1px solid var(--rr-select-border);
+  box-shadow: var(--rr-select-shadow);
+}

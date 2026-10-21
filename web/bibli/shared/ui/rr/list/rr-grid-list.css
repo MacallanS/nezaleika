@@ -1,0 +1,371 @@
+/**
+ * RR card-row grid list — новый формат таблиц.
+ * Используйте класс .rr-grid-list__inline-control на StatusSelect в ячейках.
+ */
+
+.rr-grid-list {
+  --rr-grid-list-template: minmax(180px, 1.35fr) minmax(120px, 1fr) minmax(130px, 0.95fr)
+    minmax(120px, 0.9fr) minmax(96px, 0.75fr) minmax(130px, 0.9fr);
+  --rr-grid-list-scroll-min-width: 920px;
+  --rr-grid-list-column-gap: 12px;
+  --rr-grid-list-row-gap: 4px;
+  --rr-grid-list-head-padding: 18px 16px;
+  --rr-grid-list-row-padding: 14px 16px;
+  --rr-grid-list-row-radius: 16px;
+  --rr-grid-list-inline-control-height: 28px;
+  --rr-grid-list-inline-control-font-size: 12px;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rr-grid-list__scroll {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.rr-grid-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rr-grid-list-row-gap);
+  min-width: 0;
+}
+
+.rr-grid-list__head,
+.rr-grid-list__row {
+  display: grid;
+  grid-template-columns: var(--rr-grid-list-template);
+  align-items: center;
+  gap: var(--rr-grid-list-column-gap);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.rr-grid-list__head {
+  padding: var(--rr-grid-list-head-padding);
+  color: #8b919a;
+  font-size: 13px;
+}
+
+.rr-grid-list__head-cell--align-center {
+  justify-self: center;
+  text-align: center;
+}
+
+.rr-grid-list__head-cell--align-end {
+  justify-self: end;
+  text-align: right;
+}
+
+.rr-grid-list__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rr-grid-list__sort:hover {
+  color: #101012;
+}
+
+.rr-grid-list__row {
+  width: 100%;
+  padding: var(--rr-grid-list-row-padding);
+  border: 1px solid #eceef2;
+  border-radius: var(--rr-grid-list-row-radius);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  overflow: hidden;
+}
+
+.rr-grid-list__row:hover {
+  border-color: #d8dde6;
+}
+
+.rr-grid-list__row--static {
+  cursor: default;
+}
+
+.rr-grid-list__row--static:hover {
+  border-color: #eceef2;
+}
+
+.rr-grid-list__cell {
+  min-width: 0;
+}
+
+.rr-grid-list__cell--align-center {
+  justify-self: center;
+  text-align: center;
+}
+
+.rr-grid-list__cell--align-end {
+  justify-self: stretch;
+  text-align: right;
+}
+
+.rr-grid-list__cell--interactive {
+  cursor: default;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+}
+
+.rr-grid-list__cell--stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.rr-grid-list__cell--labels {
+  justify-self: stretch;
+}
+
+.rr-grid-list__cell--stack.rr-grid-list__cell--align-start {
+  align-items: flex-start;
+}
+
+/* Compact pill StatusSelect inside grid cells (class on .status-select-wrapper root) */
+.rr-grid-list__inline-control {
+  --status-select-height: var(--rr-grid-list-inline-control-height);
+  --status-select-font-size: var(--rr-grid-list-inline-control-font-size);
+  --status-select-radius: 999px;
+  --status-select-padding: 4px 8px 4px 10px;
+
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rr-grid-list__inline-control .status-select-container {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rr-grid-list__inline-control .status-select-trigger {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--rr-grid-list-inline-control-height);
+  height: auto;
+  padding: var(--status-select-padding);
+  border: 1px solid #eceef2;
+  border-radius: 999px;
+  background: #f3f4f6;
+  box-shadow: none;
+  gap: 4px;
+}
+
+.rr-grid-list__inline-control .status-select-trigger:hover:not(.disabled) {
+  border-color: #d8dde6;
+  background: #eef0f3;
+  box-shadow: none;
+}
+
+.rr-grid-list__inline-control .status-select-trigger.open {
+  border-color: #3e87ff;
+  background: #fff;
+}
+
+.rr-grid-list__inline-control .status-select-content {
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.rr-grid-list__inline-control .status-select-selected {
+  min-width: 0;
+  flex: 1;
+  gap: 6px;
+  padding-left: 0;
+  font-size: var(--rr-grid-list-inline-control-font-size);
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.rr-grid-list__inline-control .status-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-grid-list__inline-control .status-color-dot {
+  width: 8px;
+  height: 8px;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.rr-grid-list__inline-control .status-select-arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #8b919a;
+}
+
+.rr-grid-list__inline-control .status-select-placeholder {
+  font-size: var(--rr-grid-list-inline-control-font-size);
+  color: #8b919a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-grid-list__inline-control .status-select-container.compact-multiple .status-select-trigger {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+  min-height: auto;
+}
+
+.rr-grid-list__inline-control .status-select-container.compact-multiple .status-select-trigger:hover:not(.disabled),
+.rr-grid-list__inline-control .status-select-container.compact-multiple .status-select-trigger.open {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rr-grid-list__inline-control .status-select-container.compact-multiple .status-select-compact-multiple .status-text {
+  font-size: var(--rr-grid-list-inline-control-font-size);
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.rr-grid-list__inline-control .status-select-container.compact-multiple .status-select-more {
+  color: #8b919a;
+  font-size: 12px;
+}
+
+.rr-grid-list__inline-control.rr-multi-select {
+  --rr-floating-panel-width-scale: 1;
+  --rr-floating-panel-min-width: 0;
+  display: flex;
+  align-items: stretch;
+  min-height: 40px;
+  height: 100%;
+}
+
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__trigger {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 40px;
+  height: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border: none !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__arrow {
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  background: transparent;
+  color: #8b919a;
+}
+
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__value {
+  height: 100%;
+}
+
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__value,
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__primary,
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__placeholder {
+  min-width: 0;
+  font-size: var(--rr-grid-list-inline-control-font-size);
+}
+
+.rr-grid-list__inline-control.rr-multi-select .rr-multi-select__arrow {
+  width: 32px;
+  height: 32px;
+}
+
+.rr-grid-list__badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-grid-list__muted {
+  color: #b0b6bf;
+  font-size: 14px;
+}
+
+.rr-grid-list__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rr-grid-list-row-gap);
+}
+
+.rr-grid-list__skeleton {
+  height: 72px;
+  border-radius: var(--rr-grid-list-row-radius);
+  background: linear-gradient(90deg, #f3f4f6 25%, #eceef2 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: rr-grid-list-shimmer 1.2s infinite;
+}
+
+.rr-grid-list__empty {
+  padding: 48px 24px;
+  border-radius: var(--rr-grid-list-row-radius);
+  background: #fff;
+  border: 1px dashed #dfe3ea;
+  color: #8b919a;
+  text-align: center;
+}
+
+@keyframes rr-grid-list-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .rr-grid-list__head,
+  .rr-grid-list__row,
+  .rr-grid-list__skeleton {
+    min-width: var(--rr-grid-list-scroll-min-width);
+    max-width: none;
+    width: 100%;
+  }
+}

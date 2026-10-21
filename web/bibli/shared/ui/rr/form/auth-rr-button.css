@@ -1,0 +1,159 @@
+/**
+ * Auth RR button — только var(--rr-*).
+ */
+
+.auth-rr-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rr-spacing-padding-s);
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-radius: var(--rr-radius-m);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m));
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m));
+  text-align: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.auth-rr-button--brand-primary {
+  --auth-rr-button-h: var(--auth-rr-control-h, 48px);
+  height: var(--auth-rr-button-h);
+  min-height: var(--auth-rr-button-h);
+  max-height: var(--auth-rr-button-h);
+  padding: var(--rr-spacing-padding-l) var(--rr-spacing-padding-xl);
+  background-color: var(--rr-button-brand-primary-background-default);
+  color: var(--rr-button-brand-primary-text-default);
+}
+
+.auth-rr-button.auth-rr-button--top-spacing {
+  margin-top: var(--rr-spacing-margin-2-xl);
+}
+
+.auth-rr-button--brand-primary:hover:not(:disabled) {
+  background-color: var(--rr-button-brand-primary-background-hover);
+  color: var(--rr-button-brand-primary-text-hover);
+}
+
+.auth-rr-button--brand-primary:active:not(:disabled) {
+  background-color: var(--rr-button-brand-primary-background-active);
+  color: var(--rr-button-brand-primary-text-active);
+}
+
+.auth-rr-button--brand-primary:disabled {
+  background-color: var(--rr-button-brand-primary-background-disable);
+  color: var(--rr-button-brand-primary-text-disable);
+  cursor: not-allowed;
+}
+
+.auth-rr-button--brand-secondary {
+  --auth-rr-button-h: var(--auth-rr-control-h, 48px);
+  height: var(--auth-rr-button-h);
+  min-height: var(--auth-rr-button-h);
+  max-height: var(--auth-rr-button-h);
+  padding: var(--rr-spacing-padding-l) var(--rr-spacing-padding-xl);
+  background-color: var(--rr-button-brand-secondary-background-default);
+  color: var(--rr-button-brand-secondary-text-default);
+}
+
+.auth-rr-button--brand-secondary:hover:not(:disabled) {
+  background-color: var(--rr-button-brand-secondary-background-hover);
+  color: var(--rr-button-brand-secondary-text-hover);
+}
+
+.auth-rr-button--brand-secondary:active:not(:disabled) {
+  background-color: var(--rr-button-brand-secondary-background-active);
+  color: var(--rr-button-brand-secondary-text-active);
+}
+
+.auth-rr-button--brand-secondary:disabled {
+  background-color: var(--rr-button-brand-secondary-background-disable);
+  color: var(--rr-button-brand-secondary-text-disable);
+  cursor: not-allowed;
+}
+
+.auth-rr-button--neutral-secondary {
+  --auth-rr-button-h: var(--auth-rr-control-h, 48px);
+  height: var(--auth-rr-button-h);
+  min-height: var(--auth-rr-button-h);
+  max-height: var(--auth-rr-button-h);
+  padding: var(--rr-spacing-padding-l) var(--rr-spacing-padding-xl);
+  font-family: var(--auth-rr-font-regular);
+  background-color: var(--rr-button-neutral-secondary-background-default, #F2F3F7);
+  color: var(--rr-button-neutral-secondary-text-default, #101012);
+}
+
+.auth-rr-button--neutral-secondary:hover:not(:disabled) {
+  background-color: var(--rr-button-neutral-secondary-background-hover, #E7E7E9);
+  color: var(--rr-button-neutral-secondary-text-hover, #101012);
+}
+
+.auth-rr-button--neutral-secondary:active:not(:disabled) {
+  background-color: var(--rr-button-neutral-secondary-background-active, #CDCDD6);
+  color: var(--rr-button-neutral-secondary-text-active, #101012);
+}
+
+.auth-rr-button--neutral-secondary:disabled {
+  background-color: var(--rr-button-neutral-secondary-background-disable, #F2F3F7);
+  color: var(--rr-button-neutral-secondary-text-disable, rgba(60, 60, 67, 0.32));
+  cursor: not-allowed;
+}
+
+.auth-rr-button:focus-visible {
+  outline: 2px solid var(--rr-input-border-active);
+  outline-offset: 2px;
+}
+
+.auth-rr-button--loading {
+  position: relative;
+  cursor: wait;
+}
+
+.auth-rr-button--brand-primary.auth-rr-button--loading:disabled {
+  background-color: var(--rr-button-brand-primary-background-default);
+  color: var(--rr-button-brand-primary-text-default);
+  cursor: wait;
+}
+
+.auth-rr-button--brand-secondary.auth-rr-button--loading:disabled {
+  background-color: var(--rr-button-brand-secondary-background-default);
+  color: var(--rr-button-brand-secondary-text-default);
+  cursor: wait;
+}
+
+.auth-rr-button--neutral-secondary.auth-rr-button--loading:disabled {
+  background-color: var(--rr-button-neutral-secondary-background-default, #f2f3f7);
+  color: var(--rr-button-neutral-secondary-text-default, #101012);
+  cursor: wait;
+}
+
+.auth-rr-button__label--hidden {
+  visibility: hidden;
+}
+
+.auth-rr-button__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: auth-rr-button-spin 0.7s linear infinite;
+}
+
+@keyframes auth-rr-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

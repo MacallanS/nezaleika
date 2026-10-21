@@ -1,0 +1,10 @@
+/**
+ * Adaptives — Desktop / Mobile.tokens1.1 Dimention.json + layout split.
+ * mobile/desktop width — artboard Figma; split-min — порог «форма + hero».
+ */
+:root {
+  --rr-adaptives-width-mobile: 390px;
+  --rr-adaptives-width-desktop: 1440px;
+  /* Ниже — stacked; от 1024 — две колонки (ноуты 1280/1366 не на «мобилке») */
+  --rr-adaptives-layout-split-min: 1024px;
+}

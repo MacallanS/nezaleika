@@ -1,0 +1,488 @@
+/**
+ * Issuance shell CSS variables — mapped from russ design tokens.
+ * Applied via applyTheme() on shell root elements.
+ */
+.issuance-shell {
+  --issuance-accent: var(--russ-primary);
+  --issuance-bg: var(--russ-bg-blue-light);
+  --issuance-surface: var(--russ-bg);
+  --issuance-text: var(--russ-text-primary);
+  --issuance-text-secondary: var(--russ-text-secondary);
+  --issuance-qr-frame: var(--russ-bg);
+  --issuance-hover: var(--russ-bg-hover);
+  --issuance-border: var(--russ-border);
+  --issuance-bg-image: none;
+}
+
+.issuance-shell--consent.issuance-shell--platform {
+  --issuance-bg: var(--russ-bg);
+}
+
+.issuance-shell--consent.issuance-shell--pilot {
+  --issuance-bg: var(--russ-bg-secondary);
+}
+
+.issuance-shell--fullscreen {
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.issuance-shell__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  height: 100lvh;
+  min-height: -webkit-fill-available;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--issuance-bg);
+  animation: issuance-fade-in 0.2s ease;
+  box-sizing: border-box;
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+}
+
+.issuance-shell--fullscreen.issuance-shell__overlay,
+.issuance-shell__overlay.issuance-shell--fullscreen {
+  padding: 0;
+}
+
+.issuance-shell--fullscreen .issuance-shell__panel,
+.issuance-shell__overlay.issuance-shell--fullscreen .issuance-shell__panel {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  justify-content: center;
+}
+
+.issuance-shell__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--issuance-surface);
+  border: 1px solid var(--issuance-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--russ-shadow-color);
+}
+
+.issuance-shell__headline {
+  margin: 0;
+  color: var(--issuance-text);
+  font-size: clamp(1.25rem, 2.5vw, 2.5rem);
+  font-weight: 600;
+  text-align: center;
+}
+
+.issuance-shell__panel.issuance-shell--dual_qr .issuance-shell__headline,
+.issuance-shell--dual_qr .issuance-shell__headline {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  max-width: 100%;
+  padding: 0 2.5rem;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.issuance-shell__subheadline {
+  margin: 0;
+  color: var(--issuance-text-secondary);
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
+  text-align: center;
+}
+
+.issuance-shell__branding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.issuance-shell__product-logo {
+  display: block;
+  max-width: min(280px, 65vw);
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.issuance-shell__qr-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--issuance-qr-frame);
+  border-radius: 8px;
+  padding: 0;
+  min-height: 200px;
+}
+
+.issuance-shell__qr-canvas {
+  display: block;
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+}
+
+.issuance-shell__close-btn {
+  /* fixed к viewport — иначе на fullscreen/высоких панелях крестик уезжает под Island */
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  z-index: 10060;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--issuance-text-secondary);
+  box-shadow: 0 2px 8px var(--russ-shadow-color);
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.issuance-shell__close-btn:hover {
+  background: var(--issuance-hover);
+  transform: scale(1.05);
+}
+
+.issuance-shell__close-btn:focus-visible {
+  outline: 2px solid var(--issuance-accent, #1c4ae5);
+  outline-offset: 2px;
+}
+
+.issuance-shell--magnit .issuance-shell__card,
+.issuance-shell--five_cards .issuance-shell__card {
+  position: relative;
+  width: min(95vw, 400px);
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px var(--russ-overlay-light);
+}
+
+.issuance-shell__card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.issuance-shell--magnit .issuance-shell__qr-frame {
+  position: absolute;
+  z-index: 2;
+  top: 17.8%;
+  left: 25.5%;
+  transform: translate(-50%, -58%);
+  width: 50vw;
+  height: 50vw;
+  max-width: 200px;
+  max-height: 209px;
+  border-radius: 16px;
+}
+
+.issuance-shell--five_cards .issuance-shell__qr-frame {
+  position: absolute;
+  bottom: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 95%;
+  height: 53%;
+  border-radius: 38px;
+  padding: 8px;
+}
+
+.issuance-shell--otp .issuance-shell__panel {
+  width: min(520px, 100%);
+  padding: clamp(22px, 5vw, 46px);
+  border-radius: 36px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 30px 90px rgba(78, 45, 104, 0.26);
+}
+
+.issuance-shell--otp .issuance-shell__qr-frame {
+  padding: 16px;
+  border: 8px solid var(--issuance-border);
+  border-radius: 30px;
+  box-shadow:
+    0 0 0 8px rgba(193, 255, 5, 0.84),
+    0 20px 58px rgba(78, 45, 104, 0.3);
+}
+
+.issuance-shell__panel.issuance-shell--dual_qr,
+.issuance-shell--dual_qr .issuance-shell__panel {
+  width: min(92vw, 420px);
+  max-width: 100%;
+  max-height: min(90vh, 720px);
+  padding: 48px 24px 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.issuance-shell__panel.issuance-shell--dual_qr .issuance-shell__dual-actions,
+.issuance-shell--dual_qr .issuance-shell__dual-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.issuance-shell__dual-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--issuance-border);
+  border-radius: 12px;
+  background: var(--issuance-surface);
+  color: var(--issuance-text);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.issuance-shell__dual-btn:hover {
+  background: var(--issuance-hover);
+}
+
+.issuance-shell__dual-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.issuance-shell__field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--issuance-text-secondary);
+}
+
+.issuance-shell__input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.issuance-shell__input {
+  display: block;
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--issuance-border);
+  border-radius: 8px;
+  background: var(--issuance-surface);
+  color: var(--issuance-text);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  box-sizing: border-box;
+}
+
+.issuance-shell__input--error {
+  border-color: #e24c4c;
+}
+
+.issuance-shell__cam-btn {
+  height: 40px;
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--issuance-border);
+  background: var(--issuance-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--issuance-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.issuance-shell__cam-btn .pi {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.issuance-shell__cam-btn:hover {
+  background: var(--issuance-hover);
+  color: var(--issuance-accent);
+  border-color: var(--issuance-accent);
+}
+
+.issuance-shell__field-error {
+  color: #e24c4c;
+  font-size: 0.75rem;
+}
+
+.issuance-shell__scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.issuance-shell__scanner-window {
+  width: 92%;
+  max-width: 380px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.issuance-shell__scanner-header {
+  background: #fff;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #111;
+}
+
+.issuance-shell__scanner-x {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.issuance-shell__scanner-view {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #111;
+}
+
+.issuance-shell__scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.issuance-shell__scanner-error {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.82rem;
+  gap: 6px;
+  text-align: center;
+  padding: 1rem;
+}
+
+.issuance-shell__scanner-footer {
+  background: #fff;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.issuance-shell__checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issuance-shell__check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--issuance-text);
+}
+
+.issuance-shell__dual-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.issuance-shell__btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.issuance-shell__btn--ghost {
+  background: transparent;
+  color: var(--issuance-text-secondary);
+}
+
+.issuance-shell__btn--primary {
+  background: var(--issuance-accent);
+  color: #fff;
+}
+
+.issuance-shell--consent {
+  min-height: 100vh;
+  background: var(--issuance-bg);
+}
+
+.issuance-shell--consent .issuance-shell__consent-card {
+  background: var(--issuance-surface);
+  border: 1px solid var(--issuance-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--russ-shadow-color);
+}
+
+@keyframes issuance-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

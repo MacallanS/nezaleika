@@ -1,0 +1,284 @@
+/**
+ * CSS переменные для темы russ-ui
+ * Эти переменные будут переопределяться через JavaScript при применении темы
+ */
+
+:root {
+  /* Typography */
+  --russ-font-family: 'Onest Regular', 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --russ-font-family-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', Menlo, Consolas, monospace;
+
+  /* Unified form control scale */
+  --ui-control-height: 48px;
+  --filter-control-height-sm: 36px;
+  --filter-control-height-md: 40px;
+  --filter-control-height-lg: 48px;
+  --filter-control-height: var(--ui-control-height, var(--filter-control-height-md));
+  --filter-control-padding-x: 12px;
+  --filter-control-radius: 10px;
+  --filter-control-font-family: var(--russ-font-family);
+  --filter-control-font-size-sm: 13px;
+  --filter-control-font-size-md: 14px;
+  --filter-control-font-size-lg: 16px;
+  --filter-control-font-size: var(--filter-control-font-size-md);
+  --filter-control-font-weight: 500;
+  --filter-control-line-height: 1.2;
+
+  /* Native / PrimeVue text fields — та же шкала, что InputText и FiltersBar */
+  --ui-input-height: var(--filter-control-height, var(--filter-control-height-md, 40px));
+  --ui-input-padding-x: 16px;
+  --ui-input-padding-y: 0;
+  --ui-input-font-family: var(--filter-control-font-family, var(--russ-font-family));
+  --ui-input-font-size: var(--filter-control-font-size, var(--filter-control-font-size-md, 14px));
+  --ui-input-font-weight: var(--filter-control-font-weight, 500);
+  --ui-input-line-height: var(--filter-control-line-height, 1.2);
+  --ui-input-radius: var(--filter-control-radius, 10px);
+
+  /* Основные цвета */
+  --russ-primary: #213e89;
+  --russ-primary-dark: #162954;
+  --russ-primary-light: #1b3170;
+  --russ-primary-hover: #1b3170;
+  --russ-primary-active: #162954;
+  
+  /* Вторичные цвета */
+  --russ-secondary: #6366f1;
+  --russ-secondary-dark: #4f46e5;
+  --russ-secondary-light: #818cf8;
+  
+  /* Акцентные цвета */
+  --russ-accent: #2563eb;
+  --russ-accent-dark: #1d4ed8;
+  --russ-accent-light: #3b82f6;
+  
+  /* Цвета текста */
+  --russ-text-primary: #1f2937;
+  --russ-text-secondary: #374151;
+  --russ-text-tertiary: #6b7280;
+  --russ-text-inverse: #ffffff;
+  
+  /* Цвета фона */
+  --russ-bg: #ffffff;
+  --russ-bg-secondary: #f8fafc;
+  --russ-bg-tertiary: #f1f5f9;
+  --russ-bg-elevated: #ffffff;
+  
+  /* Цвета границ */
+  --russ-border: #e5e7eb;
+  --russ-border-light: #e2e8f0;
+  --russ-border-dark: #d1d5db;
+  
+  /* Статусные цвета */
+  --russ-success: #22c55e;
+  --russ-success-light: #d1fae5;
+  --russ-success-dark: #16a34a;
+  
+  --russ-error: #dc3545;
+  --russ-error-light: #fee2e2;
+  --russ-error-dark: #c82333;
+  
+  --russ-warning: #f59e0b;
+  --russ-warning-light: #fef3c7;
+  --russ-warning-dark: #d97706;
+  
+  --russ-info: #3b82f6;
+  --russ-info-light: #dbeafe;
+  --russ-info-dark: #2563eb;
+  
+  /* Нейтральные цвета */
+  --russ-neutral: #6b7280;
+  --russ-neutral-light: #9ca3af;
+  --russ-neutral-dark: #374151;
+  
+  /* Дополнительные цвета */
+  --russ-label: #6366f1;
+  --russ-value: #213e89;
+  --russ-checkbox-accent: #2563eb;
+  --russ-focus-ring: rgba(33, 62, 137, 0.2);
+  
+  /* Дополнительные оттенки текста */
+  --russ-text-quaternary: #9ca3af;
+  --russ-text-muted: #64748b;
+  
+  /* Дополнительные оттенки фона */
+  --russ-bg-quaternary: #f9fafb;
+  --russ-bg-hover: #f3f4f6;
+  --russ-bg-active: #e5e7eb;
+  --russ-bg-disabled: #f3f4f6;
+  
+  /* Дополнительные оттенки границ */
+  --russ-border-quaternary: #ced4da;
+  --russ-input-border: #ced4da;
+  --russ-input-border-focus: #3b82f6;
+  --russ-input-border-error: #D60000;
+  
+  /* Цвета для инпутов */
+  --russ-input-bg: #ffffff;
+  --russ-input-bg-disabled: #f3f4f6;
+  --russ-input-bg-hover: #ffffff;
+  --russ-input-text: #374151;
+  --russ-input-placeholder: #6b7280;
+  --russ-input-error: #ef4444;
+  --russ-input-error-bg: #ffd6d6;
+  
+  /* Цвета для теней и оверлеев */
+  --russ-overlay: rgba(0, 0, 0, 0.5);
+  --russ-overlay-light: rgba(0, 0, 0, 0.3);
+  --russ-overlay-strong: rgba(0, 0, 0, 0.62);
+  /* Единый scrim модалок / sheets / nav — чуть плотнее, чтобы белый/серый фон не просвечивал пятнами */
+  --app-overlay-scrim: rgba(0, 0, 0, 0.56);
+  --russ-shadow-color: rgba(0, 0, 0, 0.1);
+  
+  /* Специальные цвета */
+  --russ-yellow: #fed521;
+  --russ-yellow-light: #fff3cd;
+  --russ-orange: #f39c12;
+  --russ-orange-light: #ffeaa7;
+  --russ-purple: #8b5cf6;
+  --russ-purple-light: #e0e7ff;
+  
+  /* Дополнительные оттенки primary для градиентов */
+  --russ-primary-gradient-start: #213e89;
+  --russ-primary-gradient-end: #1a3069;
+  
+  /* Дополнительные фоновые цвета */
+  --russ-bg-blue-tint: #e8edff;
+  --russ-bg-blue-light: #f5f7ff;
+  --russ-bg-blue-lighter: #e0e7ff;
+  --russ-bg-gray-light: #f4f7fb;
+  
+  /* Дополнительные цвета для статусов */
+  --russ-success-text: #065f46;
+  --russ-success-border: #34d399;
+  --russ-warning-text: #92400e;
+  --russ-error-text: #991b1b;
+  --russ-info-text: #1e40af;
+  --russ-info-border: #bfdbfe;
+  
+  /* Цвета для акцентов в инпутах */
+  --russ-accent-tint-12: rgba(29, 76, 210, 0.12);
+  --russ-accent-tint-18: rgba(29, 76, 210, 0.18);
+  --russ-accent-tint-40: rgba(29, 76, 210, 0.4);
+  
+  /* Цвета для теней с акцентом */
+  --russ-shadow-primary: rgba(33, 62, 137, 0.1);
+  --russ-shadow-primary-light: rgba(33, 62, 137, 0.06);
+  --russ-shadow-accent: rgba(37, 99, 235, 0.2);
+  --russ-shadow-accent-light: rgba(37, 99, 235, 0.1);
+  --russ-shadow-secondary: rgba(99, 102, 241, 0.1);
+  --russ-shadow-success: rgba(16, 185, 129, 0.2);
+  --russ-shadow-warning: rgba(243, 156, 18, 0.15);
+
+  /* Контрастные блоки (напр. уведомления на тёмной подложке) */
+  --russ-bg-dark: #1e293b;
+  --russ-text-light: #cbd5e1;
+
+
+  /* Legacy fintech hardcoded shades (temporary compatibility) */
+  --russ-legacy-000: #000;
+  --russ-legacy-000000: #000000;
+  --russ-legacy-0002: #0002;
+  --russ-legacy-0f172a: #0f172a;
+  --russ-legacy-111827: #111827;
+  --russ-legacy-15803d: #15803d;
+  --russ-legacy-1662d3: #1662d3;
+  --russ-legacy-1a1a1a: #1a1a1a;
+  --russ-legacy-1d1d1f: #1d1d1f;
+  --russ-legacy-1e293b: #1e293b;
+  --russ-legacy-1f78ff: #1f78ff;
+  --russ-legacy-222: #222;
+  --russ-legacy-32551c: #32551c;
+  --russ-legacy-333: #333;
+  --russ-legacy-334155: #334155;
+  --russ-legacy-351d47: #351d47;
+  --russ-legacy-3d5f22: #3d5f22;
+  --russ-legacy-4a5244: #4a5244;
+  --russ-legacy-4b5563: #4b5563;
+  --russ-legacy-4e2d68: #4e2d68;
+  --russ-legacy-555: #555;
+  --russ-legacy-5c5c5c: #5c5c5c;
+  --russ-legacy-666: #666;
+  --russ-legacy-74b9ff: #74b9ff;
+  --russ-legacy-7a4f01: #7a4f01;
+  --russ-legacy-7abe43: #7abe43;
+  --russ-legacy-808080: #808080;
+  --russ-legacy-94a3b8: #94a3b8;
+  --russ-legacy-9660: #9660;
+  --russ-legacy-9888: #9888;
+  --russ-legacy-991b1b: #991b1b;
+  --russ-legacy-9e6fc3: #9e6fc3;
+  --russ-legacy-9f1239: #9f1239;
+  --russ-legacy-a8e6cf: #a8e6cf;
+  --russ-legacy-ad8f00: #ad8f00;
+  --russ-legacy-b42318: #b42318;
+  --russ-legacy-b45309: #b45309;
+  --russ-legacy-b91c1c: #b91c1c;
+  --russ-legacy-c00: #c00;
+  --russ-legacy-c1ff05: #c1ff05;
+  --russ-legacy-c62828: #c62828;
+  --russ-legacy-cb1c22: #cb1c22;
+  --russ-legacy-d0d7de: #d0d7de;
+  --russ-legacy-d8ff57: #d8ff57;
+  --russ-legacy-dc2626: #dc2626;
+  --russ-legacy-ddd: #ddd;
+  --russ-legacy-dedede: #dedede;
+  --russ-legacy-defa: #defa;
+  --russ-legacy-e0c400: #e0c400;
+  --russ-legacy-e0e0e0: #e0e0e0;
+  --russ-legacy-e2f2ff: #e2f2ff;
+  --russ-legacy-e3d13b: #e3d13b;
+  --russ-legacy-e53935: #e53935;
+  --russ-legacy-eef2f7: #eef2f7;
+  --russ-legacy-ef4444: #ef4444;
+  --russ-legacy-f3b8b5: #f3b8b5;
+  --russ-legacy-f3cf7a: #f3cf7a;
+  --russ-legacy-f3f7ef: #f3f7ef;
+  --russ-legacy-f59aa5: #f59aa5;
+  --russ-legacy-f5f5f5: #f5f5f5;
+  --russ-legacy-f99b: #f99b;
+  --russ-legacy-f99b9b: #f99b9b;
+  --russ-legacy-fafafa: #fafafa;
+  --russ-legacy-fd79a8: #fd79a8;
+  --russ-legacy-ff3d3d: #ff3d3d;
+  --russ-legacy-ff6b6b: #ff6b6b;
+  --russ-legacy-ffe03d: #ffe03d;
+  --russ-legacy-ffe9ec: #ffe9ec;
+  --russ-legacy-fff3f3: #fff3f3;
+  --russ-legacy-fff5f5: #fff5f5;
+  --russ-legacy-fff8e8: #fff8e8;
+  --russ-legacy-fff9fa: #fff9fa;
+  --russ-legacy-fffde6: #fffde6;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --ui-input-height: var(--filter-control-height-sm, 36px);
+    /* 16px на touch — без auto-zoom iOS при фокусе */
+    --ui-input-font-size: var(--filter-control-font-size-lg, 16px);
+  }
+}
+
+/* PrimeVue + нативные поля без компонентной обёртки (не RR combobox/search, SearchInput, Auth RR, staff notes picker) */
+input.p-inputtext,
+input.p-inputmask,
+.p-inputtext,
+.p-inputmask,
+input.form-input,
+.form-input,
+input[type="text"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-input-phone__input):not(.auth-rr-otp__code-input):not(.staff-notes-add__input),
+input[type="email"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
+input[type="password"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
+input[type="number"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
+input[type="tel"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-input-phone__input):not(.auth-rr-otp__code-input),
+input[type="url"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
+input[type="search"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-multi-select__search-input):not(.rr-point-select__search-input):not(.rr-search-input__field):not(.profile-select-sheet__search-input):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input):not(.staff-notes-add__input) {
+  box-sizing: border-box;
+  min-height: var(--ui-input-height);
+  height: var(--ui-input-height);
+  padding: var(--ui-input-padding-y) var(--ui-input-padding-x) !important;
+  font-family: var(--ui-input-font-family) !important;
+  font-size: var(--ui-input-font-size) !important;
+  font-weight: var(--ui-input-font-weight);
+  line-height: var(--ui-input-line-height);
+  border-radius: var(--ui-input-radius);
+}

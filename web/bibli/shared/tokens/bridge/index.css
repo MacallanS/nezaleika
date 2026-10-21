@@ -1,0 +1,5 @@
+/**
+ * Opt-in: map --rr-* → --russ-* when html has data-rr.
+ * Import only if legacy components must pick up RR colors.
+ */
+@import './legacy-russ.css';

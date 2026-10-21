@@ -1,0 +1,2 @@
+/** Compat shim — prefer `bibli/shared/theme/legacy/theme.css` */
+@import './legacy/theme.css';

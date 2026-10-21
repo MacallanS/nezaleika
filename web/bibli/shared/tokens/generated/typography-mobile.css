@@ -1,0 +1,44 @@
+/* Russ Redesign tokens — auto-generated from Mobile.tokens.json */
+:root[data-rr-viewport="mobile"] {
+  --rr-font-family-font-family: Manrope;
+  --rr-font-weight-font-weight-regular: 400;
+  --rr-font-weight-font-weight-medium: 500;
+  --rr-font-weight-font-weight-semi-bold: 600;
+  --rr-font-weight-font-weight-bold: 700;
+  --rr-font-size-font-size-xxs: 8px;
+  --rr-font-size-font-size-xs: 12px;
+  --rr-font-size-font-size-s: 14px;
+  --rr-font-size-font-size-m: 16px;
+  --rr-font-size-font-size-l: 20px;
+  --rr-font-size-font-size-xl: 24px;
+  --rr-font-size-font-size-2xl: 28px;
+  --rr-font-size-font-size-3xl: 32px;
+  --rr-font-size-font-size-4xl: 36px;
+  --rr-font-size-font-size-5xl: 40px;
+  --rr-font-size-font-size-6xl: 44px;
+  --rr-line-height-line-height-xss: 10px;
+  --rr-line-height-line-height-xs: 16px;
+  --rr-line-height-line-height-s: 20px;
+  --rr-line-height-line-height-m: 24px;
+  --rr-line-height-line-height-l: 24px;
+  --rr-line-height-line-height-xl: 24px;
+  --rr-line-height-line-height-2xl: 28px;
+  --rr-line-height-line-height-3xl: 32px;
+  --rr-line-height-line-height-4xl: 36px;
+  --rr-line-height-line-height-5xl: 40px;
+  --rr-line-height-line-height-6xl: 44px;
+  --rr-tracking-tracking-xs: 0px;
+  --rr-tracking-tracking-s: 0px;
+  --rr-tracking-tracking-m: 0px;
+  --rr-tracking-tracking-l: -0.30000001192092896px;
+  --rr-tracking-tracking-xl: -0.5px;
+  --rr-tracking-tracking-2xl: -1px;
+  --rr-tracking-tracking-3xl: -1px;
+  --rr-tracking-tracking-4xl: -2px;
+  --rr-tracking-tracking-5xl: -2px;
+  --rr-tracking-tracking-6xl: -2px;
+  --rr-tracking-paragraph-spacing-paragraph-spacing-none: 0px;
+  --rr-tracking-paragraph-spacing-paragraph-spacing-s: 2px;
+  --rr-tracking-paragraph-spacing-paragraph-spacing-m: 6px;
+  --rr-tracking-paragraph-spacing-paragraph-spacing-l: 12px;
+}

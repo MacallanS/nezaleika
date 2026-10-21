@@ -1,0 +1,9 @@
+/**
+ * Russ Redesign (RR) — полный набор токенов из Figma (--rr-*).
+ * После обновления JSON: npm run tokens:build в корне bibli.
+ *
+ * Bridge RR→legacy (--russ-*): импортируйте отдельно
+ *   `bibli/shared/tokens/bridge` или `…/bridge/legacy-russ.css`
+ */
+@import './adaptives.css';
+@import './generated/index.css';

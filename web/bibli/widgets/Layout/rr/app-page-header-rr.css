@@ -1,0 +1,410 @@
+.app-page-header-rr,
+
+.app-page-header-rr *,
+
+.app-page-header-rr *::before,
+
+.app-page-header-rr *::after {
+
+  box-sizing: border-box;
+
+}
+
+
+
+.app-page-header-rr {
+  --app-page-header-rr-row-height: var(--rr-size-3-xl, 40px);
+  --app-page-header-rr-child-back-slot: var(--app-page-header-rr-row-height);
+  --app-page-header-rr-child-back-size: var(--rr-size-3-xl, 40px);
+  --app-page-header-rr-child-back-gap: var(--rr-spacing-padding-xl, 16px);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--rr-spacing-padding-m, 8px);
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  /* Safe-area на самом хедере: не ждём .page-main--rr при SSO reveal */
+  padding-top: calc(var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px));
+  color: var(--rr-labels-neutral-primary, #101012);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+}
+
+/* Nav на всю ширину; actions — во 2-й колонке рядом с нужной строкой */
+.app-page-header-rr__nav-row {
+  grid-column: 1 / -1;
+}
+
+.app-page-header-rr--child .app-page-header-rr__nav-row {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.app-page-header-rr--child .app-page-header-rr__actions {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.app-page-header-rr--child .app-page-header-rr__content-row {
+  grid-column: 1 / -1;
+}
+
+.app-page-header-rr--root .app-page-header-rr__content-row {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.app-page-header-rr--root .app-page-header-rr__actions {
+  grid-column: 2;
+  align-self: center;
+}
+
+/* Mobile root: nav (title + chip) и actions на разных рядах — нужен вертикальный зазор */
+@media (max-width: 1024px) {
+  .app-page-header-rr--root {
+    row-gap: var(--rr-spacing-padding-l, 12px);
+  }
+}
+
+.app-page-header-rr--child-back-absolute .app-page-header-rr__nav-row {
+  grid-column: 1;
+}
+
+.app-page-header-rr--child-back-absolute .app-page-header-rr__actions {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+
+
+.app-page-header-rr__nav-row {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0;
+
+  min-width: 0;
+
+}
+
+
+
+.app-page-header-rr--child .app-page-header-rr__nav-row .app-page-header-rr__title {
+
+  flex: 1 1 auto;
+
+  min-width: 0;
+
+}
+
+.app-page-header-rr--child {
+  column-gap: var(--rr-spacing-padding-xl, 16px);
+}
+
+
+
+.app-page-header-rr--child-back-block .app-page-header-rr__nav-row {
+  /* Не width:100% — иначе nav перекрывает колонку actions и ломает клики «Назад». */
+  max-width: 100%;
+  min-width: 0;
+}
+
+.app-page-header-rr--child .app-page-header-rr__actions--child {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.app-page-header-rr__back {
+  position: relative;
+  z-index: 2;
+}
+
+.app-page-header-rr--child-back-absolute .app-page-header-rr__nav-row {
+  position: relative;
+  width: var(--app-page-header-rr-child-back-slot);
+  height: var(--app-page-header-rr-child-back-slot);
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-left: 0;
+  pointer-events: none;
+}
+
+.app-page-header-rr--child-back-absolute {
+  padding-top: 0;
+}
+
+.app-page-header-rr--child-back-absolute .app-page-header-rr__back {
+  pointer-events: auto;
+  width: var(--app-page-header-rr-child-back-size, 40px);
+  height: var(--app-page-header-rr-child-back-size, 40px);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+
+
+.app-page-header-rr__back,
+
+.app-page-header-rr__menu {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: var(--app-page-header-rr-child-back-slot);
+
+  height: var(--app-page-header-rr-row-height);
+
+  margin: 0;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: var(--rr-radius-m, 8px);
+
+  background: transparent;
+
+  color: inherit;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+
+}
+
+
+
+.app-page-header-rr__menu-icon {
+
+  display: block;
+
+}
+
+
+
+.app-page-header-rr__toolbar-title {
+
+  flex: 1 1 auto;
+
+  min-width: 0;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  text-align: left;
+
+  font-weight: 600;
+
+  font-size: var(--rr-font-size-font-size-m, 16px);
+
+  line-height: var(--rr-line-height-line-height-m, 24px);
+
+  letter-spacing: var(--rr-tracking-tracking-m, 0px);
+
+  color: var(--rr-labels-neutral-primary, #101012);
+
+}
+
+
+
+.app-page-header-rr__user--nav {
+
+  flex-shrink: 0;
+
+}
+
+
+
+/* Desktop: заголовок страницы */
+
+.app-page-header-rr__content-row {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: var(--rr-spacing-padding-m, 8px);
+
+  width: 100%;
+
+  min-width: 0;
+
+}
+
+
+
+.app-page-header-rr__intro {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: var(--rr-spacing-padding-s, 4px);
+
+  min-width: 0;
+
+  flex: 1 1 auto;
+
+  margin-bottom: 0;
+
+}
+
+
+
+.app-page-header-rr__actions {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: var(--rr-spacing-padding-m, 8px);
+
+  margin-left: auto;
+
+  flex: 0 0 auto;
+
+  min-width: 0;
+
+}
+
+
+
+.app-page-header-rr__actions:not(:has(*)) {
+
+  display: none;
+
+}
+
+
+
+.app-page-header-rr__user {
+
+  margin-left: auto;
+
+  flex-shrink: 0;
+
+}
+
+
+
+.app-page-header-rr--child .app-page-header-rr__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: var(--rr-font-size-font-size-xl, 24px);
+  line-height: var(--rr-line-height-line-height-xl, 32px);
+  letter-spacing: var(--rr-tracking-tracking-xl, -0.02em);
+}
+
+.app-page-header-rr__title {
+
+  margin: 0;
+
+  font-weight: 600;
+
+  font-size: var(--rr-font-size-font-size-xl, 24px);
+
+  line-height: var(--rr-line-height-line-height-xl, 32px);
+
+  letter-spacing: var(--rr-tracking-tracking-xl, -0.02em);
+
+}
+
+
+
+.app-page-header-rr__subtitle {
+
+  margin: 0;
+
+  font-size: var(--rr-font-size-font-size-m, 16px);
+
+  line-height: var(--rr-line-height-line-height-m, 24px);
+
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+
+}
+
+
+
+@media (max-width: 1024px) {
+
+  .app-page-header-rr__back,
+
+  .app-page-header-rr__menu {
+
+    border-radius: var(--rr-radius-full, 9999px);
+
+  }
+
+
+
+  .app-page-header-rr__content-row .app-page-header-rr__title {
+
+    display: none;
+
+  }
+
+}
+
+
+
+@media (min-width: 1025px) {
+  .app-page-header-rr {
+    --app-page-header-rr-row-height: 56px;
+  }
+
+  .app-page-header-rr--child-back-absolute {
+    --app-page-header-rr-child-back-slot: 56px;
+  }
+
+
+
+  .app-page-header-rr--root .app-page-header-rr__nav-row {
+
+    display: none;
+
+  }
+
+
+
+  .app-page-header-rr__content-row {
+
+    min-height: var(--app-page-header-rr-row-height);
+
+  }
+
+}
+
+
+
+@media (min-width: 1440px) {
+
+  .app-page-header-rr__title {
+
+    font-size: var(--rr-font-size-font-size-2-xl, 28px);
+
+    line-height: var(--rr-line-height-line-height-2-xl, 36px);
+
+  }
+
+}
+
+

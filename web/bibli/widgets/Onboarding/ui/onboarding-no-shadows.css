@@ -1,0 +1,12 @@
+/* Без теней на страницах оформления (в т.ч. teleported dropdown/modals) */
+body.onboarding-no-shadows,
+body.onboarding-no-shadows * {
+  box-shadow: none !important;
+}
+
+/* Выпадающие RR-панели — тень из макета (чипы фильтров без тени) */
+body.onboarding-no-shadows .rr-status-badge-select__panel,
+body.onboarding-no-shadows .rr-multi-select__panel,
+body.onboarding-no-shadows .rr-point-select__panel {
+  box-shadow: var(--rr-select-shadow, 0px 0px 10px 0px #0000001a) !important;
+}

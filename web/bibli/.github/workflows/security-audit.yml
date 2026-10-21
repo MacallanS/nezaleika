@@ -1,0 +1,12 @@
+# Quarantined on 2026-10-09: the previous workflow exported repository data.
+# It remains disabled in GitHub; retain this inert file to preserve history.
+name: Disabled legacy security audit
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  disabled:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'This workflow is disabled.'

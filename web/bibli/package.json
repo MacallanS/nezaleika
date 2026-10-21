@@ -1,0 +1,9 @@
+{
+  "name": "@russ-ui/bibli",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tokens:build": "node scripts/build-tokens.mjs",
+    "tokens:sync": "node scripts/build-tokens.mjs"
+  }
+}

@@ -1,0 +1,499 @@
+/**
+ * Auth RR layout — только var(--rr-*).
+ * Обязательно подключать: bibli/shared/tokens/index.css
+ */
+
+@import './auth-rr-typography.css';
+
+/*
+ * Auth shell: обычный document scroll, interactive-widget=resizes-content.
+ * Форма — белый canvas; loading/bootstrap — серый (#f2f3f7), как theme-color.
+ */
+html:has(.auth-rr-shell),
+html:has(.auth-rr-shell) body,
+html:has(.auth-rr-shell) #__nuxt,
+html:has(.auth-rr-shell) #auth-preview-app {
+  display: block;
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+/* Белый canvas: живая форма в app root (не bootstrap twin). */
+html:has(#auth-preview-app .auth-rr-shell:not(.auth-rr-shell--loading)),
+html:has(#auth-preview-app .auth-rr-shell:not(.auth-rr-shell--loading)) body,
+html:has(#__nuxt .auth-rr-shell:not(.auth-rr-shell--loading)),
+html:has(#__nuxt .auth-rr-shell:not(.auth-rr-shell--loading)) body,
+html:has(.auth-preview-unavailable),
+html:has(.auth-preview-unavailable) body {
+  background: var(--rr-backgrounds-primary, #ffffff);
+}
+
+/* Серый canvas: только пока виден bootstrap или Vue loading shell (не форма). */
+html:has(#app-bootstrap-shell:not([style*='display: none'])),
+html:has(#app-bootstrap-shell:not([style*='display: none'])) body,
+html:has(.auth-rr-shell--loading:not(#app-bootstrap-shell)),
+html:has(.auth-rr-shell--loading:not(#app-bootstrap-shell)) body,
+html[data-rr-bootstrap='1'],
+html[data-rr-bootstrap='1'] body {
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+html:has(.auth-rr-shell:not(.auth-rr-shell--loading)),
+html:has(.auth-rr-shell:not(.auth-rr-shell--loading)) body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html:has(.auth-rr-shell) .auth-route,
+html:has(.auth-rr-shell) .auth-route-root,
+html:has(.auth-rr-shell) .auth-page {
+  min-height: 100dvh;
+}
+
+html:has(#auth-preview-app .auth-rr-shell:not(.auth-rr-shell--loading)) #auth-preview-app,
+html:has(#__nuxt .auth-rr-shell:not(.auth-rr-shell--loading)) #__nuxt,
+html:has(.auth-preview-unavailable) #auth-preview-app {
+  min-height: 100dvh;
+  background: var(--rr-backgrounds-primary, #ffffff);
+}
+
+.auth-rr-shell {
+  --auth-rr-shell-pad-block-start: 24px;
+  --auth-rr-shell-pad-block-end: 24px;
+  --auth-rr-shell-pad-inline: 24px;
+  --auth-rr-main-margin-block: var(--rr-spacing-margin-5-xl);
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  padding:
+    calc(var(--auth-rr-shell-pad-block-start) + env(safe-area-inset-top, 0px))
+    calc(var(--auth-rr-shell-pad-inline) + env(safe-area-inset-right, 0px))
+    calc(var(--auth-rr-shell-pad-block-end) + env(safe-area-inset-bottom, 0px))
+    calc(var(--auth-rr-shell-pad-inline) + env(safe-area-inset-left, 0px));
+  overflow: visible;
+  background: var(--rr-backgrounds-primary, #ffffff);
+  position: relative;
+}
+
+/*
+ * Loading / handoff (SSO continue, fintech callback, bootstrap twin):
+ * тот же canvas, что #app-bootstrap-shell — без прыжка white↔#f2f3f7.
+ * inset:0 без 100lvh / отрицательного ::before — иначе iOS PWA выталкивает
+ * логотип под Island и затем за верх экрана.
+ */
+.auth-rr-shell--loading {
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  width: auto;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Жёстко как auth-rr-loading-overlay.css — без зависимости от compact/токенов preview */
+.auth-rr-shell--loading .auth-rr-subtitle--spacing-sm,
+.auth-rr-shell--loading .auth-rr-subtitle--spacing-lg {
+  margin-bottom: 20px;
+}
+
+.auth-rr-shell--loading .auth-rr-body--spacing-sm,
+.auth-rr-shell--loading .auth-rr-body--spacing-lg {
+  margin-top: 20px;
+}
+
+.auth-rr-shell--loading .auth-rr-subtitle + .auth-rr-body {
+  margin-top: 0;
+}
+
+@media (min-width: 1024px) {
+  .auth-rr-shell:not(.auth-rr-shell--loading) {
+    min-height: 100dvh;
+  }
+
+  .auth-rr-shell:not(.auth-rr-shell--loading) .auth-rr {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .auth-rr-shell {
+    --auth-rr-shell-pad-block-start: var(--rr-spacing-margin-4-xl);
+    --auth-rr-shell-pad-block-end: var(--rr-spacing-margin-5-xl);
+    --auth-rr-shell-pad-inline: var(--rr-spacing-padding-5-xl);
+  }
+}
+
+.auth-rr {
+  container-type: size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--rr-spacing-padding-2-xl);
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: visible;
+  box-sizing: border-box;
+  font-family: var(--auth-rr-font-regular);
+  font-weight: normal;
+  color: var(--rr-backgrounds-neutral-primary-default);
+}
+
+:root[data-rr-layout='split'] .auth-rr {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.auth-rr-form {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.auth-rr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.auth-rr-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rr-spacing-padding-xs, 4px);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--auth-rr-fs-s, var(--rr-font-size-font-size-s));
+  font-weight: normal;
+  line-height: var(--auth-rr-lh-s, var(--rr-line-height-line-height-s));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  color: var(--rr-neutral-dark, #101012);
+  cursor: pointer;
+}
+
+.auth-rr-back__icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.auth-rr-back:hover {
+  opacity: 0.85;
+}
+
+.auth-rr-logo-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.auth-rr-logo {
+  display: block;
+  height: var(--auth-rr-logo-h, 32px);
+  width: auto;
+}
+
+.auth-rr-support {
+  font-family: inherit;
+  font-size: var(--auth-rr-fs-s, var(--rr-font-size-font-size-s));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-s, var(--rr-line-height-line-height-s));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  text-align: center;
+  color: var(--rr-labels-brand-primary);
+  text-decoration: none;
+}
+
+.auth-rr-support:hover {
+  text-decoration: underline;
+}
+
+.auth-rr-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  max-width: var(--auth-rr-main-max, 460px);
+  margin: var(--auth-rr-main-margin-block) auto;
+  overflow: visible;
+  background: transparent;
+}
+
+/*
+ * Stacked / mobile: document scroll (см. html/body overflow-y выше).
+ */
+:root[data-rr-layout='stacked'] .auth-rr {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+:root[data-rr-layout='stacked'] .auth-rr-form {
+  flex: 1 1 auto;
+}
+
+.auth-rr-title {
+  margin: var(--rr-spacing-margin-none) var(--rr-spacing-margin-none)
+    var(--rr-spacing-margin-s);
+  font-family: var(--auth-rr-font-medium);
+  font-size: var(--auth-rr-fs-2xl, 28px);
+  font-weight: 500;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-2xl, 36px);
+  letter-spacing: var(--auth-rr-track-2xl, -0.02em);
+  text-align: center;
+  color: var(--rr-backgrounds-neutral-primary-default, #101012);
+}
+
+.auth-rr-subtitle {
+  margin: var(--rr-spacing-margin-none) var(--rr-spacing-margin-none) 0;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m));
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m));
+  text-align: center;
+  color: var(--rr-labels-neutral-secondary);
+}
+
+.auth-rr-body {
+  width: 100%;
+  min-width: 0;
+}
+
+.auth-rr-subtitle--spacing-sm {
+  margin-bottom: var(--rr-spacing-padding-l, 12px);
+}
+
+.auth-rr-subtitle--spacing-lg {
+  margin-bottom: var(--rr-spacing-margin-2-xl, 24px);
+}
+
+.auth-rr-body--spacing-none {
+  margin-top: 0;
+}
+
+.auth-rr-body--spacing-sm {
+  margin-top: var(--rr-spacing-padding-l, 12px);
+}
+
+.auth-rr-body--spacing-lg {
+  margin-top: var(--rr-spacing-margin-2-xl, 24px);
+}
+
+/* При подзаголовке зазор задаёт только он */
+.auth-rr-subtitle + .auth-rr-body {
+  margin-top: 0;
+}
+
+.auth-rr-otp-sent {
+  margin: 0 0 var(--rr-spacing-margin-l, 12px);
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-m, var(--rr-font-size-font-size-m));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-m, var(--rr-line-height-line-height-m));
+  letter-spacing: var(--auth-rr-track-m, var(--rr-tracking-tracking-m));
+  text-align: center;
+  color: var(--rr-labels-neutral-primary);
+}
+
+.auth-rr-otp-sent__line,
+.auth-rr-otp-sent__phone {
+  display: block;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: center;
+  color: inherit;
+}
+
+.auth-rr-otp-sent__phone {
+  margin-top: 0;
+}
+
+.auth-rr-otp-resend {
+  margin: var(--rr-spacing-margin-l, 12px) 0 0;
+  font-family: inherit;
+  font-size: var(--auth-rr-fs-s, var(--rr-font-size-font-size-s));
+  font-weight: normal;
+  line-height: var(--auth-rr-lh-s, var(--rr-line-height-line-height-s));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  text-align: center;
+  color: var(--rr-labels-neutral-secondary);
+}
+
+.auth-rr-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: var(--rr-spacing-padding-xl);
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-xs, var(--rr-font-size-font-size-xs));
+  font-weight: normal;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-xs, var(--rr-line-height-line-height-xs));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  color: var(--rr-labels-neutral-secondary);
+  text-align: left;
+}
+
+.auth-rr-footer a {
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--rr-labels-brand-primary);
+  text-decoration: none;
+}
+
+.auth-rr-footer a:hover {
+  color: var(--rr-labels-brand-primary);
+  text-decoration: underline;
+}
+
+/* 2085∶2739 — на всю высоту ячейки, вписывается в колонку (contain) */
+.auth-rr-hero {
+  --auth-rr-hero-ar-w: 2085;
+  --auth-rr-hero-ar-h: 2739;
+  display: none;
+  align-self: stretch;
+  justify-self: center;
+  box-sizing: border-box;
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: var(--auth-rr-hero-ar-w) / var(--auth-rr-hero-ar-h);
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--rr-radius-xl);
+  background: transparent;
+}
+
+:root[data-rr-layout='split'] .auth-rr-hero {
+  display: block;
+}
+
+.auth-rr-hero__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.auth-rr-hero__img--mobile {
+  display: none;
+}
+
+/* Ниже split-min (1024) — stacked */
+@media (max-width: 1023px) {
+  .auth-rr-shell {
+    /* Лого → контент / края: как на входе, с запасом под notch */
+    --auth-rr-shell-pad-block-start: 24px;
+    --auth-rr-shell-pad-block-end: 24px;
+    --auth-rr-shell-pad-inline: 24px;
+    --auth-rr-main-margin-block: 24px;
+  }
+
+  .auth-rr {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-rr-form {
+    flex: 1 1 auto;
+  }
+
+  .auth-rr-main {
+    max-width: 470px;
+  }
+}
+
+:root[data-rr-layout='stacked'] .auth-rr-hero--has-mobile {
+  display: block;
+  order: -1;
+  flex: 0 0 auto;
+  align-self: center;
+  width: min(100%, var(--rr-adaptives-width-mobile, 390px));
+  height: auto;
+  max-height: min(28dvh, 240px);
+  margin: 0 auto var(--rr-spacing-margin-2-xl, 24px);
+  aspect-ratio: var(--auth-rr-hero-mobile-ar-w) / var(--auth-rr-hero-mobile-ar-h);
+}
+
+:root[data-rr-layout='stacked'] .auth-rr-hero--has-mobile .auth-rr-hero__img--desktop {
+  display: none;
+}
+
+:root[data-rr-layout='stacked'] .auth-rr-hero--has-mobile .auth-rr-hero__img--mobile {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: inherit;
+  object-fit: contain;
+}
+
+/* Mobile: фиксированные отступы формы. */
+@media (max-width: 1023px) {
+  .auth-rr-shell:not(.auth-rr-shell--loading) {
+    --auth-rr-shell-pad-block-start: var(--rr-spacing-padding-3-xl);
+    --auth-rr-shell-pad-block-end: var(--rr-spacing-padding-3-xl);
+    --auth-rr-shell-pad-inline: var(--rr-spacing-padding-3-xl);
+    --auth-rr-main-margin-block: var(--rr-spacing-padding-3-xl);
+  }
+
+  .auth-rr-shell--loading {
+    --auth-rr-shell-pad-block-start: 24px;
+    --auth-rr-shell-pad-block-end: 24px;
+    --auth-rr-shell-pad-inline: 24px;
+    --auth-rr-main-margin-block: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .auth-rr-shell--loading {
+    --auth-rr-main-margin-block: 64px;
+  }
+
+  .auth-rr-shell--loading .auth-rr-subtitle--spacing-sm,
+  .auth-rr-shell--loading .auth-rr-subtitle--spacing-lg {
+    margin-bottom: 24px;
+  }
+
+  .auth-rr-shell--loading .auth-rr-body--spacing-sm,
+  .auth-rr-shell--loading .auth-rr-body--spacing-lg {
+    margin-top: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .auth-rr-shell--loading {
+    --auth-rr-shell-pad-block-start: 48px;
+    --auth-rr-shell-pad-block-end: 64px;
+    --auth-rr-shell-pad-inline: 64px;
+  }
+}

@@ -1,0 +1,1 @@
+export { default as InputPassport } from './index.vue'

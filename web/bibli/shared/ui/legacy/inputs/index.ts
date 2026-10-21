@@ -1,0 +1,7 @@
+export * from './phone'
+export * from './text'
+export * from './passport'
+export * from './code'
+export * from './date'
+export * from './password'
+export * from './select'

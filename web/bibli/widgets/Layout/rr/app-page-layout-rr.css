@@ -1,0 +1,162 @@
+/**
+ * RR page shell — единый layout на всех страницах.
+ *
+ * Gutter: 16px mobile (<768), 28px tablet/desktop (≥768, включая ≥1440).
+ * Шапка: 8px сверху до 1440, 24px от 1440; боковые отступы = gutter.
+ */
+
+.page-main--rr {
+  --app-page-rr-gutter: var(--rr-spacing-padding-xl, 16px);
+  --app-page-rr-header-top: var(--rr-spacing-padding-m, 8px);
+  --app-page-rr-content-bottom: 5px;
+  --app-page-header-rr-row-height: var(--rr-size-3-xl, 40px);
+  --app-page-header-rr-child-back-slot: var(--app-page-header-rr-row-height);
+  --app-page-header-rr-child-back-size: var(--rr-size-3-xl, 40px);
+  --app-page-header-rr-child-back-gap: var(--rr-spacing-padding-xl, 16px);
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.content-wrapper--profile-rr {
+  --app-page-rr-gutter: var(--rr-spacing-padding-xl, 16px);
+  --app-page-rr-header-top: var(--rr-spacing-padding-m, 8px);
+}
+
+@media (min-width: 768px) {
+  .page-main--rr,
+  .content-wrapper--profile-rr {
+    --app-page-rr-gutter: 28px;
+    --app-page-header-rr-row-height: 56px;
+  }
+
+  .page-main--rr.page-main--rr-child-back-absolute {
+    --app-page-header-rr-child-back-slot: 56px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .page-main--rr,
+  .content-wrapper--profile-rr {
+    --app-page-rr-header-top: var(--rr-spacing-padding-2-xl, 24px);
+  }
+}
+
+.page-main--rr .app-page-header-rr {
+  padding:
+    calc(var(--app-page-rr-header-top) + env(safe-area-inset-top, 0px))
+    var(--app-page-rr-gutter)
+    0;
+  margin-bottom: var(--rr-spacing-padding-xl, 16px);
+}
+
+.page-main--rr .app-page-header-rr--child {
+  margin-bottom: 0;
+}
+
+/*
+ * Child absolute: только кнопка «Назад» поверх контента, без title-row и user chip.
+ * Контент начинается с того же верхнего отступа, что и кнопка.
+ */
+.page-main--rr.page-main--rr-child-back-absolute {
+  position: relative;
+}
+
+.page-main--rr.page-main--rr-child-back-absolute > .app-page-header-rr.app-page-header-rr--child-back-absolute {
+  position: absolute;
+  top: calc(var(--app-page-rr-header-top) + env(safe-area-inset-top, 0px));
+  left: var(--app-page-rr-gutter);
+  right: auto;
+  width: var(--app-page-header-rr-child-back-slot);
+  padding: 0;
+  margin: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.page-main--rr.page-main--rr-child-back-absolute .app-page-header-rr__nav-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: var(--app-page-header-rr-child-back-slot);
+  height: var(--app-page-header-rr-child-back-slot);
+  padding: 0;
+  gap: 0;
+  pointer-events: none;
+}
+
+.page-main--rr.page-main--rr-child-back-absolute .app-page-header-rr__back {
+  pointer-events: auto;
+  width: var(--app-page-header-rr-child-back-size, 40px);
+  height: var(--app-page-header-rr-child-back-size, 40px);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page-main--rr-child-back-absolute .page-content--rr {
+  padding-top: calc(var(--app-page-rr-header-top) + env(safe-area-inset-top, 0px));
+}
+
+.page-content--rr {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--app-page-rr-gutter);
+  padding-bottom: var(--app-page-rr-content-bottom, 5px);
+}
+
+.page-content--rr.page-content--rr-new-user-home {
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+  .page-content--mobile-tabbar {
+    /* полный клиренс таббара: pad + слот + pad + safe-area + зазор как на десктопе */
+    padding-bottom: calc(
+      var(--app-mobile-tabbar-inset, 68px) + var(--app-page-rr-content-bottom, 5px)
+    ) !important;
+  }
+}
+
+.page-content--rr > section,
+.page-content--rr > :is(div, article) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+.page-content--rr > section {
+  padding-block-start: 0;
+}
+
+/**
+ * Дочерние страницы: на мобилке «Назад» уже в AppPageHeaderRR — убираем дубли в контенте.
+ */
+@media (max-width: 1024px) {
+  .page-content--rr-child :is(
+    .onec-back-link,
+    .back-link,
+    .admin-sms-back-link,
+    [class*='-back-link']
+  ) {
+    display: none !important;
+  }
+
+  .page-content--rr-child .page-leading-sep {
+    display: none !important;
+  }
+}
+
+/** @deprecated — alias для совместимости, стили идентичны page-content--rr */
+.page-content--rr-layout-default,
+.page-content--rr-layout-wide,
+.page-content--rr-layout-slim {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--app-page-rr-gutter);
+  padding-bottom: var(--app-page-rr-content-bottom, 5px);
+  max-width: none;
+  margin-inline: 0;
+}

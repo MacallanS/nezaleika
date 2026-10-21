@@ -1,0 +1,62 @@
+/**
+ * Auth RR — масштаб типографики и высот контролов.
+ * Типографика фиксированная: без изменения по ширине окна.
+ * Меняем только размеры контролов/контейнера на больших экранах.
+ */
+
+.auth-rr-shell {
+  --auth-rr-fs-xs: var(--rr-font-size-font-size-xs);
+  --auth-rr-fs-s: var(--rr-font-size-font-size-s);
+  --auth-rr-fs-m: var(--rr-font-size-font-size-m);
+  --auth-rr-fs-2xl: var(--rr-font-size-font-size-2xl);
+
+  --auth-rr-lh-xs: var(--rr-line-height-line-height-xs);
+  --auth-rr-lh-s: var(--rr-line-height-line-height-s);
+  --auth-rr-lh-m: var(--rr-line-height-line-height-m);
+  --auth-rr-lh-2xl: var(--rr-line-height-line-height-2xl);
+
+  --auth-rr-track-s: var(--rr-tracking-tracking-s);
+  --auth-rr-track-m: var(--rr-tracking-tracking-m);
+  --auth-rr-track-2xl: var(--rr-tracking-tracking-2xl);
+
+  --auth-rr-font-regular: 'Onest Regular', 'Onest', system-ui, sans-serif;
+  --auth-rr-font-medium: 'Onest Medium', 'Onest', system-ui, sans-serif;
+  --auth-rr-font-semibold: 'Onest SemiBold', 'Onest', system-ui, sans-serif;
+  --auth-rr-font-password: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+
+  --auth-rr-control-h: 48px;
+  --auth-rr-main-max: 460px;
+  --auth-rr-logo-h: 32px;
+
+  font-family: var(--auth-rr-font-regular);
+  font-weight: normal;
+  font-synthesis: none;
+}
+
+@media (min-width: 1440px) {
+  .auth-rr-shell {
+    --auth-rr-control-h: 48px;
+    --auth-rr-main-max: clamp(480px, 32vw, 640px);
+    --auth-rr-logo-h: 40px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .auth-rr-shell {
+    --auth-rr-fs-xs: var(--rr-font-size-font-size-s);
+    --auth-rr-fs-s: var(--rr-font-size-font-size-m);
+    --auth-rr-fs-m: var(--rr-font-size-font-size-l);
+    --auth-rr-fs-2xl: var(--rr-font-size-font-size-3xl);
+
+    --auth-rr-lh-xs: var(--rr-line-height-line-height-s);
+    --auth-rr-lh-s: var(--rr-line-height-line-height-m);
+    --auth-rr-lh-m: var(--rr-line-height-line-height-l);
+    --auth-rr-lh-2xl: var(--rr-line-height-line-height-3xl);
+
+    --auth-rr-track-2xl: var(--rr-tracking-tracking-3xl);
+
+    --auth-rr-control-h: 48px;
+    --auth-rr-main-max: clamp(840px, 36vw, 1040px);
+    --auth-rr-logo-h: 48px;
+  }
+}

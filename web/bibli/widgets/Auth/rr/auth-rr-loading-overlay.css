@@ -1,0 +1,416 @@
+/**
+ * Critical Auth RR loading overlay — first paint before Vue/tokens.
+ *
+ * Canvas (auth-rr-layout.css — источник правды после mount):
+ * - loading/bootstrap → #f2f3f7
+ * - форма в #auth-preview-app / #__nuxt → #ffffff
+ */
+
+html,
+body {
+  margin: 0;
+}
+
+/* До mount Vue: серый только пока bootstrap на экране */
+html:has(#app-bootstrap-shell:not([style*='display: none'])),
+html:has(#app-bootstrap-shell:not([style*='display: none'])) body,
+html[data-rr-bootstrap='1'],
+html[data-rr-bootstrap='1'] body {
+  background: #f2f3f7;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/*
+ * Пока виден bootstrap-шелл: safe-area fillers прозрачные —
+ * иначе светлая полоска поверх шелла / native chrome.
+ */
+html:has(#app-bootstrap-shell).app-rr-shell::before,
+html:has(#app-bootstrap-shell).app-rr-shell::after,
+html:has(#app-bootstrap-shell).app-rr-shell.app-overlay-open::before,
+html:has(#app-bootstrap-shell).app-rr-shell.app-overlay-open::after {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/*
+ * #auth-preview-app в DOM рядом с bootstrap-shell.
+ * Белый canvas формы; html серый только пока bootstrap виден (см. правило выше).
+ */
+#auth-preview-app {
+  display: block;
+  width: 100%;
+  min-height: 100dvh;
+  background: #ffffff;
+}
+
+@font-face {
+  font-family: 'Onest Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/Onest/Onest-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Onest Medium';
+  font-style: normal;
+  font-weight: 500;
+  font-display: optional;
+  src: url('/Onest/Onest-VariableFont_wght.ttf') format('truetype');
+}
+
+/*
+ * Typography mirrors auth-rr-typography.css + RR tokens:
+ * mobile 2xl = 28/28/-1px, desktop 2xl = 32/32/-1px.
+ * Do not hardcode mobile title metrics for all viewports — that jumps when Vue mounts.
+ *
+ * iOS PWA: только inset:0 — без 100lvh и без ::before с отрицательным margin
+ * (иначе шелл выше экрана и контент уезжает под Island / за край).
+ * Фон шелла при viewport-fit=cover красится под Island; контент — в padding.
+ */
+
+#app-bootstrap-shell.auth-rr-shell {
+  --auth-rr-shell-pad-block-start: 24px;
+  --auth-rr-shell-pad-block-end: 24px;
+  --auth-rr-shell-pad-inline: 24px;
+  --auth-rr-main-margin-block: 24px;
+  --auth-rr-main-max: 460px;
+  --auth-rr-logo-h: 32px;
+  --auth-rr-fs-xs: 12px;
+  --auth-rr-fs-s: 14px;
+  --auth-rr-fs-m: 16px;
+  --auth-rr-fs-2xl: 28px;
+  --auth-rr-lh-xs: 16px;
+  --auth-rr-lh-s: 20px;
+  --auth-rr-lh-m: 24px;
+  --auth-rr-lh-2xl: 28px;
+  --auth-rr-track-s: 0px;
+  --auth-rr-track-m: 0px;
+  --auth-rr-track-2xl: -1px;
+  --auth-rr-font-regular: 'Onest Regular', 'Onest', system-ui, sans-serif;
+  --auth-rr-font-medium: 'Onest Medium', 'Onest', system-ui, sans-serif;
+  --auth-rr-brand: #1c4ae5;
+  --auth-rr-text: #101012;
+  --auth-rr-text-secondary: rgba(60, 60, 67, 0.72);
+  --auth-rr-spinner-track: #e7e8ee;
+  --auth-rr-hero-ar-w: 2085;
+  --auth-rr-hero-ar-h: 2739;
+  --auth-rr-gap: 20px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  padding:
+    calc(var(--auth-rr-shell-pad-block-start) + env(safe-area-inset-top, 0px))
+    calc(var(--auth-rr-shell-pad-inline) + env(safe-area-inset-right, 0px))
+    calc(var(--auth-rr-shell-pad-block-end) + env(safe-area-inset-bottom, 0px))
+    calc(var(--auth-rr-shell-pad-inline) + env(safe-area-inset-left, 0px));
+  overflow: hidden;
+  background: #f2f3f7;
+  color: var(--auth-rr-text);
+  font-family: var(--auth-rr-font-regular);
+  font-weight: normal;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  pointer-events: auto;
+  /* Isolation: children paint above; no gap strip via separate filler */
+  isolation: isolate;
+}
+
+/* Bootstrap всегда quaternary — даже рядом с #auth-preview-app (иначе белые полосы под Island). */
+html:has(#auth-preview-app) #app-bootstrap-shell.auth-rr-shell {
+  background: #f2f3f7;
+}
+
+#app-bootstrap-shell.auth-rr-shell *,
+#app-bootstrap-shell.auth-rr-shell *::before,
+#app-bootstrap-shell.auth-rr-shell *::after {
+  box-sizing: border-box;
+}
+
+#app-bootstrap-shell .auth-rr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--auth-rr-gap);
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--auth-rr-font-regular);
+  font-weight: normal;
+  color: var(--auth-rr-text);
+}
+
+#app-bootstrap-shell .auth-rr-form {
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#app-bootstrap-shell .auth-rr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+#app-bootstrap-shell .auth-rr-logo {
+  display: block;
+  height: var(--auth-rr-logo-h);
+  width: auto;
+}
+
+#app-bootstrap-shell .auth-rr-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  max-width: var(--auth-rr-main-max);
+  margin: var(--auth-rr-main-margin-block) auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#app-bootstrap-shell .auth-rr-title {
+  margin: 0 0 4px;
+  font-family: var(--auth-rr-font-medium);
+  font-size: var(--auth-rr-fs-2xl);
+  font-weight: 500;
+  font-style: normal;
+  line-height: var(--auth-rr-lh-2xl);
+  letter-spacing: var(--auth-rr-track-2xl);
+  text-align: center;
+  color: var(--auth-rr-text);
+}
+
+#app-bootstrap-shell .auth-rr-subtitle {
+  margin: 0;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-m);
+  font-weight: normal;
+  line-height: var(--auth-rr-lh-m);
+  letter-spacing: var(--auth-rr-track-m);
+  text-align: center;
+  color: var(--auth-rr-text-secondary);
+  min-height: var(--auth-rr-lh-m);
+}
+
+#app-bootstrap-shell .auth-rr-subtitle:empty {
+  visibility: hidden;
+}
+
+#app-bootstrap-shell .auth-rr-subtitle:empty::before {
+  content: '\00a0';
+}
+
+#app-bootstrap-shell .auth-rr-subtitle--spacing-sm,
+#app-bootstrap-shell .auth-rr-subtitle--spacing-lg {
+  margin-bottom: 20px;
+}
+
+#app-bootstrap-shell .auth-rr-body {
+  width: 100%;
+  min-width: 0;
+}
+
+#app-bootstrap-shell .auth-rr-body--spacing-sm,
+#app-bootstrap-shell .auth-rr-body--spacing-lg {
+  margin-top: 20px;
+}
+
+/* Как в auth-rr-layout.css: зазор задаёт только subtitle */
+#app-bootstrap-shell .auth-rr-subtitle + .auth-rr-body {
+  margin-top: 0;
+}
+
+#app-bootstrap-shell .auth-rr-callback-status,
+#app-bootstrap-shell #bootstrap-rr-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding-top: 0;
+}
+
+#app-bootstrap-shell .auth-rr-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto;
+  border: 4px solid var(--auth-rr-spinner-track);
+  border-top-color: var(--auth-rr-brand);
+  border-radius: 50%;
+  animation: auth-rr-loading-spin 0.9s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+@keyframes auth-rr-loading-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+#app-bootstrap-shell .auth-rr-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 16px;
+  font-family: var(--auth-rr-font-regular);
+  font-size: var(--auth-rr-fs-xs);
+  font-weight: normal;
+  line-height: var(--auth-rr-lh-xs);
+  letter-spacing: var(--auth-rr-track-s);
+  color: var(--auth-rr-text-secondary);
+  text-align: left;
+}
+
+#app-bootstrap-shell .auth-rr-footer a {
+  font: inherit;
+  color: var(--auth-rr-brand);
+  text-decoration: none;
+}
+
+#app-bootstrap-shell .auth-rr-footer a:hover {
+  text-decoration: underline;
+}
+
+#app-bootstrap-shell .auth-rr-hero {
+  display: none;
+  align-self: stretch;
+  justify-self: center;
+  box-sizing: border-box;
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: var(--auth-rr-hero-ar-w) / var(--auth-rr-hero-ar-h);
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: transparent;
+}
+
+#app-bootstrap-shell .auth-rr-hero__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Split + desktop typography — same breakpoint as Auth RR (1024) / data-rr-viewport */
+@media (min-width: 1024px) {
+  #app-bootstrap-shell.auth-rr-shell {
+    --auth-rr-main-margin-block: 64px;
+    --auth-rr-gap: 24px;
+    --auth-rr-fs-2xl: 32px;
+    --auth-rr-lh-2xl: 32px;
+    --auth-rr-track-2xl: -1px;
+  }
+
+  #app-bootstrap-shell .auth-rr {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  #app-bootstrap-shell .auth-rr-hero {
+    display: block;
+  }
+
+  #app-bootstrap-shell .auth-rr-subtitle--spacing-sm,
+  #app-bootstrap-shell .auth-rr-subtitle--spacing-lg {
+    margin-bottom: 24px;
+  }
+
+  #app-bootstrap-shell .auth-rr-body--spacing-sm,
+  #app-bootstrap-shell .auth-rr-body--spacing-lg {
+    margin-top: 24px;
+  }
+}
+
+:root[data-rr-viewport='desktop'] #app-bootstrap-shell.auth-rr-shell {
+  --auth-rr-fs-2xl: 32px;
+  --auth-rr-lh-2xl: 32px;
+  --auth-rr-track-2xl: -1px;
+}
+
+:root[data-rr-viewport='mobile'] #app-bootstrap-shell.auth-rr-shell {
+  --auth-rr-fs-2xl: 28px;
+  --auth-rr-lh-2xl: 28px;
+  --auth-rr-track-2xl: -1px;
+}
+
+@media (min-width: 1440px) {
+  #app-bootstrap-shell.auth-rr-shell {
+    --auth-rr-shell-pad-block-start: 48px;
+    --auth-rr-shell-pad-block-end: 64px;
+    --auth-rr-shell-pad-inline: 64px;
+    --auth-rr-logo-h: 40px;
+    --auth-rr-main-max: clamp(480px, 32vw, 640px);
+  }
+}
+
+/* 2560: same bump as auth-rr-typography.css (desktop token steps) */
+@media (min-width: 2560px) {
+  #app-bootstrap-shell.auth-rr-shell {
+    --auth-rr-fs-xs: 14px;
+    --auth-rr-fs-s: 16px;
+    --auth-rr-fs-m: 20px;
+    --auth-rr-fs-2xl: 48px;
+    --auth-rr-lh-xs: 20px;
+    --auth-rr-lh-s: 24px;
+    --auth-rr-lh-m: 24px;
+    --auth-rr-lh-2xl: 48px;
+    --auth-rr-track-2xl: -1px;
+    --auth-rr-logo-h: 48px;
+    --auth-rr-main-max: clamp(840px, 36vw, 1040px);
+  }
+}
+
+@media (max-width: 1023px) {
+  #app-bootstrap-shell.auth-rr-shell {
+    --auth-rr-shell-pad-block-start: 24px;
+    --auth-rr-shell-pad-block-end: 24px;
+    --auth-rr-shell-pad-inline: 24px;
+    --auth-rr-main-margin-block: 24px;
+    --auth-rr-gap: 20px;
+    --auth-rr-logo-h: 32px;
+  }
+
+  #app-bootstrap-shell .auth-rr-main {
+    max-width: 470px;
+  }
+}
+
+:root[data-rr-layout='split'] #app-bootstrap-shell .auth-rr {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+:root[data-rr-layout='split'] #app-bootstrap-shell .auth-rr-hero {
+  display: block;
+}
+
+:root[data-rr-layout='stacked'] #app-bootstrap-shell .auth-rr {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:root[data-rr-layout='stacked'] #app-bootstrap-shell .auth-rr-hero {
+  display: none;
+}

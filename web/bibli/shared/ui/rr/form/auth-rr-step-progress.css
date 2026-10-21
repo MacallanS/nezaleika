@@ -1,0 +1,17 @@
+.auth-rr-step-progress {
+  display: flex;
+  width: 100%;
+  gap: var(--rr-spacing-padding-xs, 4px);
+}
+
+.auth-rr-step-progress__segment {
+  flex: 1 1 0;
+  height: 4px;
+  min-width: 0;
+  border-radius: var(--rr-radius-full, 999px);
+  background: var(--rr-backgrounds-quaternary);
+}
+
+.auth-rr-step-progress__segment--active {
+  background: var(--rr-backgrounds-brand-primary-default);
+}

@@ -1,0 +1,1042 @@
+/**
+ * Профиль → Безопасность и вход (мобильный RR).
+ */
+
+/*
+ * Полноэкранная настройка PIN / Face ID (онбординг и из хаба).
+ * fixed + 100dvh — как gate: не зависит от высоты page-content / keep-alive.
+ * !important: иначе .page-content > * (height/max-height: 100%) схлопывает экран.
+ */
+.profile-device-unlock-setup {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 10040;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  height: 100lvh !important;
+  max-height: none !important;
+  min-height: -webkit-fill-available !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background: var(--Backgrounds-Quaternary, var(--rr-backgrounds-quaternary, #f2f3f7));
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-device-unlock-setup > .profile-pin,
+.profile-device-unlock-setup > .profile-security-shell {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+.profile-security-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  color: var(--rr-labels-neutral-primary, #101012);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+}
+
+.profile-security-shell__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding:
+    calc(var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px))
+    var(--rr-spacing-padding-xl, 16px)
+    8px;
+  flex-shrink: 0;
+}
+
+.profile-security-shell__back {
+  position: absolute;
+  left: var(--rr-spacing-padding-xl, 16px);
+  /* Та же полоса, что у заголовка: между top/bottom padding шапки */
+  top: calc(var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px));
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--rr-labels-neutral-primary, #101012);
+  cursor: pointer;
+}
+
+.profile-security-shell__back:hover,
+.profile-security-shell__back:focus,
+.profile-security-shell__back:focus-visible,
+.profile-security-shell__back:active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.profile-security-shell__title {
+  margin: 0;
+  padding: 0 48px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: center;
+  align-self: center;
+}
+
+.profile-security-shell__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding:
+    8px var(--rr-spacing-padding-xl, 16px)
+    calc(16px + var(--app-mobile-tabbar-content-inset, 68px));
+}
+
+/* Длинные списки (устройства и т.п.): не сжимать в viewport — скролл у __body */
+.profile-security-shell__body > *:not(.profile-biometric) {
+  flex-shrink: 0;
+}
+
+.profile-security-shell__footer {
+  flex-shrink: 0;
+  padding:
+    12px var(--rr-spacing-padding-xl, 16px)
+    calc(12px + var(--app-mobile-tabbar-content-inset, 68px));
+}
+
+/* Face ID intro/success: контент по центру высоты, кнопки остаются в footer */
+.profile-security-shell__body > .profile-biometric {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.profile-security-shell__footer .auth-rr-button {
+  width: 100%;
+}
+
+.profile-security-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--rr-backgrounds-primary, #fff);
+}
+
+.profile-security-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid rgba(16, 16, 18, 0.06);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-security-list > li:last-child > .profile-security-row {
+  border-bottom: none;
+}
+
+.profile-security-row:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.profile-security-row__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.profile-security-row__icon img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  background: transparent;
+}
+
+.profile-security-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-security-row__label {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-security-row__hint {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-security-row__chevron {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+  color: rgba(60, 60, 67, 0.36);
+}
+
+.profile-security-list--nested {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--rr-radius-l, 16px);
+  background: var(--rr-backgrounds-secondary, #f2f3f7);
+  overflow: hidden;
+}
+
+.profile-security-list--nested > li + li {
+  border-top: 1px solid rgba(60, 60, 67, 0.12);
+}
+
+.profile-security-list--nested .profile-security-row {
+  background: transparent;
+}
+
+.profile-biometric-manage__toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.profile-biometric-manage__toggle :deep(.profile-rr-checkbox) {
+  width: 100%;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.profile-biometric-manage__toggle :deep(.profile-rr-checkbox__label) {
+  flex: 1 1 auto;
+  order: -1;
+}
+
+.profile-biometric-manage__hint {
+  margin: 0;
+  padding-right: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-biometric__error {
+  margin: 12px 0 0;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--rr-text-error, #d70015);
+}
+
+.profile-biometric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 24px 8px 16px;
+  box-sizing: border-box;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+}
+
+.profile-biometric__hero-wrap {
+  width: min(100%, 240px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  border-radius: 24px;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.profile-biometric__hero {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  object-fit: contain;
+}
+
+.profile-biometric__hero--icon {
+  max-width: 120px;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  background: transparent;
+}
+
+.profile-biometric__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+}
+
+.profile-biometric__title {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-weight: 600;
+  font-style: normal;
+  font-size: var(--rr-font-size-font-size-xl, 24px);
+  line-height: var(--rr-line-height-line-height-xl, 24px);
+  letter-spacing: var(--rr-tracking-tracking-xl, -0.5px);
+  text-align: center;
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-biometric__subtitle {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  letter-spacing: var(--rr-tracking-tracking-m, 0px);
+  text-align: center;
+  color: var(--Labels-Neutral-Secondary, var(--rr-labels-neutral-secondary, #3c3c43b8));
+}
+
+.profile-biometric__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.profile-biometric__actions .auth-rr-button {
+  width: 100%;
+}
+
+.profile-security-shell--plain {
+  background: var(--rr-backgrounds-primary, #fff);
+}
+
+.profile-security-shell--plain .profile-security-shell__body {
+  padding-top: 0;
+}
+
+/* PIN / Face ID fullscreen — таббара нет */
+.profile-device-unlock-setup .profile-security-shell__body,
+.profile-security-shell--biometric .profile-security-shell__body,
+html.app-rr-immersive-no-tabbar .profile-security-shell__body {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Онбординг Face ID: тот же quaternary canvas, что у PIN */
+.profile-security-shell--biometric.profile-security-shell--plain {
+  background: var(--Backgrounds-Quaternary, var(--rr-backgrounds-quaternary, #f2f3f7));
+}
+
+.profile-security-shell--biometric.profile-security-shell--plain .profile-security-shell__header {
+  min-height: calc(
+    40px + var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px)
+  );
+}
+
+.profile-security-shell--biometric .profile-security-shell__footer {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* --- PIN --- */
+.profile-pin {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--rr-backgrounds-primary, #fff);
+  color: var(--rr-labels-neutral-primary, #101012);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+}
+
+.profile-pin__header {
+  flex-shrink: 0;
+  padding:
+    calc(var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px))
+    var(--rr-spacing-padding-xl, 16px)
+    8px;
+}
+
+.profile-pin__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.profile-pin__back:hover,
+.profile-pin__back:focus,
+.profile-pin__back:focus-visible,
+.profile-pin__back:active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.profile-pin__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px var(--rr-spacing-padding-xl, 16px)
+    calc(16px + var(--app-mobile-tabbar-content-inset, 68px));
+}
+
+.profile-pin__title {
+  margin: 0 0 32px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+}
+
+.profile-pin__dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: auto;
+  padding: 24px 0 32px;
+}
+
+.profile-pin__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(16, 16, 18, 0.12);
+  transition: background-color 0.15s ease;
+}
+
+.profile-pin__dot--filled {
+  background: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-pin__dots--error .profile-pin__dot--filled {
+  background: #e11d48;
+}
+
+/*
+ * Ввод секретного кода (setup + gate): однотонный quaternary,
+ * только точки (серые пустые / чёрные введённые), без серых блоков.
+ */
+.profile-pin--entry {
+  background: var(--Backgrounds-Quaternary, var(--rr-backgrounds-quaternary, #f2f3f7));
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-pin--entry .profile-pin__header {
+  padding-top: calc(var(--app-page-rr-header-top, 8px) + env(safe-area-inset-top, 0px));
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.profile-pin--entry .profile-pin__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.profile-pin--entry .profile-pin__title {
+  margin: 0 0 32px;
+  padding: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-weight: 600;
+  font-style: normal;
+  font-size: var(--rr-font-size-font-size-xl, 24px);
+  line-height: var(--rr-line-height-line-height-xl, 24px);
+  letter-spacing: var(--rr-tracking-tracking-xl, -0.5px);
+  text-align: center;
+  color: var(--rr-labels-neutral-primary, #101012);
+  background: transparent;
+}
+
+.profile-pin--entry .profile-pin__dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: auto;
+  margin-bottom: auto;
+  padding: 24px 0 32px;
+  box-sizing: border-box;
+}
+
+.profile-pin--entry .profile-pin__dot {
+  box-sizing: border-box;
+  display: block;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(16, 16, 18, 0.12);
+  transition: background-color 0.15s ease;
+}
+
+.profile-pin--entry .profile-pin__dot--filled {
+  background: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-pin--entry .profile-pin__dot--filled::after {
+  content: none;
+}
+
+.profile-pin--entry .profile-pin__dots--error .profile-pin__dot--filled {
+  background: var(--rr-labels-danger-primary, #dc2626);
+}
+
+.profile-pin--entry .profile-pin__dots--busy {
+  opacity: 0.55;
+}
+
+.profile-pin__lockout {
+  margin: 0 0 12px;
+  padding-left: var(--rr-spacing-padding-xl, 16px);
+  padding-right: var(--rr-spacing-padding-xl, 16px);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  color: var(--rr-labels-danger-primary, #dc2626);
+}
+
+.profile-pin--entry .profile-pin-keypad {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  margin-top: auto;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.profile-pin--entry .profile-pin-keypad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 8px;
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-pin--entry .profile-pin-keypad__key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 64px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--rr-labels-neutral-primary, #101012);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-weight: 500;
+  font-style: normal;
+  font-size: var(--rr-font-size-font-size-2xl, 28px);
+  line-height: var(--rr-line-height-line-height-2xl, 28px);
+  letter-spacing: var(--rr-tracking-tracking-2xl, -1px);
+  text-align: center;
+  cursor: pointer;
+}
+
+.profile-pin--entry .profile-pin-keypad__key--backspace,
+.profile-pin--entry .profile-pin-keypad__key--face-id {
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-pin-keypad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 8px;
+  max-width: 320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.profile-pin-keypad__key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profile-pin-keypad__key--backspace {
+  color: var(--rr-labels-neutral-primary, #101012);
+}
+
+.profile-pin-keypad__key--backspace img,
+.profile-pin-keypad__key--face-id img {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.profile-pin-keypad__key--face-id:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.profile-pin-keypad__spacer {
+  display: block;
+}
+
+.profile-pin--success {
+  justify-content: space-between;
+}
+
+.profile-pin__success {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px var(--rr-spacing-padding-xl, 16px);
+  text-align: center;
+}
+
+.profile-pin__success-icon {
+  display: block;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 18px;
+}
+
+.profile-pin__success-title {
+  margin: 8px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 30px;
+}
+
+.profile-pin__success-subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-pin__footer {
+  flex-shrink: 0;
+  padding: 12px var(--rr-spacing-padding-xl, 16px)
+    calc(12px + var(--app-mobile-tabbar-content-inset, 68px));
+}
+
+.profile-pin__footer .auth-rr-button,
+.profile-pin__success-btn.auth-rr-button {
+  width: 100%;
+}
+
+/* Success CTA: чёрная кнопка (neutral-primary), не brand blue */
+.profile-pin__success-btn.auth-rr-button--brand-primary {
+  background-color: var(--rr-button-neutral-primary-background-default, #242426);
+  color: var(--rr-button-neutral-primary-text-default, #ffffff);
+}
+
+.profile-pin__success-btn.auth-rr-button--brand-primary:hover:not(:disabled) {
+  background-color: var(--rr-button-neutral-primary-background-hover, #3c3c43);
+  color: var(--rr-button-neutral-primary-text-hover, #ffffff);
+}
+
+.profile-pin__success-btn.auth-rr-button--brand-primary:active:not(:disabled) {
+  background-color: var(--rr-button-neutral-primary-background-active, #595961);
+  color: var(--rr-button-neutral-primary-text-active, #ffffff);
+}
+
+/* PIN / Face ID setup: quaternary canvas на весь экран (не белая «половина» снизу) */
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-pin--entry),
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-pin--entry) body,
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-pin--entry) .page-wrapper,
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-security-shell--biometric),
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-security-shell--biometric) body,
+html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-security-shell--biometric) .page-wrapper {
+  background-color: var(--Backgrounds-Quaternary, var(--rr-backgrounds-quaternary, #f2f3f7)) !important;
+}
+
+@media (max-width: 767px) {
+  html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-pin--entry)::before,
+  html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-pin--entry)::after,
+  html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-security-shell--biometric)::before,
+  html.app-rr-immersive-no-tabbar.app-rr-shell:has(.profile-security-shell--biometric)::after {
+    background: var(--Backgrounds-Quaternary, var(--rr-backgrounds-quaternary, #f2f3f7)) !important;
+  }
+}
+
+/* --- Password --- */
+.profile-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rr-spacing-padding-l, 12px);
+}
+
+.profile-password-form .auth-rr-password-rules {
+  margin: 0;
+}
+
+.profile-password-form__error {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: var(--rr-font-size-font-size-s, 13px);
+  line-height: var(--rr-line-height-line-height-s, 18px);
+  color: var(--rr-labels-danger-primary, #ff3b30);
+}
+
+.profile-password-form__hint {
+  margin: 0;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-password-form__alt {
+  align-self: flex-start;
+  margin: 4px 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--russ-primary, #1a56db);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.profile-password-form__alt:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Как в auth: без лишнего letter-spacing у маски пароля */
+.profile-password-form .auth-rr-input-password .auth-rr-input__control {
+  letter-spacing: 0;
+}
+
+/* --- Devices --- */
+.profile-devices-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.profile-devices-section-title {
+  margin: 16px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-devices-status {
+  margin: 8px 4px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.profile-devices-status--error {
+  color: var(--rr-labels-danger-primary, #ff3b30);
+}
+
+.profile-devices-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--rr-backgrounds-primary, #fff);
+}
+
+.profile-devices-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 14px;
+  border: none;
+  border-bottom: 1px solid rgba(16, 16, 18, 0.06);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-devices-list > li:last-child > .profile-devices-row {
+  border-bottom: none;
+}
+
+.profile-devices-row__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-top: 2px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.profile-devices-row__icon--current {
+  background: #1c4ae5;
+}
+
+.profile-devices-row__icon img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.profile-devices-row__icon--current img {
+  filter: brightness(0) invert(1);
+}
+
+.profile-devices-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-devices-row__label {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--rr-labels-neutral-primary, #101012);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.profile-devices-row__hint {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.profile-devices-row__chevron {
+  flex: 0 0 auto;
+  margin-top: 8px;
+  font-size: 22px;
+  color: rgba(60, 60, 67, 0.36);
+}
+
+.profile-devices-end-sessions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #fff0f0;
+  color: #e11d48;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: default;
+}
+
+.profile-devices-end-sessions:disabled {
+  opacity: 0.9;
+}
+
+.profile-device-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding-top: 8px;
+}
+
+.profile-device-sheet__hero-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: #1c4ae5;
+}
+
+.profile-device-sheet__hero-icon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.profile-device-sheet__hero-icon--current {
+  background: #1c4ae5;
+}
+
+.profile-device-sheet__meta {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-device-sheet__meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.profile-device-sheet__meta-row > span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.profile-device-sheet__meta-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.profile-device-sheet__meta-icon--globe {
+  background:
+    #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.25' stroke='%23101012' stroke-width='1.2'/%3E%3Cpath stroke='%23101012' stroke-width='1.2' d='M2.5 8h11M8 2.5c1.5 2 1.5 9 0 11M8 2.5c-1.5 2-1.5 9 0 11'/%3E%3C/svg%3E")
+    center / 16px no-repeat;
+}
+
+.profile-device-sheet__meta-icon--pin {
+  background:
+    #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 14 14'%3E%3Cpath d='M7 1.5a3 3 0 00-3 3c0 2.25 3 6.5 3 6.5s3-4.25 3-6.5a3 3 0 00-3-3z' stroke='%23101012' stroke-width='1.2'/%3E%3Ccircle cx='7' cy='4.5' r='1' fill='%23101012'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+}
+
+/* profile-rr-lock: скролл только внутри shell, не document */
+html.profile-rr-lock .profile-security-shell {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+html.profile-rr-lock .profile-security-shell__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}

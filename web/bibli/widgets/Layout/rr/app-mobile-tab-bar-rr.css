@@ -1,0 +1,189 @@
+/**
+ * Нижний мобильный таббар RR (≤1024: phone + tablet).
+ * Слот по макету 72×52; на экране — 5 равных колонок на всю ширину.
+ */
+
+:root {
+  /* Полная высота бара: pad-top + слот кнопок + pad-bottom + safe-area */
+  --app-mobile-tabbar-pad-top: 8px;
+  --app-mobile-tabbar-pad-bottom: 8px;
+  --app-mobile-tabbar-slot-h: 52px;
+  --app-mobile-tabbar-inset: calc(
+    var(--app-mobile-tabbar-pad-top) +
+    var(--app-mobile-tabbar-slot-h) +
+    var(--app-mobile-tabbar-pad-bottom) +
+    env(safe-area-inset-bottom, 0px)
+  );
+  /* алиас: контент тоже обязан учитывать safe-area (кнопки выше home indicator) */
+  --app-mobile-tabbar-content-inset: var(--app-mobile-tabbar-inset);
+}
+
+@media (display-mode: standalone) {
+  :root {
+    --app-mobile-tabbar-pad-bottom: 12px;
+  }
+}
+
+/* Без таббара на PIN / Face ID / визардах: только safe-area, без «пустых» 68px */
+html.app-rr-immersive-no-tabbar {
+  --app-mobile-tabbar-inset: env(safe-area-inset-bottom, 0px);
+  --app-mobile-tabbar-content-inset: env(safe-area-inset-bottom, 0px);
+}
+
+/*
+ * Белый canvas под home indicator / Dynamic Island, когда нет белого таббара.
+ * Иначе серый #f2f3f7 html/body/page-wrapper даёт полоску снизу (как раньше под меню).
+ */
+html.app-rr-immersive-no-tabbar.app-rr-shell,
+html.app-rr-immersive-no-tabbar.app-rr-shell body {
+  background-color: var(--rr-backgrounds-primary, #ffffff) !important;
+}
+
+html.app-rr-immersive-no-tabbar.app-rr-shell .page-wrapper {
+  background: var(--rr-backgrounds-primary, #ffffff);
+}
+
+.app-mobile-tab-bar-rr {
+  --amtb-fg: var(--Labels-Neutral-Primary, var(--rr-labels-neutral-primary, #101012));
+  --amtb-muted: var(--Labels-Neutral-Tertiary, var(--rr-labels-neutral-tertiary, rgba(60, 60, 67, 0.52)));
+  --amtb-locked: var(--Labels-Neutral-Tertiary, var(--rr-labels-neutral-tertiary, rgba(60, 60, 67, 0.52)));
+  --amtb-bg: var(--Backgrounds-Primary, var(--rr-backgrounds-primary, #ffffff));
+  --amtb-border: rgba(16, 16, 18, 0.08);
+  --amtb-slot-w: 72px;
+  --amtb-slot-h: var(--app-mobile-tabbar-slot-h, 52px);
+  /* iOS 11.0–11.2: constant(); современные: env(). Браузерный chrome (URL-бар) сюда не входит. */
+  --amtb-safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  justify-items: stretch;
+  width: 100%;
+  /* Слот + pad; фон бара заезжает в safe-area через pad-bottom */
+  min-height: var(--amtb-slot-h);
+  height: auto;
+  margin: 0;
+  padding-top: var(--app-mobile-tabbar-pad-top, 8px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: calc(var(--app-mobile-tabbar-pad-bottom, 8px) + constant(safe-area-inset-bottom));
+  padding-bottom: calc(var(--app-mobile-tabbar-pad-bottom, 8px) + var(--amtb-safe-bottom));
+  background: var(--amtb-bg);
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.app-mobile-tab-bar-rr__slot {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-width: 0;
+  width: 100%;
+  height: var(--amtb-slot-h);
+}
+
+.app-mobile-tab-bar-rr__btn {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: var(--amtb-slot-h);
+  min-height: var(--amtb-slot-h);
+  margin: 0;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  color: var(--amtb-muted);
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-mobile-tab-bar-rr__btn.is-active {
+  color: var(--amtb-fg);
+}
+
+.app-mobile-tab-bar-rr__btn.is-active .app-mobile-tab-bar-rr__icon {
+  opacity: 1;
+  filter: none;
+}
+
+.app-mobile-tab-bar-rr__btn.is-locked {
+  color: var(--amtb-locked);
+  cursor: default;
+  pointer-events: none;
+}
+
+.app-mobile-tab-bar-rr__btn.is-empty {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.app-mobile-tab-bar-rr__icon-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-mobile-tab-bar-rr__icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+.app-mobile-tab-bar-rr__btn.is-active .app-mobile-tab-bar-rr__icon {
+  opacity: 1;
+  filter: none;
+}
+
+.app-mobile-tab-bar-rr__btn.is-locked .app-mobile-tab-bar-rr__icon {
+  /* Locked SVG already includes gray + padlock */
+  opacity: 1;
+  filter: none;
+}
+
+.app-mobile-tab-bar-rr__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--rr-font-size-font-size-xs, 12px);
+  line-height: var(--rr-line-height-line-height-xs, 16px);
+  letter-spacing: var(--rr-tracking-tracking-s, 0px);
+  vertical-align: middle;
+  color: inherit;
+}
+
+.app-mobile-tab-bar-rr__btn.is-active .app-mobile-tab-bar-rr__label {
+  color: var(--Labels-Neutral-Primary, var(--rr-labels-neutral-primary, #101012));
+}
+
+.app-mobile-tab-bar-rr__btn.is-locked .app-mobile-tab-bar-rr__label {
+  color: var(--Labels-Neutral-Tertiary, var(--rr-labels-neutral-tertiary, rgba(60, 60, 67, 0.52)));
+}
+
+@media (min-width: 1025px) {
+  .app-mobile-tab-bar-rr {
+    display: none;
+  }
+}

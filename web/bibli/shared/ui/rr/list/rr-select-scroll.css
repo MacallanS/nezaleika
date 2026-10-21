@@ -1,0 +1,74 @@
+/**
+ * Кастомный скролл выпадающих списков RR: нативный бар скрыт, бегунок рисует RrSelectScroll.
+ * Полоса занимает отдельную колонку и не наезжает на пункты.
+ */
+.rr-select-scroll {
+  --rr-scroll-gutter: 10px;
+  --rr-scroll-thumb: rgba(16, 16, 18, 0.2);
+  --rr-scroll-thumb-hover: rgba(16, 16, 18, 0.38);
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-width: 0;
+  min-height: 0;
+  max-height: inherit;
+  overflow: hidden;
+}
+
+.rr-select-scroll__viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: inherit;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.rr-select-scroll__viewport::-webkit-scrollbar,
+.rr-select-scroll__viewport::-webkit-scrollbar-button,
+.rr-select-scroll__viewport::-webkit-scrollbar-thumb,
+.rr-select-scroll__viewport::-webkit-scrollbar-track,
+.rr-select-scroll__viewport::-webkit-scrollbar-corner {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+.rr-select-scroll__rail {
+  position: relative;
+  flex: 0 0 var(--rr-scroll-gutter);
+  width: var(--rr-scroll-gutter);
+  align-self: stretch;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.rr-select-scroll__thumb {
+  position: absolute;
+  top: 4px;
+  left: 2px;
+  width: 6px;
+  border-radius: 999px;
+  background: var(--rr-scroll-thumb);
+  transform: translateY(0);
+  will-change: transform;
+  touch-action: none;
+  cursor: grab;
+}
+
+.rr-select-scroll__thumb:hover,
+.rr-select-scroll__thumb--dragging {
+  background: var(--rr-scroll-thumb-hover);
+}
+
+.rr-select-scroll__thumb--dragging {
+  cursor: grabbing;
+}

@@ -1,0 +1,1 @@
+export { default as InputPhone } from './index.vue'

@@ -10,6 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-insecure-nezaleika-change-me')
 DEBUG = os.environ.get('DEBUG', '1') == '1'
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+_render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
+if _render_host and _render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_host)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -130,8 +133,7 @@ else:
     if _origins.strip():
         CORS_ALLOWED_ORIGINS = [o.strip() for o in _origins.split(',') if o.strip()]
     else:
-        _public = os.environ.get('PUBLIC_BASE_URL', '').rstrip('/')
-        CORS_ALLOWED_ORIGINS = [_public] if _public else []
+        CORS_ALLOWED_ORIGINS = ['https://macallans.github.io']
     CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
 
 SESSION_COOKIE_SAMESITE = 'Lax'

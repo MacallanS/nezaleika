@@ -1,0 +1,74 @@
+/**
+ * Auth RR — спиннер и действия на callback-экране.
+ * Track: --rr-backgrounds-tetriary (#E7E8EE). Не использовать
+ * --rr-backgrounds-neutral-tertiary-default — такого токена нет (бордер становится invalid → спиннер невидим).
+ */
+
+.auth-rr-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto;
+  border: 4px solid var(--rr-backgrounds-tetriary, #e7e8ee);
+  border-top-color: var(--rr-labels-brand-primary, #1c4ae5);
+  border-radius: 50%;
+  animation: auth-rr-spinner-spin 0.9s linear infinite;
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.auth-rr-callback-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding-top: 0;
+}
+
+@keyframes auth-rr-spinner-spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.auth-rr-callback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rr-spacing-margin-m);
+  width: 100%;
+}
+
+.auth-rr-callback-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--auth-rr-font-medium);
+  font-size: var(--auth-rr-fs-s, var(--rr-font-size-font-size-s));
+  font-weight: normal;
+  line-height: var(--auth-rr-lh-s, var(--rr-line-height-line-height-s));
+  letter-spacing: var(--auth-rr-track-s, var(--rr-tracking-tracking-s));
+  color: var(--rr-labels-brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.auth-rr-callback-link:hover {
+  opacity: 0.85;
+}
+
+.auth-rr-callback-link:focus-visible {
+  outline: 2px solid var(--rr-input-border-active);
+  outline-offset: 2px;
+  border-radius: var(--rr-radius-xs);
+}

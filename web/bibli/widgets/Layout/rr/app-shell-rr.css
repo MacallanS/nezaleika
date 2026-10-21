@@ -1,0 +1,109 @@
+/**
+ * Composed RR app shell — page wrapper + content column next to AppNavigationRR.
+ * Host apps should prefer AppShellRR over copying fintech layout chrome.
+ */
+
+html.app-rr-shell,
+html.app-rr-shell body,
+html.app-rr-shell #__nuxt {
+  width: 100%;
+  height: var(--app-shell-height, calc(var(--vh, 1vh) * 100));
+  min-height: var(--app-shell-height, calc(var(--vh, 1vh) * 100));
+  max-height: var(--app-shell-height, calc(var(--vh, 1vh) * 100));
+  overflow: hidden;
+  margin: 0;
+}
+
+html.app-rr-shell #__nuxt {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-rr {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.app-shell-rr__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  margin-left: var(--app-nav-rr-width, 264px);
+  width: calc(100% - var(--app-nav-rr-width, 264px));
+  background-color: var(--rr-backgrounds-quaternary, #f2f3f7);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.app-shell-rr__content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.app-shell-rr__main {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: auto;
+  width: 100%;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+.app-shell-rr__page {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+  width: 100%;
+  overflow: visible;
+}
+
+@media (max-width: 1024px) {
+  html.app-rr-shell::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--rr-backgrounds-quaternary, #f2f3f7);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  html.app-rr-shell::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom, 0px);
+    background: var(--rr-backgrounds-quaternary, #f2f3f7);
+    z-index: 39;
+    pointer-events: none;
+  }
+
+  .app-shell-rr__content {
+    margin-left: 0;
+    width: 100%;
+  }
+}

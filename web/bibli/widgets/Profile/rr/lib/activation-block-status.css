@@ -1,0 +1,42 @@
+.activation-block-status--empty,
+.profile-activation__card-status--empty,
+.staff-doc-sidebar__status--empty,
+.staff-overview-attention__status--empty {
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+
+.activation-block-status--partial,
+.profile-activation__card-status--partial,
+.pah-card__status--partial,
+.staff-doc-sidebar__status--partial,
+.staff-overview-attention__status--partial {
+  color: var(--rr-labels-warning-primary, #d97706);
+}
+
+.activation-block-status--review,
+.profile-activation__card-status--review,
+.staff-doc-sidebar__status--review,
+.staff-overview-attention__status--review {
+  color: var(--rr-labels-brand-primary, #1c4ae5);
+}
+
+.activation-block-status--error,
+.profile-activation__card-status--error,
+.staff-doc-sidebar__status--error,
+.staff-overview-attention__status--error {
+  color: var(--rr-labels-danger-primary, #ef4444);
+}
+
+.activation-block-status--done,
+.profile-activation__card-status--done,
+.staff-doc-sidebar__status--done,
+.staff-overview-attention__status--done {
+  color: var(--rr-labels-success-primary, #34c759);
+}
+
+.activation-block-status--unavailable,
+.profile-activation__card-status--unavailable,
+.staff-doc-sidebar__status--unavailable,
+.staff-overview-attention__status--unavailable {
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
