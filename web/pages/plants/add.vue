@@ -1,7 +1,5 @@
 <template>
-  <div class="nz-page nz-page--rr add-page">
-    <NzHeader :title="step === 1 ? 'Выберите вид' : 'Новый цветок'" back @back="onBack" />
-
+  <div class="nz-page nz-page--form add-page">
     <div v-if="step === 1" class="add-page__body">
       <AuthRRInputText v-model="query" label="Поиск" placeholder="Монстера, фикус…" @input="searchSpecies" />
       <ul class="species-list">
@@ -34,7 +32,6 @@
 
 <script setup lang="ts">
 import { AuthRRButton, AuthRRField, AuthRRInputText } from 'bibli/shared/ui/rr'
-import NzHeader from '~/components/planner/NzHeader.vue'
 import { ensureAuth, getApi } from '~/utils/api'
 import { isoDate } from '~/utils/dates'
 import { notify } from '~/utils/toast'
@@ -60,6 +57,22 @@ const photoFile = ref<File | null>(null)
 const preview = ref('')
 const saving = ref(false)
 
+usePageChrome(
+  () => ({
+    title: step.value === 1 ? 'Выберите вид' : 'Новый цветок',
+    childPage: true,
+    parentTitle: 'Растения',
+    parentTo: '/plants',
+  }),
+  {
+    onBack: () => {
+      if (step.value === 2) step.value = 1
+      else if (window.history.length > 1) router.back()
+      else void router.replace('/plants')
+    },
+  },
+)
+
 let searchSeq = 0
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -83,11 +96,6 @@ function searchSpecies() {
 
 onMounted(loadSpecies)
 onBeforeUnmount(() => clearTimeout(searchTimer))
-
-function onBack() {
-  if (step.value === 2) step.value = 1
-  else router.back()
-}
 
 function selectSpecies(s: Species) {
   selected.value = s
@@ -139,7 +147,7 @@ async function submit() {
 
 <style scoped>
 .add-page__body {
-  padding: 0 16px 24px;
+  padding-bottom: 24px;
 }
 .species-list {
   list-style: none;

@@ -1,12 +1,26 @@
 <template>
   <div class="nz-page detail">
-    <NzHeader :title="plant?.name || 'Растение'" back @back="goBack" />
-
     <div v-if="!plant" class="detail__loading">Загружаем…</div>
 
     <template v-else>
-      <label class="detail__hero" :style="plant.photo_url ? { backgroundImage: `url(${plant.photo_url})` } : undefined">
-        <input type="file" accept="image/*" class="detail__file" @change="onPhoto" />
+      <label class="detail__hero" :class="{ 'detail__hero--empty': !plant.photo_url }">
+        <img
+          v-if="plant.photo_url"
+          class="detail__photo"
+          :src="plant.photo_url"
+          :alt="plant.name"
+        />
+        <div v-else class="detail__empty-photo" aria-hidden="true">
+          <svg viewBox="0 0 128 128" class="detail__empty-icon">
+            <path
+              fill="currentColor"
+              d="M64 24c-28 18-36 42-36 58 0 8 6 14 14 14 20 0 36-16 58-42-22 4-40-2-36-30z"
+            />
+            <ellipse cx="52" cy="88" rx="8" ry="12" fill="currentColor" opacity=".45" />
+          </svg>
+          <span>Нет фото цветка</span>
+        </div>
+        <input type="file" accept="image/*" capture="environment" class="detail__file" @change="onPhoto" />
         <span class="detail__hero-hint">{{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}</span>
       </label>
 
@@ -77,7 +91,6 @@
 
 <script setup lang="ts">
 import { AuthRRButton, AuthRRInputText } from 'bibli/shared/ui/rr'
-import NzHeader from '~/components/planner/NzHeader.vue'
 import HabitHeatmap from '~/components/planner/HabitHeatmap.vue'
 import type { PlantDetail, PlantStats, WateringRecord } from '~/stores/plants'
 import { ensureAuth, getApi } from '~/utils/api'
@@ -91,6 +104,17 @@ const { water, unwater } = useWateringActions()
 
 const id = computed(() => Number(route.params.id))
 const plant = ref<PlantDetail | null>(null)
+
+usePageChrome(
+  () => ({
+    title: plant.value?.name || 'Растение',
+    description: plant.value?.species_detail?.name_ru || '',
+    childPage: true,
+    parentTitle: 'Растения',
+    parentTo: '/plants',
+  }),
+  { onBack: () => goBack() },
+)
 const stats = ref<PlantStats | null>(null)
 const waterings = ref<WateringRecord[]>([])
 const busy = ref(false)
@@ -228,7 +252,7 @@ function goBack() {
 
 <style scoped>
 .detail {
-  min-height: 100%;
+  max-width: 760px;
   padding-bottom: 28px;
 }
 .detail__loading {
@@ -238,12 +262,39 @@ function goBack() {
 .detail__hero {
   position: relative;
   display: block;
-  height: 220px;
-  margin: 0 16px 12px;
+  height: 240px;
+  margin: 0 0 12px;
   border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(135deg, #a5d6a7, #2e7d32) center / cover;
+  background: #e8f0ea;
   cursor: pointer;
+}
+.detail__hero--empty {
+  background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 55%, #a5d6a7 100%);
+}
+.detail__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.detail__empty-photo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #2e7d32;
+  font-size: 15px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.detail__empty-icon {
+  width: 72px;
+  height: 72px;
+  opacity: 0.85;
 }
 .detail__file {
   position: absolute;
@@ -253,18 +304,25 @@ function goBack() {
 }
 .detail__hero-hint {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  padding: 6px 10px;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(16, 24, 40, 0.72);
   color: #fff;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   pointer-events: none;
+  white-space: nowrap;
+}
+.detail__hero:not(.detail__hero--empty) .detail__hero-hint {
+  left: auto;
+  right: 12px;
+  transform: none;
 }
 .card {
-  margin: 0 16px 12px;
+  margin: 0 0 12px;
   padding: 16px;
   border-radius: 16px;
   background: #fff;

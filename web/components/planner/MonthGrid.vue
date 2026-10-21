@@ -21,7 +21,13 @@
         <span class="month__num">{{ cell.day }}</span>
         <span v-if="cell.names.length" class="month__names">
           <span class="month__chip" :class="`month__chip--${cell.tone}`">{{ cell.names[0] }}</span>
-          <span v-if="cell.names.length > 1" class="month__more">+{{ cell.names.length - 1 }}</span>
+          <span
+            v-if="cell.names[1]"
+            class="month__chip month__chip--extra"
+            :class="`month__chip--${cell.tone}`"
+          >{{ cell.names[1] }}</span>
+          <span v-if="cell.names.length > 1" class="month__more month__more--mobile">+{{ cell.names.length - 1 }}</span>
+          <span v-if="cell.names.length > 2" class="month__more month__more--desktop">+{{ cell.names.length - 2 }}</span>
         </span>
       </button>
     </div>
@@ -175,5 +181,31 @@ function onTouchEnd(e: TouchEvent) {
 .month__more {
   color: #7b868c;
   font-weight: 600;
+}
+
+.month__chip--extra,
+.month__more--desktop {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .month__day {
+    min-height: 72px;
+    padding: 6px 2px 6px;
+  }
+  .month__chip,
+  .month__more {
+    font-size: 11px;
+  }
+  .month__names {
+    gap: 1px;
+  }
+  .month__chip--extra,
+  .month__more--desktop {
+    display: block;
+  }
+  .month__more--mobile {
+    display: none;
+  }
 }
 </style>

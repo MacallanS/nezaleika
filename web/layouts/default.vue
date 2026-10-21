@@ -1,33 +1,89 @@
 <template>
-  <div class="page-wrapper page-wrapper--nav-rr page-wrapper--mobile-tabbar">
-    <div class="content-wrapper content-wrapper--scroll">
-      <main class="page-main page-main--rr">
-        <div class="page-content page-content--rr page-content--mobile-tabbar page-content--planner">
-          <slot />
-        </div>
-      </main>
-    </div>
-    <AppMobileTabBarRR :items="mobileTabs" :current-path="tabPath" @navigate="onTabNavigate" />
+  <AppShellRR
+    :logo-url="logoUrl"
+    :nav-items="navItems"
+    :mobile-tabs="mobileTabs"
+    :title="chrome.title"
+    :description="chrome.description"
+    :child-page="chrome.childPage"
+    :parent-title="chrome.parentTitle"
+    :parent-to="chrome.parentTo"
+    :show-header="true"
+    :show-notifications="true"
+    :show-user-chip="true"
+    :user-name="userName"
+    :user-role="userRole"
+    :user-menu-items="userMenuItems"
+    @mobile-navigate="onTabNavigate"
+    @notifications="notif.show()"
+  >
+    <template #header-actions>
+      <NotificationBell :badge="badge" @click="notif.show()" />
+    </template>
+    <slot />
     <UndoToast />
-  </div>
+    <NotificationsSheet />
+  </AppShellRR>
 </template>
 
 <script setup lang="ts">
-import { AppMobileTabBarRR } from 'bibli/widgets/Layout/rr'
+import { AppShellRR } from 'bibli/widgets/Layout/rr'
+import type { AppUserChipMenuItem } from 'bibli/widgets/Layout/rr'
+import NotificationBell from '~/components/shell/NotificationBell.vue'
+import NotificationsSheet from '~/components/shell/NotificationsSheet.vue'
 import UndoToast from '~/components/planner/UndoToast.vue'
-import { useNezaleikaMobileTabs } from '~/composables/useNezaleikaShell'
+import { usePageChromeState } from '~/composables/usePageChrome'
+import {
+  useNezaleikaLogoUrl,
+  useNezaleikaMobileTabs,
+  useNezaleikaNavItems,
+} from '~/composables/useNezaleikaShell'
+import { addDays, isoDate, parseIsoDate } from '~/utils/dates'
 
-const route = useRoute()
+const auth = useAuthStore()
+const plants = usePlantsStore()
+const chrome = usePageChromeState()
+const notif = useNotificationsPanel()
 const mobileTabs = useNezaleikaMobileTabs()
+const navItems = useNezaleikaNavItems()
+const logoUrl = useNezaleikaLogoUrl()
 
-const tabPath = computed(() => {
-  const path = route.path.replace(/\/+$/, '') || '/'
-  if (path.startsWith('/plants/') && path !== '/plants/add') return '/plants'
-  return path
+const userName = computed(() => auth.user?.first_name || auth.user?.username || 'Профиль')
+const userRole = computed(() => '')
+
+const badge = computed(() => {
+  const cal = plants.calendar
+  if (!cal) return 0
+  return (cal.days[cal.today]?.overdue ?? []).length
 })
+
+const userMenuItems = computed((): AppUserChipMenuItem[] => [
+  {
+    label: 'Профиль',
+    to: '/profile',
+  },
+  {
+    label: 'Уведомления',
+    command: () => notif.show(),
+  },
+  {
+    label: 'Выйти',
+    command: () => {
+      void auth.logout().then(() => {
+        void navigateTo('/login')
+      })
+    },
+  },
+])
 
 function onTabNavigate(to: string) {
   if (!to) return
   void navigateTo(to)
 }
+
+onMounted(() => {
+  if (plants.calendar || !auth.user) return
+  const today = isoDate(new Date())
+  void plants.fetchCalendar(today, isoDate(addDays(parseIsoDate(today), 14))).catch(() => {})
+})
 </script>

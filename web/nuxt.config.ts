@@ -55,6 +55,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', href: `${basePath}icons/leaf.svg`, type: 'image/svg+xml' },
         { rel: 'apple-touch-icon', href: `${basePath}icons/apple-touch.png` },
+        { rel: 'manifest', href: `${basePath}manifest.webmanifest` },
       ],
     },
   },
@@ -167,6 +168,16 @@ export default defineNuxtConfig({
       clientsClaim: true,
       skipWaiting: true,
       runtimeCaching: [
+        {
+          // Content-addressed photo URLs never change.
+          urlPattern: /^https:\/\/nezaleika-api\.onrender\.com\/api\/photos\/.*/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'plant-photos',
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            cacheableResponse: { statuses: [200] },
+          },
+        },
         {
           urlPattern: /^https:\/\/nezaleika-api\.onrender\.com\/api\/.*/i,
           handler: 'NetworkFirst',

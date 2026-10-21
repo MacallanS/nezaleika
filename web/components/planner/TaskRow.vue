@@ -16,22 +16,49 @@
       @touchmove="onTouchMove"
       @touchend="onTouchEnd"
     >
-      <span v-if="!checkable" class="task__check task__check--static" aria-hidden="true" />
+      <span v-if="!checkable" class="task__check task__check--static" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="task__icon" aria-hidden="true">
+          <path
+            d="M12 3.2C12 3.2 6.5 10.2 6.5 14.2a5.5 5.5 0 0 0 11 0C17.5 10.2 12 3.2 12 3.2Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
       <button
         v-else
         type="button"
         class="task__check"
-        :class="{ 'task__check--busy': busy }"
-        :aria-label="done ? `Отменить полив: ${plant.name}` : `Полил: ${plant.name}`"
+        :class="{ 'task__check--busy': busy, 'task__check--done': done }"
+        :aria-label="done ? `Отменить полив: ${plant.name}` : `Отметить политым: ${plant.name}`"
         :aria-pressed="done"
         @click.stop="onCheck"
       >
-        <svg v-if="done" viewBox="0 0 24 24" class="task__tick" aria-hidden="true">
-          <path d="M6 12.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+        <svg v-if="done" viewBox="0 0 24 24" class="task__icon" aria-hidden="true">
+          <path
+            d="M6 12.5l4 4 8-9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
+        <svg v-else viewBox="0 0 24 24" class="task__icon" aria-hidden="true">
+          <path
+            d="M12 3.2C12 3.2 6.5 10.2 6.5 14.2a5.5 5.5 0 0 0 11 0C17.5 10.2 12 3.2 12 3.2Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span class="task__check-label">{{ done ? 'Отменить' : 'Полил' }}</span>
       </button>
 
-      <button type="button" class="task__main" @click="onOpen">
+      <button type="button" class="task__main" :aria-label="`Открыть ${plant.name}`" @click="onOpen">
         <span class="task__title">{{ plant.name }}</span>
         <span class="task__meta">
           <span v-if="dueLabel" class="task__due">{{ dueLabel }}</span>
@@ -41,10 +68,12 @@
       </button>
 
       <span v-if="doneBy" class="task__who" :title="`Полил(а): ${doneBy}`">{{ doneBy.slice(0, 1) }}</span>
-      <span
+      <button
+        type="button"
         class="task__thumb"
         :style="plant.photo_url ? { backgroundImage: `url(${plant.photo_url})` } : undefined"
-        aria-hidden="true"
+        :aria-label="`Карточка: ${plant.name}`"
+        @click="onOpen"
       />
     </div>
   </div>
@@ -138,8 +167,8 @@ function onOpen() {
   content: '';
   position: absolute;
   top: 0;
-  left: 56px;
-  right: 0;
+  left: 16px;
+  right: 16px;
   height: 1px;
   background: #eef0f2;
 }
@@ -167,52 +196,73 @@ function onOpen() {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 60px;
-  padding: 8px 14px 8px 16px;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px 10px 14px;
   background: #fff;
   transition: transform 0.2s ease;
   touch-action: pan-y;
 }
 .task__check {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border-radius: 50%;
-  border: 2px solid #9aa5ad;
-  background: #fff;
-  color: #fff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  min-width: 84px;
+  height: 36px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  border: 1.5px solid #c5ced4;
+  background: #f4f7f5;
+  color: #2e7d32;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
   -webkit-tap-highlight-color: transparent;
 }
 .task__check:active {
-  transform: scale(0.88);
+  transform: scale(0.96);
 }
-.task--today .task__check {
-  border-color: #2e7d32;
+.task--today .task__check:not(.task__check--done) {
+  border-color: #81c784;
+  background: #e8f5e9;
+  color: #1b5e20;
 }
-.task--overdue .task__check {
-  border-color: #d32f2f;
+.task--overdue .task__check:not(.task__check--done) {
+  border-color: #ef9a9a;
+  background: #ffebee;
+  color: #c62828;
 }
-.task--done .task__check {
+.task__check--done {
   border-color: #2e7d32;
   background: #2e7d32;
+  color: #fff;
 }
 .task__check--static {
+  min-width: 36px;
+  width: 36px;
+  padding: 0;
   border-style: dashed;
+  background: transparent;
+  color: #9aa5ad;
   cursor: default;
+  pointer-events: none;
 }
 .task__check--busy {
   opacity: 0.5;
+  pointer-events: none;
 }
-.task__tick {
-  width: 18px;
-  height: 18px;
+.task__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.task__check-label {
+  white-space: nowrap;
 }
 .task__main {
   flex: 1;
@@ -241,8 +291,7 @@ function onOpen() {
   transition: color 0.2s;
 }
 .task--done .task__title {
-  color: #9aa5ad;
-  text-decoration: line-through;
+  color: #5f6b70;
 }
 .task__meta {
   display: flex;
@@ -278,10 +327,33 @@ function onOpen() {
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
+  padding: 0;
+  border: none;
   border-radius: 10px;
   background: linear-gradient(135deg, #c8e6c9, #66bb6a) center / cover;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.task__thumb:active {
+  transform: scale(0.96);
 }
 .task--done .task__thumb {
   opacity: 0.55;
+}
+
+@media (max-width: 380px) {
+  .task__check {
+    min-width: 36px;
+    width: 36px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .task__check-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
 }
 </style>

@@ -15,21 +15,25 @@ const { undoLast } = useWateringActions()
 <style scoped>
 .nz-undo {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  z-index: 60;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px) + 12px);
+  z-index: 1100;
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 520px;
-  margin: 0 auto;
+  width: min(420px, calc(100vw - 24px));
+  transform: translateX(-50%);
   padding: 12px 12px 12px 16px;
   border-radius: 14px;
-  background: #1f2a22;
+  background: #101012;
   color: #fff;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 32px rgba(16, 16, 18, 0.28);
   font-size: 15px;
+}
+@media (min-width: 1025px) {
+  .nz-undo {
+    bottom: 24px;
+  }
 }
 .nz-undo__label {
   flex: 1;

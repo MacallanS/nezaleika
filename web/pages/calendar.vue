@@ -1,83 +1,87 @@
 <template>
-  <div class="nz-page cal">
-    <header class="cal__head">
+  <div class="nz-page nz-page--wide cal">
+    <Teleport v-if="headerActionsActive" :to="`#${headerActionsId}`">
+      <div class="cal__mode" role="tablist" aria-label="Вид календаря">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="mode === 'month'"
+          :class="{ 'is-active': mode === 'month' }"
+          @click="mode = 'month'"
+        >
+          Месяц
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="mode === 'week'"
+          :class="{ 'is-active': mode === 'week' }"
+          @click="mode = 'week'"
+        >
+          Неделя
+        </button>
+      </div>
+    </Teleport>
+
+    <div class="cal__toolbar">
       <button type="button" class="cal__nav" aria-label="Назад" @click="shift(-1)">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>
       </button>
-      <h1 class="cal__title">{{ title }}</h1>
+      <button v-if="selected !== todayIso" type="button" class="cal__today" @click="goToday">К сегодня</button>
       <button type="button" class="cal__nav" aria-label="Вперёд" @click="shift(1)">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg>
       </button>
-      <div class="cal__tools">
-        <div class="cal__mode" role="tablist" aria-label="Вид календаря">
-          <button
-            type="button"
-            role="tab"
-            :aria-selected="mode === 'month'"
-            :class="{ 'is-active': mode === 'month' }"
-            @click="mode = 'month'"
-          >
-            Месяц
-          </button>
-          <button
-            type="button"
-            role="tab"
-            :aria-selected="mode === 'week'"
-            :class="{ 'is-active': mode === 'week' }"
-            @click="mode = 'week'"
-          >
-            Неделя
-          </button>
+    </div>
+
+    <div class="cal__layout">
+      <div class="cal__board nz-card">
+        <MonthGrid
+          v-if="mode === 'month'"
+          :month="month"
+          :selected="selected"
+          :today="todayIso"
+          :days="days"
+          :plants="plants.calendar?.plants"
+          @select="select"
+          @shift="shift"
+        />
+        <WeekStrip
+          v-else
+          :week-start="weekStart"
+          :selected="selected"
+          :today="todayIso"
+          :days="days"
+          @select="select"
+          @shift="shift"
+        />
+        <div class="cal__legend" aria-hidden="true">
+          <span><i class="cal__dot cal__dot--done" />полито</span>
+          <span><i class="cal__dot cal__dot--planned" />по плану</span>
+          <span><i class="cal__dot cal__dot--overdue" />просрочено</span>
         </div>
       </div>
-    </header>
 
-    <div class="cal__board">
-      <MonthGrid
-        v-if="mode === 'month'"
-        :month="month"
-        :selected="selected"
-        :today="todayIso"
-        :days="days"
-        :plants="plants.calendar?.plants"
-        @select="select"
-        @shift="shift"
-      />
-      <WeekStrip
-        v-else
-        :week-start="weekStart"
-        :selected="selected"
-        :today="todayIso"
-        :days="days"
-        @select="select"
-        @shift="shift"
-      />
-      <div class="cal__legend" aria-hidden="true">
-        <span><i class="cal__dot cal__dot--done" />полито</span>
-        <span><i class="cal__dot cal__dot--planned" />по плану</span>
-        <span><i class="cal__dot cal__dot--overdue" />просрочено</span>
+      <div class="cal__agenda">
+        <div class="cal__day-head">
+          <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
+        </div>
+
+        <div v-if="loading && !plants.calendar" class="cal__placeholder">Загружаем…</div>
+        <ScheduleAgenda
+          v-else-if="plants.calendar"
+          :days="days"
+          :plants="plants.calendar.plants"
+          :from="agendaFrom"
+          :to="agendaTo"
+          :today="todayIso"
+          :highlight="selected"
+          :pending="plants.pending"
+          @check="onCheck"
+          @uncheck="unwater"
+          @open="open"
+        />
       </div>
     </div>
-
-    <div class="cal__day-head">
-      <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
-      <button v-if="selected !== todayIso" type="button" class="cal__today" @click="goToday">К сегодня</button>
-    </div>
-
-    <div v-if="loading && !plants.calendar" class="cal__placeholder">Загружаем…</div>
-    <ScheduleAgenda
-      v-else-if="plants.calendar"
-      :days="days"
-      :plants="plants.calendar.plants"
-      :from="agendaFrom"
-      :to="agendaTo"
-      :today="todayIso"
-      :highlight="selected"
-      :pending="plants.pending"
-      @check="onCheck"
-      @uncheck="unwater"
-      @open="open"
-    />
   </div>
 </template>
 
@@ -112,6 +116,11 @@ const title = computed(() => {
   const base = mode.value === 'week' ? addDays(weekStart.value, 3) : month.value
   return formatMonthYear(base)
 })
+
+const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
+  title: title.value,
+  description: 'Календарь поливов',
+}))
 
 const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))
 const agendaTo = computed(() => {
@@ -176,35 +185,21 @@ function open(id: number) {
 
 <style scoped>
 .cal {
-  min-height: 100%;
   padding-bottom: 24px;
 }
-.cal__head {
-  position: sticky;
-  top: 0;
-  z-index: 4;
+.cal__toolbar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  min-height: 40px;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-  background: #f2f3f7;
-}
-.cal__title {
-  margin: 0 2px;
-  white-space: nowrap;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 32px;
-  letter-spacing: -0.02em;
-  color: #101012;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 .cal__nav {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: none;
-  border-radius: 50%;
-  background: none;
+  border-radius: 999px;
+  background: var(--rr-backgrounds-primary, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,16 +209,10 @@ function open(id: number) {
   width: 16px;
   height: 16px;
   fill: none;
-  stroke: #1c2326;
+  stroke: #101012;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-.cal__tools {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 .cal__today {
   border: none;
@@ -232,7 +221,7 @@ function open(id: number) {
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -258,12 +247,16 @@ function open(id: number) {
   color: #1c2326;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
+.cal__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .cal__board {
-  margin: 0 16px;
   padding: 10px 0 8px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+.cal__agenda {
+  min-width: 0;
 }
 .cal__legend {
   display: flex;
@@ -283,32 +276,46 @@ function open(id: number) {
   height: 6px;
   border-radius: 50%;
 }
-.cal__dot--done {
-  background: #43a047;
-}
-.cal__dot--planned {
-  background: #42a5f5;
-}
-.cal__dot--overdue {
-  background: #e53935;
-}
+.cal__dot--done { background: #43a047; }
+.cal__dot--planned { background: #42a5f5; }
+.cal__dot--overdue { background: #e53935; }
 .cal__day-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: 16px 16px 8px;
+  margin: 0 0 8px;
   min-height: 30px;
 }
 .cal__day-title {
   margin: 0;
   font-size: 16px;
-  font-weight: 800;
-  color: #1c2326;
+  font-weight: 700;
+  color: #101012;
 }
 .cal__placeholder {
-  margin: 0 20px 12px;
+  margin: 0 0 12px;
   font-size: 14px;
   color: #7b868c;
+}
+.cal__agenda :deep(.day) {
+  margin-inline: 0;
+}
+.cal__agenda :deep(.day__head) {
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+}
+
+@media (min-width: 1025px) {
+  .cal__layout {
+    display: grid;
+    grid-template-columns: minmax(420px, 1.1fr) minmax(360px, 0.9fr);
+    align-items: start;
+    gap: 20px;
+  }
+  .cal__board {
+    position: sticky;
+    top: 8px;
+    padding: 16px 8px 12px;
+  }
 }
 </style>

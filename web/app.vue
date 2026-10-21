@@ -2,9 +2,9 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
-  <Toast position="bottom-center" />
+  <NzToastHost />
 </template>
 
 <script setup lang="ts">
-import Toast from 'bibli/shared/ui/legacy/Toast/Toast.vue'
+import NzToastHost from '~/components/shell/NzToastHost.vue'
 </script>

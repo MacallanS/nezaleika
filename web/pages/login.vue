@@ -53,6 +53,12 @@ async function onSubmit() {
   padding: 24px;
   background: linear-gradient(180deg, #e8f5e9, #f2f3f7);
 }
+@media (min-width: 1025px) {
+  .login-card {
+    padding: 36px;
+    box-shadow: 0 16px 48px rgba(46, 125, 50, 0.14);
+  }
+}
 .login-card {
   width: 100%;
   max-width: 400px;

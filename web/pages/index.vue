@@ -1,31 +1,30 @@
 <template>
-  <div class="nz-page today">
-    <NzHeader title="График" :subtitle="subtitle">
-      <div class="ring" :aria-label="`Полито ${doneToday} из ${totalToday}`">
+  <div class="nz-page nz-page--wide today">
+    <Teleport v-if="headerActionsActive" :to="`#${headerActionsId}`">
+      <div class="nz-ring" :aria-label="`Полито ${doneToday} из ${totalToday}`">
         <svg viewBox="0 0 44 44" aria-hidden="true">
-          <circle cx="22" cy="22" r="18" class="ring__track" />
+          <circle cx="22" cy="22" r="18" class="nz-ring__track" />
           <circle
             cx="22"
             cy="22"
             r="18"
-            class="ring__value"
+            class="nz-ring__value"
             :stroke-dasharray="RING"
             :stroke-dashoffset="RING * (1 - progress)"
           />
         </svg>
-        <span class="ring__text">{{ doneToday }}/{{ totalToday }}</span>
+        <span class="nz-ring__text">{{ doneToday }}/{{ totalToday }}</span>
       </div>
-    </NzHeader>
+    </Teleport>
 
     <div v-if="!plants.calendar && loading" class="today__skeleton">
       <div v-for="i in 5" :key="i" class="today__skeleton-row" />
     </div>
 
-    <div v-else-if="loaded && !plantCount" class="today__empty">
-      <div class="today__empty-art" aria-hidden="true">🪴</div>
+    <div v-else-if="loaded && !plantCount" class="nz-card nz-card--pad today__empty">
       <p class="today__empty-title">Пока нет растений</p>
-      <p class="today__empty-sub">Добавьте цветок — здесь появится, в какой день его поливать</p>
-      <NuxtLink to="/plants/add" class="today__cta">Добавить растение</NuxtLink>
+      <p class="nz-hint">Добавьте цветок — здесь появится, в какой день его поливать</p>
+      <AuthRRButton class="today__cta" @click="navigateTo('/plants/add')">Добавить растение</AuthRRButton>
     </div>
 
     <ScheduleAgenda
@@ -47,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import NzHeader from '~/components/planner/NzHeader.vue'
+import { AuthRRButton } from 'bibli/shared/ui/rr'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
 import { buildBoard } from '~/utils/scheduleBoard'
 import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
@@ -113,6 +112,11 @@ const subtitle = computed(() => {
   return `${date} · впереди ${ahead.value}`
 })
 
+const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
+  title: 'График',
+  description: subtitle.value,
+}))
+
 function onSnooze(id: number) {
   snoozeUntilTomorrow(id)
   snoozeTick.value++
@@ -149,44 +153,12 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 
 <style scoped>
 .today {
-  min-height: 100%;
   padding-bottom: 24px;
-}
-.ring {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  flex: 0 0 auto;
-}
-.ring svg {
-  transform: rotate(-90deg);
-}
-.ring__track {
-  fill: none;
-  stroke: #e3ebe4;
-  stroke-width: 4;
-}
-.ring__value {
-  fill: none;
-  stroke: #2e7d32;
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-.ring__text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-  color: #1c2326;
 }
 .today__skeleton {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px 16px;
 }
 .today__skeleton-row {
   height: 64px;
@@ -200,34 +172,21 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   100% { background-position: -100% 0; }
 }
 .today__empty {
-  margin: 8px 16px 16px;
-  padding: 28px 20px;
-  border-radius: 18px;
-  background: #fff;
   text-align: center;
-}
-.today__empty-art {
-  font-size: 40px;
+  padding: 28px 20px;
 }
 .today__empty-title {
-  margin: 8px 0 4px;
+  margin: 0 0 4px;
   font-size: 18px;
-  font-weight: 800;
-  color: #1c2326;
-}
-.today__empty-sub {
-  margin: 0;
-  color: #7b868c;
-  font-size: 14px;
+  font-weight: 700;
 }
 .today__cta {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: #2e7d32;
-  color: #fff;
-  font-weight: 700;
-  text-decoration: none;
+  margin-top: 12px;
+}
+.today :deep(.day) {
+  margin-inline: 0;
+}
+.today :deep(.day__head) {
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
 }
 </style>

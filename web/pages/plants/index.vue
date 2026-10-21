@@ -1,11 +1,11 @@
 <template>
   <div class="nz-page plist">
-    <NzHeader title="Растения">
-      <NuxtLink to="/plants/add" class="plist__add" aria-label="Добавить растение">+</NuxtLink>
-    </NzHeader>
+    <Teleport v-if="headerActionsActive" :to="`#${headerActionsId}`">
+      <NuxtLink to="/plants/add" class="nz-icon-btn" aria-label="Добавить растение">+</NuxtLink>
+    </Teleport>
 
     <div class="plist__search">
-      <input v-model="query" type="search" placeholder="Поиск по имени, виду, комнате" aria-label="Поиск" />
+      <RrSearchInput v-model="query" placeholder="Поиск по имени, виду, комнате" />
     </div>
 
     <p v-if="loaded && !plants.list.length" class="plist__empty">
@@ -17,7 +17,7 @@
       <h2 class="plist__room">
         {{ g.room }} <span>{{ g.items.length }}</span>
       </h2>
-      <ul class="plist__list">
+      <ul class="plist__list nz-card">
         <li v-for="p in g.items" :key="p.id">
           <NuxtLink :to="`/plants/${p.id}`" class="row">
             <span
@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import NzHeader from '~/components/planner/NzHeader.vue'
+import { RrSearchInput } from 'bibli/shared/ui/rr'
 import type { PlantDetail } from '~/stores/plants'
 import { formatDayMonth, pluralDays } from '~/utils/dates'
 
@@ -47,6 +47,11 @@ const NO_ROOM = 'Без комнаты'
 const plants = usePlantsStore()
 const query = ref('')
 const loaded = ref(false)
+
+const { headerActionsId, headerActionsActive } = usePageChrome({
+  title: 'Растения',
+  description: 'Все цветы дома',
+})
 
 onMounted(async () => {
   try {
@@ -86,37 +91,13 @@ function statusText(p: PlantDetail) {
 
 <style scoped>
 .plist {
-  min-height: 100%;
   padding-bottom: 24px;
 }
-.plist__add {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #2e7d32;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  line-height: 1;
-  text-decoration: none;
-}
 .plist__search {
-  padding: 0 16px 12px;
-}
-.plist__search input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 11px 14px;
-  border: none;
-  border-radius: 12px;
-  background: #e5e9e7;
-  font: inherit;
-  font-size: 15px;
+  margin-bottom: 12px;
 }
 .plist__empty {
-  padding: 24px 20px;
+  padding: 8px 0 16px;
   color: #7b868c;
 }
 .plist__empty a {
@@ -124,7 +105,7 @@ function statusText(p: PlantDetail) {
   font-weight: 700;
 }
 .plist__room {
-  margin: 8px 24px 6px;
+  margin: 8px 4px 6px;
   font-size: 13px;
   font-weight: 700;
   color: #7b868c;
@@ -137,12 +118,8 @@ function statusText(p: PlantDetail) {
 }
 .plist__list {
   list-style: none;
-  margin: 0 16px 12px;
+  margin: 0 0 12px;
   padding: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 .plist__list li + li .row {
   border-top: 1px solid #eef0f2;
@@ -195,5 +172,11 @@ function statusText(p: PlantDetail) {
 }
 .row__status--due_today {
   color: #2e7d32;
+}
+
+@media (min-width: 1025px) {
+  .plist {
+    max-width: 760px;
+  }
 }
 </style>
