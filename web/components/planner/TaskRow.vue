@@ -163,14 +163,8 @@ function onOpen() {
   overflow: hidden;
   background: #fff;
 }
-.task + .task .task__body::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 16px;
-  right: 16px;
-  height: 1px;
-  background: #eef0f2;
+.task + .task {
+  box-shadow: inset 0 1px 0 var(--rr-borders-neutral-secondary, #eef0f2);
 }
 .task__actions {
   position: absolute;
@@ -213,7 +207,8 @@ function onOpen() {
   height: 36px;
   padding: 0 12px 0 10px;
   border-radius: 999px;
-  border: 1.5px solid #c5ced4;
+  border: none;
+  box-shadow: inset 0 0 0 1px rgba(16, 16, 18, 0.08);
   background: #f4f7f5;
   color: #2e7d32;
   font: inherit;
@@ -221,24 +216,24 @@ function onOpen() {
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+  transition: background 0.18s, box-shadow 0.18s, color 0.18s, transform 0.18s;
   -webkit-tap-highlight-color: transparent;
 }
 .task__check:active {
   transform: scale(0.96);
 }
 .task--today .task__check:not(.task__check--done) {
-  border-color: #81c784;
+  box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.28);
   background: #e8f5e9;
   color: #1b5e20;
 }
 .task--overdue .task__check:not(.task__check--done) {
-  border-color: #ef9a9a;
+  box-shadow: inset 0 0 0 1px rgba(198, 40, 40, 0.28);
   background: #ffebee;
   color: #c62828;
 }
 .task__check--done {
-  border-color: #2e7d32;
+  box-shadow: none;
   background: #2e7d32;
   color: #fff;
 }
@@ -246,7 +241,7 @@ function onOpen() {
   min-width: 36px;
   width: 36px;
   padding: 0;
-  border-style: dashed;
+  box-shadow: inset 0 0 0 1px rgba(16, 16, 18, 0.12);
   background: transparent;
   color: #9aa5ad;
   cursor: default;

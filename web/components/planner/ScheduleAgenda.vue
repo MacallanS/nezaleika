@@ -159,8 +159,9 @@ function rowLabel(row: BoardRow): string {
 }
 .day__list {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
+  isolation: isolate;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 .day--on .day__list {
