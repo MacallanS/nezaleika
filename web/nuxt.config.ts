@@ -116,9 +116,9 @@ export default defineNuxtConfig({
           const queryIndex = withoutPrefix.indexOf('?')
           const bibliPath = queryIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, queryIndex)
           const query = queryIndex === -1 ? '' : withoutPrefix.slice(queryIndex)
-          const localResolved = tryResolveBibli(localBibliRoot, bibliPath)
+          const localResolved = tryResolveBibli(bibliAlias, bibliPath)
           if (localResolved) return { id: `${localResolved}${query}`, external: false }
-          const nodeResolved = tryResolveBibli(resolve(__dirname, './node_modules/bibli'), bibliPath)
+          const nodeResolved = tryResolveBibli(nodeBibliRoot, bibliPath)
           if (nodeResolved) return { id: `${nodeResolved}${query}`, external: false }
           return null
         },
@@ -127,6 +127,10 @@ export default defineNuxtConfig({
   },
   pwa: {
     registerType: 'autoUpdate',
+    strategies: 'generateSW',
+    injectRegister: 'auto',
+    base: basePath,
+    includeAssets: ['icons/**/*', 'push-sw.js', 'favicon.ico', 'robots.txt'],
     manifest: {
       name: 'Незалейка',
       short_name: 'Незалейка',
@@ -152,10 +156,19 @@ export default defineNuxtConfig({
     },
     workbox: {
       importScripts: [`${basePath}push-sw.js`],
-      navigateFallback: basePath,
+      // Skip bibli login/background webps (multi‑MB); they load on demand.
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
+      globIgnores: ['**/200.html', '**/404.html'],
+      maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+      // Shell must be precached; directory URL /nezaleika/ is not a file.
+      navigateFallback: 'index.html',
+      navigateFallbackDenylist: [/^\/api\//, /\/sw\.js$/, /\/workbox-.*\.js$/],
+      cleanupOutdatedCaches: true,
+      clientsClaim: true,
+      skipWaiting: true,
       runtimeCaching: [
         {
-          urlPattern: /^\/api\/.*/i,
+          urlPattern: /^https:\/\/nezaleika-api\.onrender\.com\/api\/.*/i,
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',

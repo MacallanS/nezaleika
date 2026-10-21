@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -14,7 +15,7 @@ from notifications.serializers import NotificationPrefsSerializer
 class CsrfView(APIView):
     permission_classes = [AllowAny]
 
-    @ensure_csrf_cookie
+    @method_decorator(ensure_csrf_cookie)
     def get(self, request):
         return Response({'csrfToken': get_token(request)})
 
