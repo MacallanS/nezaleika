@@ -1,23 +1,40 @@
 <template>
-  <section v-if="plant" class="widget">
+  <section v-if="current" class="widget">
     <div
       class="widget__bg"
-      :style="plant.photo_url ? { backgroundImage: `url(${plant.photo_url})` } : undefined"
+      :style="current.photo_url ? { backgroundImage: `url(${current.photo_url})` } : undefined"
     />
     <div class="widget__overlay nz-gradient-overlay" />
+    <div v-if="list.length > 1" class="widget__dots">
+      <button
+        v-for="(_, i) in list"
+        :key="i"
+        type="button"
+        class="dot"
+        :class="{ active: i === index }"
+        :aria-label="`Растение ${i + 1}`"
+        @click="index = i"
+      />
+    </div>
     <div class="widget__content">
       <p class="widget__label">Следующий полив</p>
-      <h2 class="widget__title">{{ plant.name }}</h2>
-      <p class="widget__species">{{ plant.species_name }}</p>
+      <h2 class="widget__title">{{ current.name }}</h2>
+      <p class="widget__species">{{ current.species_name }}</p>
       <p class="widget__status">{{ statusLabel }}</p>
-      <p class="widget__hint">{{ plant.season_hint }}</p>
-      <AuthRRButton class="widget__btn" :disabled="loading" @click="$emit('water')">
-        Полил
-      </AuthRRButton>
+      <p class="widget__hint">{{ current.season_hint }}</p>
+      <div class="widget__actions">
+        <AuthRRButton class="widget__btn" :disabled="loading" @click="$emit('water', current.id)">
+          Полил
+        </AuthRRButton>
+        <button type="button" class="widget__snooze" :disabled="loading" @click="$emit('snooze', current.id)">
+          Завтра
+        </button>
+      </div>
     </div>
   </section>
   <section v-else class="widget widget--empty">
     <p>Всё полито — можно отдохнуть</p>
+    <NuxtLink to="/plants/add">Добавить цветок</NuxtLink>
   </section>
 </template>
 
@@ -26,14 +43,25 @@ import { AuthRRButton } from 'bibli/shared/ui/rr'
 import type { FeedPlant } from '~/stores/plants'
 
 const props = defineProps<{
-  plant: FeedPlant | null
+  plants: FeedPlant[]
   loading?: boolean
 }>()
 
-defineEmits<{ water: [] }>()
+defineEmits<{ water: [id: number]; snooze: [id: number] }>()
+
+const index = ref(0)
+const list = computed(() => props.plants)
+const current = computed(() => list.value[index.value] ?? list.value[0] ?? null)
+
+watch(
+  () => props.plants.map((p) => p.id).join(','),
+  () => {
+    index.value = 0
+  },
+)
 
 const statusLabel = computed(() => {
-  const p = props.plant
+  const p = current.value
   if (!p) return ''
   if (p.status === 'overdue') return `Просрочено на ${Math.abs(p.days_until)} дн.`
   if (p.status === 'due_today') return 'Полить сегодня'
@@ -61,6 +89,28 @@ const statusLabel = computed(() => {
 .widget__overlay {
   position: absolute;
   inset: 0;
+}
+.widget__dots {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 2;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 0;
+}
+.dot.active {
+  background: #fff;
+  transform: scale(1.15);
 }
 .widget__content {
   position: relative;
@@ -92,16 +142,37 @@ const statusLabel = computed(() => {
   font-size: 13px;
   opacity: 0.9;
 }
+.widget__actions {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
 .widget__btn {
-  width: 100%;
+  flex: 1;
+}
+.widget__snooze {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
 }
 .widget--empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   background: #e8f5e9;
   color: #2e7d32;
   font-weight: 600;
   min-height: 120px;
+}
+.widget--empty a {
+  color: #1b5e20;
+  font-weight: 700;
 }
 </style>

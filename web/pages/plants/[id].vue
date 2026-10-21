@@ -19,6 +19,15 @@
         </AuthRRButton>
       </AuthRRField>
     </section>
+    <section v-if="waterings.length" class="panel">
+      <h2>История поливов</h2>
+      <ul class="history">
+        <li v-for="w in waterings" :key="w.id">
+          <time>{{ formatWatered(w.watered_at) }}</time>
+          <span v-if="w.note">{{ w.note }}</span>
+        </li>
+      </ul>
+    </section>
     <section class="panel">
       <h2>График</h2>
       <WateringChart v-if="schedule" :schedule="schedule" />
@@ -36,6 +45,7 @@ const route = useRoute()
 const plants = usePlantsStore()
 const plant = ref<PlantDetail | null>(null)
 const schedule = ref<{ history: { date: string }[]; planned: { date: string }[] } | null>(null)
+const waterings = ref<{ id: number; watered_at: string; note: string }[]>([])
 const watering = ref(false)
 const pastDate = ref('')
 const today = new Date().toISOString().slice(0, 10)
@@ -44,7 +54,24 @@ onMounted(async () => {
   const id = Number(route.params.id)
   plant.value = await plants.fetchPlant(id)
   await loadSchedule(id)
+  await loadWaterings(id)
 })
+
+function formatWatered(iso: string) {
+  return new Date(iso).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+async function loadWaterings(id: number) {
+  await ensureAuth()
+  const { data } = await getApi().get(`/api/plants/${id}/waterings/`)
+  waterings.value = data
+}
 
 async function loadSchedule(id: number) {
   await ensureAuth()
@@ -69,6 +96,7 @@ async function water(iso: string) {
     await getApi().post(`/api/plants/${id}/waterings/`, { watered_at: iso })
     plant.value = await plants.fetchPlant(id)
     await loadSchedule(id)
+    await loadWaterings(id)
     await plants.refreshFeed()
   } finally {
     watering.value = false
@@ -110,5 +138,21 @@ async function water(iso: string) {
 .mt {
   margin-top: 8px;
   width: 100%;
+}
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.history li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+.history time {
+  font-weight: 600;
 }
 </style>

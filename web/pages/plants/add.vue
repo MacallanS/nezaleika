@@ -37,8 +37,12 @@
 </template>
 
 <script setup lang="ts">
+import { useToast } from 'bibli/shared/ui/legacy/Toast'
 import { AuthRRButton, AuthRRField, AuthRRInputText } from 'bibli/shared/ui/rr'
 import { ensureAuth, getApi } from '~/utils/api'
+
+const toast = useToast()
+const plantsStore = usePlantsStore()
 
 interface Species {
   id: number
@@ -95,6 +99,8 @@ async function submit() {
     const { data } = await api.post('/api/plants/', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+    await plantsStore.refreshFeed()
+    toast.success(`${name.value} добавлен в коллекцию`)
     await navigateTo(`/?plant=${data.id}`)
   } finally {
     saving.value = false

@@ -4,9 +4,11 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const localBibliRoot = resolve(__dirname, '../../bibli')
-const bibliAlias = existsSync(resolve(localBibliRoot, 'package.json'))
-  ? localBibliRoot
-  : resolve(__dirname, './node_modules/bibli')
+const nodeBibliRoot = resolve(__dirname, './node_modules/bibli')
+const useLocalBibli =
+  process.env.NUXT_BIBLI_LOCAL === '1' &&
+  existsSync(resolve(localBibliRoot, 'package.json'))
+const bibliAlias = useLocalBibli ? localBibliRoot : nodeBibliRoot
 
 const apiTarget = (process.env.NUXT_DEV_API_PROXY_TARGET || 'http://127.0.0.1:8000').replace(/\/$/, '')
 const useDevApiProxy = process.env.NODE_ENV !== 'production'
@@ -68,6 +70,8 @@ export default defineNuxtConfig({
   },
   alias: {
     bibli: bibliAlias,
+    shared: resolve(bibliAlias, 'shared'),
+    '@/shared': resolve(bibliAlias, 'shared'),
   },
   build: {
     transpile: ['bibli'],
@@ -76,7 +80,11 @@ export default defineNuxtConfig({
     optimizeDeps: { exclude: ['bibli'] },
     resolve: {
       dedupe: ['vue', 'vue-router'],
-      alias: { bibli: bibliAlias },
+      alias: {
+        bibli: bibliAlias,
+        shared: resolve(bibliAlias, 'shared'),
+        '@/shared': resolve(bibliAlias, 'shared'),
+      },
     },
     server: {
       fs: { strict: false, allow: [__dirname, bibliAlias] },
@@ -92,6 +100,15 @@ export default defineNuxtConfig({
         name: 'resolve-bibli-paths',
         enforce: 'pre',
         resolveId(id: string) {
+          if (id === '@/shared/ui' || id.startsWith('@/shared/')) {
+            const bibliPath = id.slice(2)
+            const resolved = tryResolveBibli(bibliAlias, bibliPath)
+            if (resolved) return { id: resolved, external: false }
+          }
+          if (id === 'shared/ui' || id.startsWith('shared/')) {
+            const resolved = tryResolveBibli(bibliAlias, id)
+            if (resolved) return { id: resolved, external: false }
+          }
           if (!id.startsWith('bibli/')) return null
           const withoutPrefix = id.slice('bibli/'.length)
           const queryIndex = withoutPrefix.indexOf('?')
