@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: nezaleika-api
+    runtime: python
+    rootDir: api
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py import_species_csv
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/csrf/
+    envVars:
+      - key: PYTHON_VERSION
+        value: '3.12.0'
+      - key: DEBUG
+        value: '0'
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: nezaleika-api.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nezaleika-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+
+databases:
+  - name: nezaleika-db
+    plan: free

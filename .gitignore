@@ -1,0 +1,10 @@
+.env
+*.sqlite3
+__pycache__/
+.venv/
+api/media/
+api/staticfiles/
+web/node_modules/
+web/.nuxt/
+web/.output/
+web/dist/
