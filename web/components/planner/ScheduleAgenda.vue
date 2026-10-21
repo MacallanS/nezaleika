@@ -162,10 +162,13 @@ function rowLabel(row: BoardRow): string {
   border-radius: 16px;
   overflow: hidden;
   isolation: isolate;
+  border: 2px solid transparent;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 .day--on .day__list {
-  box-shadow: 0 0 0 2px #2e7d32;
+  /* border вместо box-shadow: overflow:hidden обрезал кольцо и оно выглядело криво */
+  border-color: #2e7d32;
+  box-shadow: none;
 }
 .board__empty {
   margin: 8px 20px 16px;
