@@ -12,6 +12,8 @@ export interface BoardRow {
   dueLabel: string
   snoozable: boolean
   past: boolean
+  /** False for future planned days — view only until due. */
+  checkable: boolean
 }
 
 export interface BoardGroup {
@@ -66,6 +68,7 @@ export function buildBoard(args: {
         dueLabel: 'просрочено',
         snoozable: true,
         past: false,
+        checkable: true,
       }))
     : []
 
@@ -96,11 +99,13 @@ export function buildBoard(args: {
           dueLabel: past ? 'пропущено' : 'полить сегодня',
           snoozable: iso === today,
           past,
+          checkable: true,
         })
       }
     }
 
     if (!past) {
+      const isFuture = iso > today
       for (const id of unique(bucket?.planned ?? [])) {
         if (doneIds.has(id) || (overdueBanner && snoozed.has(id))) continue
         rows.push({
@@ -113,6 +118,7 @@ export function buildBoard(args: {
           dueLabel: '',
           snoozable: iso === today,
           past: false,
+          checkable: !isFuture,
         })
       }
     }
@@ -130,6 +136,7 @@ export function buildBoard(args: {
           dueLabel: 'отложено',
           snoozable: false,
           past: false,
+          checkable: true,
         })
       }
     }
@@ -146,6 +153,7 @@ export function buildBoard(args: {
         dueLabel: '',
         snoozable: false,
         past,
+        checkable: true,
       })
     }
 

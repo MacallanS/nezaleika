@@ -13,6 +13,7 @@
           tone="overdue"
           snoozable
           due-label="просрочено"
+          :checkable="row.checkable"
           :busy="pending[row.plantId]"
           @check="$emit('check', row.plantId, today, false)"
           @snooze="$emit('snooze', row.plantId)"
@@ -41,6 +42,8 @@
           :done-by="row.doneBy"
           :tone="row.tone"
           :snoozable="row.snoozable"
+          :checkable="row.checkable"
+          :undoable="row.done && canUndo(row.wateringId)"
           :due-label="rowLabel(row)"
           :busy="pending[row.plantId]"
           @check="$emit('check', row.plantId, group.iso, row.past)"
@@ -83,21 +86,26 @@ defineEmits<{
   open: [plantId: number]
 }>()
 
-const board = computed(() =>
-  buildBoard({
+const { canUndo } = useWateringActions()
+const undo = useUndoState()
+
+const board = computed(() => {
+  void undo.value
+  return buildBoard({
     days: props.days,
     from: props.from,
     to: props.to,
     today: props.today,
     snoozed: props.snoozed,
     overdueBanner: props.overdueBanner,
-  }),
-)
+  })
+})
 const overdue = computed(() => board.value.overdue)
 const groups = computed(() => board.value.groups)
 
 const fallback: PlantInfo = {
   id: 0,
+  category: 'other',
   name: '…',
   species_name: '',
   room: '',

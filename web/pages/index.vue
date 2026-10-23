@@ -123,6 +123,7 @@ function onSnooze(id: number) {
 }
 
 function onCheck(id: number, iso: string, past: boolean) {
+  if (iso > todayIso.value) return
   if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
   else void water(id)
 }

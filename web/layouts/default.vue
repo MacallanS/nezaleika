@@ -59,8 +59,9 @@ const userName = computed(() => auth.user?.first_name || auth.user?.username || 
 const userRole = computed(() => '')
 
 const badge = computed(() => {
+  if (plants.agenda) return plants.agenda.sections.overdue.length
   const cal = plants.calendar
-  if (!cal) return 0
+  if (!cal) return plants.todoCount
   return (cal.days[cal.today]?.overdue ?? []).length
 })
 

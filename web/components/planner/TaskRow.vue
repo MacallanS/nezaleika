@@ -28,7 +28,7 @@
         </svg>
       </span>
       <button
-        v-else
+        v-else-if="showCheck"
         type="button"
         class="task__check"
         :class="{ 'task__check--busy': busy, 'task__check--done': done }"
@@ -57,6 +57,19 @@
         </svg>
         <span class="task__check-label">{{ done ? 'Отменить' : 'Полил' }}</span>
       </button>
+      <span v-else-if="done" class="task__check task__check--done task__check--locked" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="task__icon">
+          <path
+            d="M6 12.5l4 4 8-9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span class="task__check-label">Полито</span>
+      </span>
 
       <button type="button" class="task__main" :aria-label="`Открыть ${plant.name}`" @click="onOpen">
         <span class="task__title">{{ plant.name }}</span>
@@ -68,11 +81,12 @@
       </button>
 
       <span v-if="doneBy" class="task__who" :title="`Полил(а): ${doneBy}`">{{ doneBy.slice(0, 1) }}</span>
-      <button
-        type="button"
+      <PlantThumb
         class="task__thumb"
-        :style="plant.photo_url ? { backgroundImage: `url(${plant.photo_url})` } : undefined"
-        :aria-label="`Карточка: ${plant.name}`"
+        :photo-url="plant.photo_url"
+        :category="plant.category"
+        :name="plant.name"
+        clickable
         @click="onOpen"
       />
     </div>
@@ -82,6 +96,7 @@
 <script setup lang="ts">
 import type { PlantInfo } from '~/stores/plants'
 import { pluralDays } from '~/utils/dates'
+import PlantThumb from '~/components/plants/PlantThumb.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -92,9 +107,19 @@ const props = withDefaults(
     tone?: 'overdue' | 'today' | 'normal'
     busy?: boolean
     checkable?: boolean
+    undoable?: boolean
     snoozable?: boolean
   }>(),
-  { done: false, doneBy: '', dueLabel: '', tone: 'normal', busy: false, checkable: true, snoozable: false },
+  {
+    done: false,
+    doneBy: '',
+    dueLabel: '',
+    tone: 'normal',
+    busy: false,
+    checkable: true,
+    undoable: false,
+    snoozable: false,
+  },
 )
 
 const emit = defineEmits<{ check: []; uncheck: []; snooze: []; open: [] }>()
@@ -102,6 +127,11 @@ const emit = defineEmits<{ check: []; uncheck: []; snooze: []; open: [] }>()
 const ACTION_WIDTH = 84
 const canSnooze = computed(() => props.snoozable && !props.done)
 const actionsWidth = computed(() => ACTION_WIDTH * (canSnooze.value ? 2 : 1))
+const showCheck = computed(() => {
+  if (!props.checkable) return false
+  if (props.done) return props.undoable
+  return true
+})
 const offset = ref(0)
 let startX = 0
 let startY = 0
@@ -139,8 +169,11 @@ function close() {
 function onCheck() {
   if (props.busy) return
   close()
-  if (props.done) emit('uncheck')
-  else emit('check')
+  if (props.done) {
+    if (props.undoable) emit('uncheck')
+    return
+  }
+  emit('check')
 }
 
 function onSnooze() {
@@ -322,18 +355,14 @@ function onOpen() {
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
-  padding: 0;
-  border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #c8e6c9, #66bb6a) center / cover;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.task__thumb:active {
-  transform: scale(0.96);
 }
 .task--done .task__thumb {
   opacity: 0.55;
+}
+.task__check--locked {
+  pointer-events: none;
+  cursor: default;
 }
 
 @media (max-width: 380px) {

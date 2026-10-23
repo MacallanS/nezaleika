@@ -7,6 +7,7 @@ export interface PlantInfo {
   id: number
   name: string
   species_name: string
+  category: string
   room: string
   photo_url: string | null
   interval_days: number
@@ -55,6 +56,7 @@ export interface PlantDetail {
   name: string
   room: string
   note: string
+  category: string
   photo_url: string | null
   status: PlantStatus
   next_due: string

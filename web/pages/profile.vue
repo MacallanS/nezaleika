@@ -72,12 +72,14 @@ async function onSave() {
 }
 
 async function enablePush() {
-  const ok = await subscribe()
-  if (ok) {
+  const result = await subscribe()
+  if (result.ok) {
     prefs.value.enabled = true
     await onSave()
+    notify('Напоминания подключены')
+  } else {
+    notify(result.detail, 'warn')
   }
-  notify(ok ? 'Напоминания подключены' : 'Не удалось подключить напоминания', ok ? 'success' : 'warn')
 }
 
 async function testPush() {

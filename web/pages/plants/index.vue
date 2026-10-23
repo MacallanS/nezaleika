@@ -20,10 +20,11 @@
       <ul class="plist__list nz-card">
         <li v-for="p in g.items" :key="p.id">
           <NuxtLink :to="`/plants/${p.id}`" class="row">
-            <span
+            <PlantThumb
               class="row__thumb"
-              :style="p.photo_url ? { backgroundImage: `url(${p.photo_url})` } : undefined"
-              aria-hidden="true"
+              :photo-url="p.photo_url"
+              :category="p.category || p.species_detail?.category"
+              :name="p.name"
             />
             <span class="row__body">
               <strong>{{ p.name }}</strong>
@@ -39,6 +40,7 @@
 
 <script setup lang="ts">
 import { RrSearchInput } from 'bibli/shared/ui/rr'
+import PlantThumb from '~/components/plants/PlantThumb.vue'
 import type { PlantDetail } from '~/stores/plants'
 import { formatDayMonth, pluralDays } from '~/utils/dates'
 
@@ -138,7 +140,7 @@ function statusText(p: PlantDetail) {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #c8e6c9, #66bb6a) center / cover;
+  pointer-events: none;
 }
 .row__body {
   flex: 1;

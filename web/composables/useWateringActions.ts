@@ -4,6 +4,7 @@ interface UndoState {
   wateringId: number
   label: string
   timer: ReturnType<typeof setTimeout> | null
+  until: number
 }
 
 const UNDO_MS = 5000
@@ -21,6 +22,13 @@ export function useWateringActions() {
     undo.value = null
   }
 
+  function canUndo(wateringId: number | undefined | null): boolean {
+    if (wateringId == null || wateringId < 0) return false
+    const u = undo.value
+    if (!u || u.wateringId !== wateringId) return false
+    return Date.now() < u.until
+  }
+
   async function water(plantId: number, wateredAt?: string) {
     const name = plants.plantById(plantId)?.name ?? 'Растение'
     try {
@@ -31,10 +39,15 @@ export function useWateringActions() {
       undo.value = {
         wateringId: id,
         label: `Полито: ${name}`,
+        until: Date.now() + UNDO_MS,
         timer: setTimeout(clearUndo, UNDO_MS),
       }
-    } catch {
-      notify('Не удалось отметить полив', 'error')
+    } catch (e: unknown) {
+      const detail =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined
+      notify(detail || 'Не удалось отметить полив', 'error')
     }
   }
 
@@ -50,9 +63,9 @@ export function useWateringActions() {
 
   async function undoLast() {
     const id = undo.value?.wateringId
-    if (id == null) return
+    if (id == null || !canUndo(id)) return
     await unwater(id)
   }
 
-  return { water, unwater, undoLast, clearUndo }
+  return { water, unwater, undoLast, clearUndo, canUndo, undo }
 }

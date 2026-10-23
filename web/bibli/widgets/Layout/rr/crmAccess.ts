@@ -29,10 +29,10 @@ export const ALL_PROJECTS_OPTION_ID = '__all__'
 
 /** Fallback colors when Core service has no custom branding in the tile. */
 export const CRM_FALLBACK_COLORS: Record<string, string> = {
-  fintech: '#5B7DEC',
+  fintech: '#5B7DEC', // Accent.Brand.5
   sklad: '#FA6B00',
   podbor: '#5CDBD5',
-  registry: '#783BF3',
+  registry: '#6C5BFF', // Accent.Warehouse.5
 }
 
 export function isDevCrmHost(hostname?: string): boolean {

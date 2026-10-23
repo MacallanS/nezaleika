@@ -76,6 +76,17 @@
   --rr-accent-brand-10: #0B1E5C;
   --rr-accent-brand-11: #060F2E;
   --rr-accent-brand-12: #030717;
+  --rr-accent-warehouse-0: #EEEFFF;
+  --rr-accent-warehouse-1: #DDE2FF;
+  --rr-accent-warehouse-2: #C3CAFF;
+  --rr-accent-warehouse-3: #A0A7FF;
+  --rr-accent-warehouse-4: #7B7AFF;
+  --rr-accent-warehouse-5: #6C5BFF;
+  --rr-accent-warehouse-6: #6A49F8;
+  --rr-accent-warehouse-7: #522EDA;
+  --rr-accent-warehouse-8: #4329B1;
+  --rr-accent-warehouse-9: #3A288B;
+  --rr-accent-warehouse-10: #251751;
   --rr-accent-derivable-brand-brand-2: rgba(105, 139, 255, 0.019999999552965164);
   --rr-accent-derivable-brand-brand-4: rgba(105, 139, 255, 0.03999999910593033);
   --rr-accent-derivable-brand-brand-8: rgba(105, 139, 255, 0.07999999821186066);
@@ -140,6 +151,7 @@
   --rr-accent-derivable-indigo-indigo-64: rgba(94, 92, 230, 0.11999999731779099);
   --rr-accent-derivable-indigo-indigo-72: rgba(94, 92, 230, 0.11999999731779099);
   --rr-accent-derivable-purple-purple-12: rgba(175, 82, 222, 0.11999999731779099);
+  --rr-accent-derivable-pink-0: #EEEFFF;
   --rr-accent-derivable-pink-pink-12: rgba(255, 45, 85, 0.11999999731779099);
   --rr-accent-derivable-pink-pink-24: rgba(255, 45, 85, 0.11999999731779099);
   --rr-accent-derivable-pink-pink-36: rgba(255, 45, 85, 0.11999999731779099);
@@ -147,4 +159,8 @@
   --rr-accent-derivable-pink-pink-56: rgba(255, 45, 85, 0.11999999731779099);
   --rr-accent-derivable-pink-pink-64: rgba(255, 45, 85, 0.11999999731779099);
   --rr-accent-derivable-pink-pink-72: rgba(255, 45, 85, 0.11999999731779099);
+  --rr-accent-derivable-pink-0-2: #EEEFFF;
+  --rr-accent-derivable-pink-0-3: #EEEFFF;
+  --rr-accent-derivable-pink-0-4: #EEEFFF;
+  --rr-accent-derivable-pink-0-5: #EEEFFF;
 }

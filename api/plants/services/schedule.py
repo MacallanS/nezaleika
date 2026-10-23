@@ -58,6 +58,11 @@ def interval_days(species: PlantSpecies, on_date: date | None = None) -> int:
     return species.interval_for_season(season_for_date(d))
 
 
+def plant_interval_days(plant: UserPlant) -> int:
+    """Interval used for next_due — season of the last watering day (same as next_due_at)."""
+    return interval_days(plant.species, local_date(last_watering_at(plant)))
+
+
 def next_due_at(plant: UserPlant, on_date: date | None = None) -> date:
     last_local_date = local_date(last_watering_at(plant))
     days = interval_days(plant.species, last_local_date)

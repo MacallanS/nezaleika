@@ -32,10 +32,11 @@
           class="nz-setting nz-notif__plant"
           @click="openPlant(p.id)"
         >
-          <span
+          <PlantThumb
             class="nz-notif__thumb"
-            :style="p.photo_url ? { backgroundImage: `url(${p.photo_url})` } : undefined"
-            aria-hidden="true"
+            :photo-url="p.photo_url"
+            :category="p.category"
+            :name="p.name"
           />
           <span class="nz-notif__plant-text">
             <strong>{{ p.name }}</strong>
@@ -49,7 +50,7 @@
         <h3 class="nz-card__title">Настройки</h3>
         <label class="nz-setting">
           <span>Напоминания</span>
-          <input v-model="prefs.enabled" class="nz-switch" type="checkbox" @change="onSave" />
+          <input v-model="prefs.enabled" class="nz-switch" type="checkbox" @change="onToggleEnabled" />
         </label>
         <label class="nz-setting" :class="{ 'is-off': !prefs.enabled }">
           <span>Время</span>
@@ -57,6 +58,16 @@
             v-model="prefs.remind_time"
             class="nz-time"
             type="time"
+            :disabled="!prefs.enabled"
+            @change="onSave"
+          />
+        </label>
+        <label class="nz-setting" :class="{ 'is-off': !prefs.enabled }">
+          <span>Только срочные</span>
+          <input
+            v-model="prefs.only_urgent"
+            class="nz-switch"
+            type="checkbox"
             :disabled="!prefs.enabled"
             @change="onSave"
           />
@@ -80,8 +91,9 @@
 
 <script setup lang="ts">
 import { AuthRRButton, RrBottomSheet } from 'bibli/shared/ui/rr'
+import PlantThumb from '~/components/plants/PlantThumb.vue'
+import type { PlantInfo } from '~/stores/plants'
 import { notify } from '~/utils/toast'
-import { addDays, isoDate, parseIsoDate } from '~/utils/dates'
 
 const plants = usePlantsStore()
 const { open, hide } = useNotificationsPanel()
@@ -89,24 +101,18 @@ const { prefs, loaded, load, save } = useNotificationPrefs()
 const { supported: pushSupported, subscribe, sendTest } = useWebPush()
 const pushReady = ref(false)
 
-const overdue = computed(() => {
-  const cal = plants.calendar
-  if (!cal) return []
-  const ids = cal.days[cal.today]?.overdue ?? []
-  return ids
-    .map((id) => cal.plants[String(id)])
-    .filter(Boolean)
-    .map((p) => p!)
+const overdue = computed((): PlantInfo[] => {
+  const agenda = plants.agenda
+  if (!agenda) return []
+  return agenda.sections.overdue
+    .map((item) => agenda.plants[String(item.plant_id)])
+    .filter((p): p is PlantInfo => Boolean(p))
 })
 
 const todayLeft = computed(() => {
-  const cal = plants.calendar
-  if (!cal) return 0
-  const day = cal.days[cal.today]
-  if (!day) return 0
-  const pending = new Set([...(day.overdue ?? []), ...(day.planned ?? [])])
-  for (const id of day.done ?? []) pending.delete(id)
-  return pending.size
+  const agenda = plants.agenda
+  if (!agenda) return 0
+  return agenda.sections.overdue.length + agenda.sections.today.length
 })
 
 watch(open, async (v) => {
@@ -116,10 +122,7 @@ watch(open, async (v) => {
   } catch {
     /* ignore */
   }
-  if (!plants.calendar) {
-    const today = isoDate(new Date())
-    void plants.fetchCalendar(today, isoDate(addDays(parseIsoDate(today), 14)))
-  }
+  void plants.fetchAgenda().catch(() => undefined)
   if (pushSupported && 'serviceWorker' in navigator) {
     try {
       const reg = await navigator.serviceWorker.ready
@@ -138,14 +141,23 @@ async function onSave() {
   }
 }
 
+async function onToggleEnabled() {
+  await onSave()
+  if (prefs.value.enabled && pushSupported && !pushReady.value) {
+    await onEnable()
+  }
+}
+
 async function onEnable() {
-  const ok = await subscribe()
-  pushReady.value = ok
-  if (ok) {
+  const result = await subscribe()
+  pushReady.value = result.ok
+  if (result.ok) {
     prefs.value.enabled = true
     await onSave()
+    notify('Напоминания подключены')
+  } else {
+    notify(result.detail, 'warn')
   }
-  notify(ok ? 'Напоминания подключены' : 'Не удалось подключить напоминания', ok ? 'success' : 'warn')
 }
 
 async function onTest() {
@@ -204,8 +216,8 @@ function openPlant(id: number) {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #c8e6c9, #66bb6a) center / cover;
   flex: 0 0 auto;
+  pointer-events: none;
 }
 .nz-notif__plant-text {
   flex: 1;

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-01T09:50:38.467Z",
+  "generatedAt": "2026-10-23T13:23:53.305Z",
   "prefix": "rr",
-  "count": 603,
+  "count": 619,
   "tokens": {
     "--rr-neutral-0": {
       "value": "#101012",
@@ -535,6 +535,83 @@
       "group": "primitives",
       "source": "Dark-mode.tokens3.1 Primitivies.json"
     },
+    "--rr-accent-warehouse-0": {
+      "value": "#EEEFFF",
+      "path": "Accent.Warehouse.0",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-1": {
+      "value": "#DDE2FF",
+      "path": "Accent.Warehouse.1",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-2": {
+      "value": "#C3CAFF",
+      "path": "Accent.Warehouse.2",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-3": {
+      "value": "#A0A7FF",
+      "path": "Accent.Warehouse.3",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-4": {
+      "value": "#7B7AFF",
+      "path": "Accent.Warehouse.4",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-5": {
+      "value": "#6C5BFF",
+      "path": "Accent.Warehouse.5",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-6": {
+      "value": "#6A49F8",
+      "path": "Accent.Warehouse.6",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-7": {
+      "value": "#522EDA",
+      "path": "Accent.Warehouse.7",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-8": {
+      "value": "#4329B1",
+      "path": "Accent.Warehouse.8",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-9": {
+      "value": "#3A288B",
+      "path": "Accent.Warehouse.9",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-warehouse-10": {
+      "value": "#251751",
+      "path": "Accent.Warehouse.10",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
     "--rr-accent-derivable-brand-brand-2": {
       "value": "rgba(105, 139, 255, 0.019999999552965164)",
       "path": "Accent.Derivable.Brand.Brand@2",
@@ -983,6 +1060,13 @@
       "group": "primitives",
       "source": "Dark-mode.tokens3.1 Primitivies.json"
     },
+    "--rr-accent-derivable-pink-0": {
+      "value": "#EEEFFF",
+      "path": "Accent.Derivable.Pink.0",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
     "--rr-accent-derivable-pink-pink-12": {
       "value": "rgba(255, 45, 85, 0.11999999731779099)",
       "path": "Accent.Derivable.Pink.Pink@12",
@@ -1028,6 +1112,34 @@
     "--rr-accent-derivable-pink-pink-72": {
       "value": "rgba(255, 45, 85, 0.11999999731779099)",
       "path": "Accent.Derivable.Pink.Pink@72",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-derivable-pink-0-2": {
+      "value": "#EEEFFF",
+      "path": "Accent.Derivable.Pink.0 2",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-derivable-pink-0-3": {
+      "value": "#EEEFFF",
+      "path": "Accent.Derivable.Pink.0 3",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-derivable-pink-0-4": {
+      "value": "#EEEFFF",
+      "path": "Accent.Derivable.Pink.0 4",
+      "type": "color",
+      "group": "primitives",
+      "source": "Dark-mode.tokens3.1 Primitivies.json"
+    },
+    "--rr-accent-derivable-pink-0-5": {
+      "value": "#EEEFFF",
+      "path": "Accent.Derivable.Pink.0 5",
       "type": "color",
       "group": "primitives",
       "source": "Dark-mode.tokens3.1 Primitivies.json"

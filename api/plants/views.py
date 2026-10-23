@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from rest_framework import generics, status, viewsets
@@ -22,10 +23,10 @@ from plants.services.photos import InvalidPhoto, decode_data_url, photo_digest, 
 from plants.services.schedule import (
     display_name,
     feed_sort_key,
-    interval_days,
     last_watering,
     local_date,
     next_due_at,
+    plant_interval_days,
     plant_stats,
     planned_dates,
     watering_status,
@@ -40,9 +41,10 @@ def plant_info(plant, request) -> dict:
         'id': plant.id,
         'name': plant.name,
         'species_name': plant.species.name_ru,
+        'category': plant.species.category,
         'room': plant.room,
         'photo_url': plant_photo_url(plant, request),
-        'interval_days': interval_days(plant.species),
+        'interval_days': plant_interval_days(plant),
         'last_watered_at': last.watered_at.isoformat() if last else None,
         'last_watered_by': display_name(last.watered_by) if last else '',
     }
@@ -72,14 +74,25 @@ class PlantSpeciesListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        qs = PlantSpecies.objects.all()
-        q = self.request.query_params.get('q', '').strip()
-        if q:
-            qs = qs.filter(name_ru__icontains=q) | qs.filter(name_lat__icontains=q)
-        cat = self.request.query_params.get('category')
+        return PlantSpecies.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        q = request.query_params.get('q', '').strip()
+        # Full catalog is not exposed — UI must search (min 2 chars).
+        # Filter in Python: SQLite LOWER/icontains is unreliable for Cyrillic.
+        if len(q) < 2:
+            return Response([])
+        needle = q.casefold()
+        qs = self.get_queryset()
+        cat = request.query_params.get('category')
         if cat:
             qs = qs.filter(category=cat)
-        return qs
+        matched = [
+            s
+            for s in qs
+            if needle in s.name_ru.casefold() or needle in (s.name_lat or '').casefold()
+        ]
+        return Response(self.get_serializer(matched, many=True).data)
 
 
 class UserPlantViewSet(viewsets.ModelViewSet):
@@ -105,14 +118,40 @@ class UserPlantViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get', 'post'], url_path='waterings')
     def waterings(self, request, pk=None):
-        plant = self.get_object()
         if request.method == 'GET':
+            plant = self.get_object()
             events = plant.waterings.select_related('watered_by').order_by('-watered_at')[:200]
             return Response(WateringEventSerializer(events, many=True).data)
+
         ser = WateringEventSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
-        ser.save(user_plant=plant, watered_by=request.user)
-        return Response(ser.data, status=status.HTTP_201_CREATED)
+        watered_at = ser.validated_data.get('watered_at') or timezone.now()
+        day = local_date(watered_at)
+        today = timezone.localdate()
+
+        with transaction.atomic():
+            try:
+                plant = self.get_queryset().select_for_update().get(pk=pk)
+            except UserPlant.DoesNotExist as exc:
+                raise Http404 from exc
+            existing = list(plant.waterings.all())
+            already = any(local_date(w.watered_at) == day for w in existing)
+            if already:
+                return Response(
+                    {'detail': 'Это растение уже полито в этот день.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # First watering (after add) and past-date backfill are always allowed.
+            # Live watering on today: only when overdue / due_today.
+            if existing and day >= today:
+                st = watering_status(plant)
+                if st in ('ok', 'due_soon'):
+                    return Response(
+                        {'detail': 'Ещё рано поливать — дождитесь дня по графику.'},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            event = ser.save(user_plant=plant, watered_by=request.user)
+        return Response(WateringEventSerializer(event).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['get'], url_path='stats')
     def stats(self, request, pk=None):

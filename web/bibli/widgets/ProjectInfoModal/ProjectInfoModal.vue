@@ -35,6 +35,7 @@
                   :options="projectManagers"
                   :multiple="false"
                   :searchable="true"
+                  variant="bare"
                   :disabled="staffLoading || loading"
                   option-label="fullName"
                   option-value="id"
@@ -55,6 +56,7 @@
                   :options="regionalDirectors"
                   :multiple="true"
                   :searchable="true"
+                  variant="bare"
                   :disabled="staffLoading || loading"
                   option-label="fullName"
                   option-value="id"
@@ -82,6 +84,7 @@
                   :options="onecBaseSelectOptions"
                   :multiple="false"
                   :searchable="onecBaseSelectOptions.length > 7"
+                  variant="bare"
                   :disabled="onecBasesLoading || loading"
                   option-label="label"
                   option-value="key"
@@ -509,6 +512,10 @@ const handleSubmit = async () => {
   width: 100%;
   min-height: calc(var(--project-form-control-h) - 2px);
   padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   align-items: center;
 }
 

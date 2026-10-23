@@ -9,9 +9,9 @@ from plants.services.photos import InvalidPhoto, photo_digest, photo_to_data_url
 from plants.services.schedule import (
     days_until_due,
     display_name,
-    interval_days,
     last_watering,
     next_due_at,
+    plant_interval_days,
     season_hint,
     watering_status,
 )
@@ -79,6 +79,7 @@ class UserPlantSerializer(serializers.ModelSerializer):
     )
     photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
     photo_url = serializers.SerializerMethodField()
+    category = serializers.CharField(source='species.category', read_only=True)
     status = serializers.SerializerMethodField()
     next_due = serializers.SerializerMethodField()
     days_until = serializers.SerializerMethodField()
@@ -94,6 +95,7 @@ class UserPlantSerializer(serializers.ModelSerializer):
             'name',
             'species_id',
             'species_detail',
+            'category',
             'photo',
             'photo_url',
             'room',
@@ -109,7 +111,7 @@ class UserPlantSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         )
-        read_only_fields = ('id', 'created_at', 'updated_at', 'photo_url')
+        read_only_fields = ('id', 'created_at', 'updated_at', 'photo_url', 'category')
         extra_kwargs = {'added_at': {'required': False}}
 
     def get_photo_url(self, obj):
@@ -128,7 +130,7 @@ class UserPlantSerializer(serializers.ModelSerializer):
         return season_hint(obj.species)
 
     def get_interval_days(self, obj):
-        return interval_days(obj.species)
+        return plant_interval_days(obj)
 
     def get_last_watered_at(self, obj):
         last = last_watering(obj)
@@ -173,12 +175,14 @@ class UserPlantSerializer(serializers.ModelSerializer):
 
 class FeedPlantSerializer(UserPlantSerializer):
     species_name = serializers.CharField(source='species.name_ru', read_only=True)
+    category = serializers.CharField(source='species.category', read_only=True)
 
     class Meta(UserPlantSerializer.Meta):
         fields = (
             'id',
             'name',
             'species_name',
+            'category',
             'photo_url',
             'status',
             'next_due',

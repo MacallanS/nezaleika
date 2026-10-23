@@ -103,6 +103,68 @@ class CalendarApiTests(ApiTestBase):
         self.assertEqual(res.status_code, 204)
         self.assertFalse(WateringEvent.objects.filter(pk=w.id).exists())
 
+    def test_rejects_watering_when_not_due(self):
+        p = self.plant(TODAY - timedelta(days=20))
+        WateringEvent.objects.create(user_plant=p, watered_at=at(TODAY - timedelta(days=2)), watered_by=self.user)
+        # Last watered 2 days ago, interval 7 → next due in 5 days → not due yet
+        with mock.patch('django.utils.timezone.now', return_value=at(TODAY, 10)):
+            res = self.client.post(f'/api/plants/{p.id}/waterings/', {}, format='json')
+        self.assertEqual(res.status_code, 400)
+        self.assertIn('рано', res.data['detail'].lower())
+
+    def test_rejects_second_watering_same_day(self):
+        p = self.plant(TODAY - timedelta(days=20))
+        with mock.patch('django.utils.timezone.now', return_value=at(TODAY, 10)):
+            first = self.client.post(f'/api/plants/{p.id}/waterings/', {}, format='json')
+            second = self.client.post(f'/api/plants/{p.id}/waterings/', {}, format='json')
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(second.status_code, 400)
+        self.assertIn('уже полито', second.data['detail'].lower())
+
+    def test_allows_first_watering_after_create(self):
+        p = self.plant(TODAY)
+        with mock.patch('django.utils.timezone.now', return_value=at(TODAY, 10)):
+            res = self.client.post(f'/api/plants/{p.id}/waterings/', {}, format='json')
+        self.assertEqual(res.status_code, 201)
+
+    def test_allows_past_date_backfill_when_not_due(self):
+        p = self.plant(TODAY - timedelta(days=2))
+        past = (TODAY - timedelta(days=1)).isoformat()
+        with mock.patch('django.utils.timezone.now', return_value=at(TODAY, 10)):
+            res = self.client.post(
+                f'/api/plants/{p.id}/waterings/',
+                {'watered_at': f'{past}T12:00:00Z'},
+                format='json',
+            )
+        self.assertEqual(res.status_code, 201)
+
+    def test_agenda_includes_category(self):
+        p = self.plant(TODAY)
+        plants = self.client.get('/api/agenda').data['plants']
+        self.assertEqual(plants[str(p.id)]['category'], 'other')
+
+    def test_interval_days_matches_last_watering_season(self):
+        # Summer interval 5, autumn 7. Last watered in summer → interval_days=5 even if today is autumn.
+        summer_day = date(2026, 8, 20)
+        p = self.plant(summer_day)
+        WateringEvent.objects.create(user_plant=p, watered_at=at(summer_day), watered_by=self.user)
+        info = self.client.get('/api/agenda').data['plants'][str(p.id)]
+        self.assertEqual(info['interval_days'], 5)
+        detail = self.client.get(f'/api/plants/{p.id}/').data
+        self.assertEqual(detail['interval_days'], 5)
+
+    def test_species_requires_min_query(self):
+        self.assertEqual(self.client.get('/api/species').data, [])
+        self.assertEqual(self.client.get('/api/species', {'q': 'f'}).data, [])
+        # Cyrillic case-insensitive (SQLite SQL LOWER is not enough)
+        res = self.client.get('/api/species', {'q': '\u0444\u0438'})  # "фи"
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(any(s['slug'] == 'ficus' for s in res.data))
+        self.species.name_lat = 'Ficus benjamina'
+        self.species.save(update_fields=['name_lat'])
+        lat = self.client.get('/api/species', {'q': 'fic'}).data
+        self.assertTrue(any(s['slug'] == 'ficus' for s in lat))
+
 
 class PhotoTests(ApiTestBase):
     def upload(self, plant, content: bytes, name='p.jpg'):

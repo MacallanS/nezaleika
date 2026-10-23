@@ -1,20 +1,12 @@
 <template>
   <div class="nz-page nz-page--form add-page">
-    <div v-if="step === 1" class="add-page__body">
-      <AuthRRInputText v-model="query" label="Поиск" placeholder="Монстера, фикус…" @input="searchSpecies" />
-      <ul class="species-list">
-        <li v-for="s in species" :key="s.id">
-          <button type="button" class="species-item" @click="selectSpecies(s)">
-            <strong>{{ s.name_ru }}</strong>
-            <span>{{ s.name_lat }}</span>
-          </button>
-        </li>
-      </ul>
-    </div>
-
-    <form v-else class="add-page__body" @submit.prevent="submit">
-      <p class="picked">{{ selected?.name_ru }}</p>
-      <AuthRRInputText v-model="name" label="Имя у вас дома" required />
+    <form class="add-page__body" @submit.prevent="submit">
+      <SpeciesSearchField v-model="selected" />
+      <AuthRRInputText
+        v-model="name"
+        label="Кличка"
+        :placeholder="selected ? `${selected.name_ru} у окна` : 'Как зовёте дома'"
+      />
       <AuthRRInputText v-model="room" label="Где стоит" placeholder="Кухня, спальня…" />
       <AuthRRField label="Когда последний раз поливали">
         <input v-model="lastWatered" type="date" class="date-input" :max="todayIso" required />
@@ -22,8 +14,13 @@
       <AuthRRField label="Фото">
         <input type="file" accept="image/*" capture="environment" @change="onFile" />
         <div v-if="preview" class="preview" :style="{ backgroundImage: `url(${preview})` }" />
+        <div
+          v-else-if="selected"
+          class="preview preview--illus"
+          :style="{ backgroundImage: `url(${illustrationForCategory(selected.category)})` }"
+        />
       </AuthRRField>
-      <AuthRRButton type="submit" :disabled="saving" class="submit">
+      <AuthRRButton type="submit" :disabled="saving || !selected" class="submit">
         {{ saving ? 'Сохраняем…' : 'Сохранить' }}
       </AuthRRButton>
     </form>
@@ -32,23 +29,16 @@
 
 <script setup lang="ts">
 import { AuthRRButton, AuthRRField, AuthRRInputText } from 'bibli/shared/ui/rr'
+import SpeciesSearchField, { type SpeciesOption } from '~/components/plants/SpeciesSearchField.vue'
 import { ensureAuth, getApi } from '~/utils/api'
 import { isoDate } from '~/utils/dates'
+import { illustrationForCategory } from '~/utils/plantIllustrations'
 import { notify } from '~/utils/toast'
 
 const plantsStore = usePlantsStore()
 const router = useRouter()
 
-interface Species {
-  id: number
-  name_ru: string
-  name_lat: string
-}
-
-const step = ref(1)
-const query = ref('')
-const species = ref<Species[]>([])
-const selected = ref<Species | null>(null)
+const selected = ref<SpeciesOption | null>(null)
 const name = ref('')
 const todayIso = isoDate(new Date())
 const room = ref('')
@@ -59,49 +49,18 @@ const saving = ref(false)
 
 usePageChrome(
   () => ({
-    title: step.value === 1 ? 'Выберите вид' : 'Новый цветок',
+    title: 'Новый цветок',
     childPage: true,
     parentTitle: 'Растения',
     parentTo: '/plants',
   }),
   {
     onBack: () => {
-      if (step.value === 2) step.value = 1
-      else if (window.history.length > 1) router.back()
+      if (window.history.length > 1) router.back()
       else void router.replace('/plants')
     },
   },
 )
-
-let searchSeq = 0
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-
-async function loadSpecies() {
-  const seq = ++searchSeq
-  try {
-    await ensureAuth()
-    const { data } = await getApi().get<{ results?: Species[] } | Species[]>('/api/species', {
-      params: { q: query.value.trim() },
-    })
-    if (seq === searchSeq) species.value = Array.isArray(data) ? data : (data.results ?? [])
-  } catch {
-    if (seq === searchSeq) notify('Не удалось загрузить список растений', 'error')
-  }
-}
-
-function searchSpecies() {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(loadSpecies, 250)
-}
-
-onMounted(loadSpecies)
-onBeforeUnmount(() => clearTimeout(searchTimer))
-
-function selectSpecies(s: Species) {
-  selected.value = s
-  name.value = s.name_ru
-  step.value = 2
-}
 
 function onFile(e: Event) {
   const input = e.target as HTMLInputElement
@@ -118,8 +77,9 @@ async function submit() {
     await ensureAuth()
     const api = getApi()
     const wateredAt = new Date(`${lastWatered.value}T12:00:00`)
+    const displayName = name.value.trim() || selected.value.name_ru
     const form = new FormData()
-    form.append('name', name.value.trim())
+    form.append('name', displayName)
     form.append('room', room.value.trim())
     form.append('species_id', String(selected.value.id))
     form.append('added_at', wateredAt.toISOString())
@@ -136,8 +96,8 @@ async function submit() {
     }
     await plantsStore.fetchAgenda().catch(() => undefined)
     await router.replace('/')
-    if (wateringSaved) notify(`${name.value} добавлен`)
-    else notify(`${name.value} добавлен, но полив не записался — отметьте его в карточке`, 'warn')
+    if (wateringSaved) notify(`${displayName} добавлен`)
+    else notify(`${displayName} добавлен, но полив не записался — отметьте его в карточке`, 'warn')
   } catch {
     notify('Не удалось сохранить растение', 'error')
     saving.value = false
@@ -147,42 +107,10 @@ async function submit() {
 
 <style scoped>
 .add-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding-bottom: 24px;
-}
-.species-list {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-  max-height: calc(100dvh - 220px);
-  overflow: auto;
-  border-radius: 16px;
-  background: var(--rr-color-bg-surface-secondary, #fff);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-.species-item {
-  width: 100%;
-  text-align: left;
-  padding: 14px 16px;
-  border: none;
-  border-bottom: 1px solid var(--rr-color-border-subtle, #eee);
-  background: transparent;
-  cursor: pointer;
-}
-.species-item:last-child {
-  border-bottom: none;
-}
-.species-item strong {
-  display: block;
-  font-size: 15px;
-}
-.species-item span {
-  font-size: 12px;
-  color: var(--rr-color-text-secondary, #888);
-}
-.picked {
-  font-weight: 700;
-  color: #2e7d32;
-  margin: 0 0 8px;
 }
 .date-input {
   width: 100%;
@@ -199,6 +127,9 @@ async function submit() {
   border-radius: 16px;
   background-size: cover;
   background-position: center;
+}
+.preview--illus {
+  background-color: #e8f0ea;
 }
 .submit {
   width: 100%;

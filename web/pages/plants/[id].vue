@@ -10,15 +10,13 @@
           :src="plant.photo_url"
           :alt="plant.name"
         />
-        <div v-else class="detail__empty-photo" aria-hidden="true">
-          <svg viewBox="0 0 128 128" class="detail__empty-icon">
-            <path
-              fill="currentColor"
-              d="M64 24c-28 18-36 42-36 58 0 8 6 14 14 14 20 0 36-16 58-42-22 4-40-2-36-30z"
-            />
-            <ellipse cx="52" cy="88" rx="8" ry="12" fill="currentColor" opacity=".45" />
-          </svg>
-          <span>Нет фото цветка</span>
+        <div
+          v-else
+          class="detail__empty-photo"
+          :style="{ backgroundImage: `url(${illustrationForCategory(plant.category || plant.species_detail?.category)})` }"
+          aria-hidden="true"
+        >
+          <span>Нет фото — рисунок вида</span>
         </div>
         <input type="file" accept="image/*" capture="environment" class="detail__file" @change="onPhoto" />
         <span class="detail__hero-hint">{{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}</span>
@@ -35,11 +33,11 @@
         <button
           type="button"
           class="detail__water"
-          :class="{ 'detail__water--done': wateredToday }"
-          :disabled="busy"
+          :class="{ 'detail__water--done': !canWaterNow }"
+          :disabled="busy || !canWaterNow"
           @click="waterNow"
         >
-          {{ wateredToday ? 'Полито сегодня — полить ещё раз' : 'Полил сейчас' }}
+          {{ waterButtonLabel }}
         </button>
 
         <div class="detail__past">
@@ -65,7 +63,12 @@
               <strong>{{ formatWatered(w.watered_at) }}</strong>
               <span v-if="w.watered_by_name">{{ w.watered_by_name }}</span>
             </div>
-            <button type="button" class="history__del" :aria-label="`Удалить полив ${formatWatered(w.watered_at)}`" @click="removeWatering(w.id)">
+            <button
+              type="button"
+              class="history__del"
+              :aria-label="`Удалить полив ${formatWatered(w.watered_at)}`"
+              @click="removeWatering(w.id)"
+            >
               ×
             </button>
           </li>
@@ -75,7 +78,14 @@
       <section class="card">
         <h2 class="card__title">Настройки</h2>
         <form class="edit" @submit.prevent="save">
-          <AuthRRInputText v-model="form.name" label="Имя" required />
+          <p v-if="plant.species_detail" class="detail__species-line">
+            Вид: <strong>{{ plant.species_detail.name_ru }}</strong>
+          </p>
+          <AuthRRInputText
+            v-model="form.name"
+            label="Кличка"
+            :placeholder="plant.species_detail?.name_ru || 'Как зовёте дома'"
+          />
           <AuthRRInputText v-model="form.room" label="Где стоит" placeholder="Кухня, спальня…" />
           <AuthRRInputText v-model="form.note" label="Заметка" />
           <AuthRRButton type="submit" class="edit__save" :disabled="saving">
@@ -95,6 +105,7 @@ import HabitHeatmap from '~/components/planner/HabitHeatmap.vue'
 import type { PlantDetail, PlantStats, WateringRecord } from '~/stores/plants'
 import { ensureAuth, getApi } from '~/utils/api'
 import { formatDayMonth, isoDate, pluralDays, relativeDayLabel } from '~/utils/dates'
+import { illustrationForCategory } from '~/utils/plantIllustrations'
 import { notify } from '~/utils/toast'
 
 const route = useRoute()
@@ -124,6 +135,19 @@ const todayIso = isoDate(new Date())
 const form = reactive({ name: '', room: '', note: '' })
 
 const wateredToday = computed(() => waterings.value.some((w) => isoDate(new Date(w.watered_at)) === todayIso))
+
+const canWaterNow = computed(() => {
+  const p = plant.value
+  if (!p || wateredToday.value) return false
+  return p.status === 'overdue' || p.status === 'due_today'
+})
+
+const waterButtonLabel = computed(() => {
+  if (wateredToday.value) return 'Полито сегодня'
+  if (!plant.value) return 'Полил сейчас'
+  if (plant.value.status === 'overdue' || plant.value.status === 'due_today') return 'Полил сейчас'
+  return `Следующий полив ${formatDayMonth(plant.value.next_due)}`
+})
 
 const dueText = computed(() => {
   const p = plant.value
@@ -191,6 +215,7 @@ function waterPast() {
 }
 
 function removeWatering(wateringId: number) {
+  if (!confirm('Удалить эту запись полива?')) return
   void run(() => unwater(wateringId))
 }
 
@@ -217,12 +242,14 @@ async function save() {
   saving.value = true
   try {
     await ensureAuth()
+    const nickname = form.name.trim()
     const { data } = await getApi().patch<PlantDetail>(`/api/plants/${id.value}/`, {
-      name: form.name.trim(),
+      name: nickname || plant.value?.species_detail?.name_ru || form.name,
       room: form.room.trim(),
       note: form.note.trim(),
     })
     plant.value = data
+    form.name = data.name
     void plants.refreshAll()
     notify('Сохранено')
   } catch {
@@ -284,17 +311,24 @@ function goBack() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #2e7d32;
-  font-size: 15px;
+  justify-content: flex-end;
+  padding-bottom: 48px;
+  color: #1b5e20;
+  font-size: 14px;
   font-weight: 700;
   pointer-events: none;
+  background-color: #e8f0ea;
+  background-size: cover;
+  background-position: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
-.detail__empty-icon {
-  width: 72px;
-  height: 72px;
-  opacity: 0.85;
+.detail__species-line {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #7b868c;
+}
+.detail__species-line strong {
+  color: #2e7d32;
 }
 .detail__file {
   position: absolute;

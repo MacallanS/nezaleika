@@ -9,19 +9,45 @@ function urlBase64ToUint8Array(base64String: string) {
   return arr
 }
 
+export type PushSubscribeResult =
+  | { ok: true }
+  | { ok: false; detail: string }
+
 export function useWebPush() {
   const supported = import.meta.client && 'serviceWorker' in navigator && 'PushManager' in window
 
-  async function subscribe() {
-    if (!supported) return false
+  function isIosSafari() {
+    if (!import.meta.client) return false
+    const ua = navigator.userAgent
+    const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    return iOS && !(window as Window & { MSStream?: unknown }).MSStream
+  }
+
+  function isStandalone() {
+    if (!import.meta.client) return false
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true
+    )
+  }
+
+  async function subscribe(): Promise<PushSubscribeResult> {
+    if (!supported) {
+      if (isIosSafari() && !isStandalone()) {
+        return { ok: false, detail: 'На iPhone добавьте приложение на экран «Домой», затем подключите push.' }
+      }
+      return { ok: false, detail: 'Этот браузер не поддерживает push-уведомления.' }
+    }
     await ensureAuth()
     const { data } = await getApi().get<{ publicKey: string }>('/api/push/vapid-public-key')
     if (!data.publicKey) {
       console.warn('[push] VAPID public key not configured')
-      return false
+      return { ok: false, detail: 'Push не настроен на сервере (нет VAPID-ключа).' }
     }
     const permission = await Notification.requestPermission()
-    if (permission !== 'granted') return false
+    if (permission !== 'granted') {
+      return { ok: false, detail: 'Разрешение на уведомления отклонено.' }
+    }
     try {
       const reg = await navigator.serviceWorker.ready
       const options = {
@@ -41,10 +67,13 @@ export function useWebPush() {
         endpoint: json.endpoint,
         keys: json.keys,
       })
-      return true
+      return { ok: true }
     } catch (e) {
       console.warn('[push] subscribe failed', e)
-      return false
+      if (isIosSafari() && !isStandalone()) {
+        return { ok: false, detail: 'На iPhone сначала добавьте приложение на экран «Домой».' }
+      }
+      return { ok: false, detail: 'Не удалось подключить push на этом устройстве.' }
     }
   }
 
