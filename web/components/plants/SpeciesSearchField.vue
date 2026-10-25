@@ -31,7 +31,7 @@
     v-model="open"
     title="Вид растения"
     placement="sheet"
-    height-mode="fit"
+    height-mode="percent"
     :height-percent="90"
   >
     <div class="species-sheet">
@@ -74,6 +74,11 @@
             :aria-selected="draftId === s.id ? 'true' : 'false'"
             @click="draftId = s.id"
           >
+            <span
+              class="species-sheet__thumb"
+              :style="{ backgroundImage: `url(${illustrationForCategory(s.category)})` }"
+              aria-hidden="true"
+            />
             <span class="species-sheet__label">
               <strong>{{ s.name_ru }}</strong>
               <span v-if="s.name_lat">{{ s.name_lat }}</span>
@@ -106,6 +111,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { authRrIcons } from 'bibli/shared/assets/auth/rr'
 import { AuthRRButton, AuthRRField, RrBottomSheet, RrSearchIcon, RrSelectScroll } from 'bibli/shared/ui/rr'
 import { ensureAuth, getApi } from '~/utils/api'
+import { illustrationForCategory } from '~/utils/plantIllustrations'
 
 export interface SpeciesOption {
   id: number
@@ -149,19 +155,24 @@ const emptyHint = computed(() => {
 
 let searchSeq = 0
 let searchTimer: ReturnType<typeof setTimeout> | undefined
+let focusTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(open, (v) => {
+  clearTimeout(focusTimer)
   if (!v) return
   draftId.value = props.modelValue?.id ?? null
   query.value = ''
   results.value = props.modelValue ? [props.modelValue] : []
-  void nextTick(() => {
-    try {
-      searchInputRef.value?.focus({ preventScroll: true })
-    } catch {
-      searchInputRef.value?.focus()
-    }
-  })
+  // После раскладки шита — иначе iOS поднимает клавиатуру до появления списка
+  focusTimer = setTimeout(() => {
+    void nextTick(() => {
+      try {
+        searchInputRef.value?.focus({ preventScroll: true })
+      } catch {
+        searchInputRef.value?.focus()
+      }
+    })
+  }, 280)
 })
 
 function clearQuery() {
@@ -204,7 +215,10 @@ function apply() {
   open.value = false
 }
 
-onBeforeUnmount(() => clearTimeout(searchTimer))
+onBeforeUnmount(() => {
+  clearTimeout(searchTimer)
+  clearTimeout(focusTimer)
+})
 </script>
 
 <style scoped>
@@ -265,12 +279,15 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 280px;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 .species-sheet__search {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 .species-sheet__search-icon {
   position: absolute;
@@ -300,7 +317,11 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
   display: inline-flex;
 }
 .species-sheet__list {
-  max-height: min(52dvh, 420px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .species-sheet__options {
   list-style: none;
@@ -315,6 +336,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
   padding: 10px 4px;
   border-bottom: 1px solid var(--rr-color-border-subtle, #eee);
   cursor: pointer;
+}
+.species-sheet__thumb {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #e8f0ea center / cover no-repeat;
 }
 .species-sheet__item--selected {
   background: rgba(46, 125, 50, 0.06);

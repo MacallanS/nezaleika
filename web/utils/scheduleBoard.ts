@@ -1,5 +1,5 @@
 import type { CalendarDay } from '~/stores/plants'
-import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
+import { addDays, formatDayMonth, isoDate, parseIsoDate } from '~/utils/dates'
 
 export interface BoardRow {
   key: string
@@ -29,12 +29,10 @@ function unique(ids: number[]): number[] {
 
 function heading(iso: string, today: string): { title: string; aside: string } {
   const diff = Math.round((parseIsoDate(iso).getTime() - parseIsoDate(today).getTime()) / 86400000)
-  const date = formatDayMonth(iso)
-  if (diff === 0) return { title: 'Сегодня', aside: date }
-  if (diff === 1) return { title: 'Завтра', aside: date }
-  if (diff === -1) return { title: 'Вчера', aside: date }
-  if (diff > 1 && diff < 7) return { title: formatWeekday(iso), aside: date }
-  return { title: date, aside: formatWeekday(iso) }
+  if (diff === 0) return { title: 'Сегодня', aside: '' }
+  if (diff === 1) return { title: 'Завтра', aside: '' }
+  if (diff === -1) return { title: 'Вчера', aside: '' }
+  return { title: formatDayMonth(iso), aside: '' }
 }
 
 /** Day-by-day watering board. Empty days are omitted so the list is the schedule itself. */

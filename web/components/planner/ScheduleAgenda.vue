@@ -31,7 +31,7 @@
     >
       <header class="day__head" :class="{ 'day__head--today': group.iso === today }">
         <h2>{{ group.title }}</h2>
-        <span class="day__count">{{ group.aside }}</span>
+        <span v-if="group.aside" class="day__count">{{ group.aside }}</span>
       </header>
       <div class="day__list">
         <TaskRow
@@ -61,7 +61,6 @@
 <script setup lang="ts">
 import type { CalendarDay, PlantInfo } from '~/stores/plants'
 import { buildBoard, type BoardRow } from '~/utils/scheduleBoard'
-import { formatTime } from '~/utils/dates'
 import TaskRow from './TaskRow.vue'
 
 const props = withDefaults(
@@ -120,7 +119,8 @@ function plant(id: number): PlantInfo {
 }
 
 function rowLabel(row: BoardRow): string {
-  if (row.done && row.wateredAt) return formatTime(row.wateredAt)
+  // День уже в заголовке секции; время (часто фиктивные 12:00) не показываем
+  if (row.done) return ''
   return row.dueLabel
 }
 </script>

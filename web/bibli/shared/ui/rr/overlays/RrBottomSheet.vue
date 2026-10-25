@@ -175,6 +175,9 @@ const panelRef = ref(null)
 const dragY = ref(0)
 const dragging = ref(false)
 const isDesktop = ref(false)
+/** Visible viewport (shrinks / shifts under iOS keyboard). */
+const viewportHeight = ref(0)
+const viewportOffsetTop = ref(0)
 
 /** overlay refcount + swipe state */
 let overlayHeld = false
@@ -188,6 +191,14 @@ const forceSheet = computed(() => props.placement === 'sheet')
 const showHandleEffective = computed(() => props.showHandle && !isDesktop.value)
 const swipeEnabled = computed(() => props.swipeToDismiss && !isDesktop.value)
 const showCloseButton = computed(() => isDesktop.value)
+
+function maxPanelCss() {
+  const vv = viewportHeight.value
+  if (vv > 0 && !isDesktop.value) {
+    return `min(${pct.value}dvh, ${pct.value}vh, ${vv}px)`
+  }
+  return `min(${pct.value}dvh, ${pct.value}vh)`
+}
 
 const resolvedMaxWidth = computed(() => {
   const v = props.maxWidth
@@ -205,6 +216,12 @@ const rootStyle = computed(() => {
   const style = { zIndex: props.zIndex }
   if (resolvedContentPadding.value) {
     style['--profile-sheet-inset'] = resolvedContentPadding.value
+  }
+  // Keep sheet in the visible area above the soft keyboard (iOS Safari).
+  if (!isDesktop.value && viewportHeight.value > 0) {
+    style.top = `${viewportOffsetTop.value}px`
+    style.height = `${viewportHeight.value}px`
+    style.bottom = 'auto'
   }
   return style
 })
@@ -225,13 +242,13 @@ const panelStyle = computed(() => {
     return {
       ...base,
       height: 'auto',
-      maxHeight: `min(${pct.value}dvh, ${pct.value}vh)`,
+      maxHeight: maxPanelCss(),
     }
   }
   return {
     ...base,
-    height: `${pct.value}dvh`,
-    maxHeight: `min(${pct.value}dvh, ${pct.value}vh)`,
+    height: maxPanelCss(),
+    maxHeight: maxPanelCss(),
   }
 })
 
@@ -249,6 +266,13 @@ function clamp(n, min, max) {
 
 function syncDesktopMq() {
   isDesktop.value = forceSheet.value ? false : Boolean(desktopMq?.matches)
+}
+
+function syncViewportHeight() {
+  if (typeof window === 'undefined') return
+  const vv = window.visualViewport
+  viewportHeight.value = Math.round(vv?.height || window.innerHeight || 0)
+  viewportOffsetTop.value = Math.round(vv?.offsetTop || 0)
 }
 
 function onKeydown(event) {
@@ -417,8 +441,12 @@ onMounted(() => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
   desktopMq = window.matchMedia(DESKTOP_MQ)
   syncDesktopMq()
+  syncViewportHeight()
   desktopMq.addEventListener?.('change', syncDesktopMq)
   window.addEventListener('keydown', onKeydown)
+  window.visualViewport?.addEventListener('resize', syncViewportHeight)
+  window.visualViewport?.addEventListener('scroll', syncViewportHeight)
+  window.addEventListener('resize', syncViewportHeight, { passive: true })
 })
 
 onBeforeUnmount(() => {
@@ -431,6 +459,9 @@ onBeforeUnmount(() => {
   desktopMq?.removeEventListener?.('change', syncDesktopMq)
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', onKeydown)
+    window.visualViewport?.removeEventListener('resize', syncViewportHeight)
+    window.visualViewport?.removeEventListener('scroll', syncViewportHeight)
+    window.removeEventListener('resize', syncViewportHeight)
   }
 })
 

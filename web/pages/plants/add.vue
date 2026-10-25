@@ -12,7 +12,7 @@
         <input v-model="lastWatered" type="date" class="date-input" :max="todayIso" required />
       </AuthRRField>
       <AuthRRField label="Фото">
-        <input type="file" accept="image/*" capture="environment" @change="onFile" />
+        <input type="file" accept="image/*" @change="onFile" />
         <div v-if="preview" class="preview" :style="{ backgroundImage: `url(${preview})` }" />
         <div
           v-else-if="selected"

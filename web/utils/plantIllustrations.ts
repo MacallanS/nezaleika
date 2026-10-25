@@ -19,5 +19,5 @@ export function illustrationForCategory(category?: string | null): string {
   const config = useRuntimeConfig()
   const base = String(config.app.baseURL || '/')
   const prefix = base.endsWith('/') ? base : `${base}/`
-  return `${prefix}illustrations/${known}.svg`
+  return `${prefix}illustrations/${known}.jpg`
 }

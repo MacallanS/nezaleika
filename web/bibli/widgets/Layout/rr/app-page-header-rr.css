@@ -58,12 +58,24 @@
 .app-page-header-rr--root .app-page-header-rr__actions {
   grid-column: 2;
   align-self: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 /* Mobile root: nav (title + chip) и actions на разных рядах — нужен вертикальный зазор */
 @media (max-width: 1024px) {
   .app-page-header-rr--root {
     row-gap: var(--rr-spacing-padding-l, 12px);
+  }
+
+  /* Явно 2-й ряд рядом с description — иначе actions наезжает на подзаголовок */
+  .app-page-header-rr--root .app-page-header-rr__content-row {
+    grid-row: 2;
+  }
+
+  .app-page-header-rr--root .app-page-header-rr__actions {
+    grid-row: 2;
+    align-self: start;
   }
 }
 

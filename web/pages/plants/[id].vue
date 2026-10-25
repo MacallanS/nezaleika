@@ -18,7 +18,7 @@
         >
           <span>Нет фото — рисунок вида</span>
         </div>
-        <input type="file" accept="image/*" capture="environment" class="detail__file" @change="onPhoto" />
+        <input type="file" accept="image/*" class="detail__file" @change="onPhoto" />
         <span class="detail__hero-hint">{{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}</span>
       </label>
 

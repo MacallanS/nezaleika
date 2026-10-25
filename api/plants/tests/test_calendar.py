@@ -138,6 +138,27 @@ class CalendarApiTests(ApiTestBase):
             )
         self.assertEqual(res.status_code, 201)
 
+    def test_late_watering_today_reschedules_from_today(self):
+        """Due yesterday (overdue) → water today → next planned = today + autumn interval (7)."""
+        due_yesterday = TODAY - timedelta(days=1)
+        last = due_yesterday - timedelta(days=7)
+        p = self.plant(last)
+        WateringEvent.objects.create(user_plant=p, watered_at=at(last), watered_by=self.user)
+        with mock.patch('django.utils.timezone.now', return_value=at(TODAY, 10)):
+            res = self.client.post(f'/api/plants/{p.id}/waterings/', {}, format='json')
+        self.assertEqual(res.status_code, 201)
+
+        cal = self.client.get(
+            '/api/calendar',
+            {'from': TODAY.isoformat(), 'to': (TODAY + timedelta(days=21)).isoformat()},
+        ).data
+        self.assertEqual(cal['days'][TODAY.isoformat()]['overdue'], [])
+        next_due = (TODAY + timedelta(days=7)).isoformat()
+        self.assertIn(p.id, cal['days'][next_due]['planned'])
+        agenda = self.client.get('/api/agenda').data
+        self.assertEqual(agenda['sections']['overdue'], [])
+        self.assertEqual(agenda['plants'][str(p.id)]['interval_days'], 7)
+
     def test_agenda_includes_category(self):
         p = self.plant(TODAY)
         plants = self.client.get('/api/agenda').data['plants']
