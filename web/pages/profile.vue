@@ -7,7 +7,7 @@
       </div>
       <div class="profile__who">
         <strong class="profile__name">{{ displayName }}</strong>
-        <p class="profile__login">{{ auth.user?.username || '—' }}</p>
+        <span class="profile__login">{{ auth.user?.username || '—' }}</span>
       </div>
       <button type="button" class="profile__edit" aria-label="Имя и фото" @click="accountOpen = true">
         <img :src="icons.pencil" width="20" height="20" alt="" />
@@ -350,12 +350,13 @@ async function logout() {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
 }
 .profile__name {
-  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: 18px;
   font-weight: 700;
@@ -366,9 +367,12 @@ async function logout() {
   white-space: nowrap;
 }
 .profile__login {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
   color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
   overflow: hidden;
   text-overflow: ellipsis;
