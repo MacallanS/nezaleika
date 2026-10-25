@@ -27,7 +27,10 @@
       <button type="button" class="cal__nav" aria-label="Назад" @click="shift(-1)">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>
       </button>
-      <button v-if="selected !== todayIso" type="button" class="cal__today" @click="goToday">К сегодня</button>
+      <div class="cal__toolbar-mid">
+        <p class="cal__period">{{ periodLabel }}</p>
+        <button v-if="selected !== todayIso" type="button" class="cal__today" @click="goToday">К сегодня</button>
+      </div>
       <button type="button" class="cal__nav" aria-label="Вперёд" @click="shift(1)">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg>
       </button>
@@ -112,13 +115,13 @@ const range = computed(() => {
 
 const days = computed(() => plants.calendar?.days ?? {})
 
-const title = computed(() => {
+const periodLabel = computed(() => {
   const base = mode.value === 'week' ? addDays(weekStart.value, 3) : month.value
   return formatMonthYear(base)
 })
 
 const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
-  title: title.value,
+  title: 'Календарь',
 }))
 
 const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))
@@ -193,6 +196,27 @@ function open(id: number) {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
+}
+.cal__toolbar-mid {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.cal__period {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--rr-labels-neutral-primary, #101012);
+  text-align: center;
 }
 .cal__nav {
   width: 40px;

@@ -1,35 +1,21 @@
 <template>
   <div class="nz-page nz-page--form profile">
     <section class="nz-card nz-card--pad profile__hero">
-      <label class="profile__avatar" :class="{ 'profile__avatar--photo': !!avatarSrc }">
-        <input type="file" accept="image/*" class="profile__avatar-file" @change="onAvatar" />
+      <div class="profile__avatar" :class="{ 'profile__avatar--photo': !!avatarSrc }" aria-hidden="true">
         <img v-if="avatarSrc" :src="avatarSrc" alt="" class="profile__avatar-img" />
-        <span v-else aria-hidden="true">{{ initials }}</span>
-        <span class="profile__avatar-badge">Фото</span>
-      </label>
-
-      <div class="profile__who">
-        <AuthRRInputText v-model="nickname" label="Имя" placeholder="Как вас зовут" />
-        <p class="profile__login">Логин: {{ auth.user?.username || '—' }}</p>
-        <div class="profile__hero-actions">
-          <AuthRRButton
-            type="button"
-            :disabled="saving || !nickname.trim() || !nameDirty"
-            @click="saveName"
-          >
-            {{ saving ? 'Сохраняем…' : 'Сохранить имя' }}
-          </AuthRRButton>
-          <button
-            v-if="auth.user?.avatar_url"
-            type="button"
-            class="profile__clear"
-            :disabled="saving"
-            @click="clearAvatar"
-          >
-            Убрать фото
-          </button>
-        </div>
+        <span v-else>{{ initials }}</span>
       </div>
+      <div class="profile__who">
+        <strong class="profile__name">{{ displayName }}</strong>
+        <p class="profile__login">Логин: {{ auth.user?.username || '—' }}</p>
+      </div>
+    </section>
+
+    <section class="nz-card" aria-label="Аккаунт">
+      <button type="button" class="nz-setting" @click="accountOpen = true">
+        <span>Имя и фото</span>
+        <span class="profile__chev" aria-hidden="true">›</span>
+      </button>
     </section>
 
     <section class="nz-card" aria-label="Уведомления">
@@ -71,11 +57,44 @@
     <section class="nz-card">
       <button type="button" class="nz-setting nz-setting--danger" @click="logout">Выйти</button>
     </section>
+
+    <RrBottomSheet v-model="accountOpen" title="Имя и фото" placement="sheet" height-mode="fit">
+      <div class="profile__sheet">
+        <label class="profile__avatar profile__avatar--edit" :class="{ 'profile__avatar--photo': !!avatarSrc }">
+          <input type="file" accept="image/*" class="profile__avatar-file" @change="onAvatar" />
+          <img v-if="avatarSrc" :src="avatarSrc" alt="" class="profile__avatar-img" />
+          <span v-else aria-hidden="true">{{ initials }}</span>
+          <span class="profile__avatar-badge">Фото</span>
+        </label>
+
+        <AuthRRInputText v-model="nickname" label="Имя" placeholder="Как вас зовут" />
+        <p class="profile__login">Логин: {{ auth.user?.username || '—' }}</p>
+
+        <div class="profile__sheet-actions">
+          <AuthRRButton
+            type="button"
+            :disabled="saving || !nickname.trim() || !nameDirty"
+            @click="saveName"
+          >
+            {{ saving ? 'Сохраняем…' : 'Сохранить имя' }}
+          </AuthRRButton>
+          <button
+            v-if="auth.user?.avatar_url"
+            type="button"
+            class="profile__clear"
+            :disabled="saving"
+            @click="clearAvatar"
+          >
+            Убрать фото
+          </button>
+        </div>
+      </div>
+    </RrBottomSheet>
   </div>
 </template>
 
 <script setup lang="ts">
-import { AuthRRButton, AuthRRInputText } from 'bibli/shared/ui/rr'
+import { AuthRRButton, AuthRRInputText, RrBottomSheet } from 'bibli/shared/ui/rr'
 import { notify } from '~/utils/toast'
 
 const auth = useAuthStore()
@@ -84,6 +103,7 @@ const { show: openNotif } = useNotificationsPanel()
 const { supported: pushSupported, isIosSafari, isStandalone, subscribe, sendTest, refreshStatus } =
   useWebPush()
 
+const accountOpen = ref(false)
 const nickname = ref(auth.user?.first_name || '')
 const saving = ref(false)
 const localPreview = ref('')
@@ -266,7 +286,7 @@ async function logout() {
 }
 .profile__hero {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
 }
 .profile__avatar {
@@ -284,8 +304,11 @@ async function logout() {
   justify-content: center;
   font-size: 28px;
   font-weight: 800;
+}
+.profile__avatar--edit {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  align-self: center;
 }
 .profile__avatar--photo {
   background: #d7e6da;
@@ -329,14 +352,29 @@ async function logout() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+}
+.profile__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rr-labels-neutral-primary, #101012);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .profile__login {
   margin: 0;
   font-size: 13px;
   color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
 }
-.profile__hero-actions {
+.profile__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+.profile__sheet-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
