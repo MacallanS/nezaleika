@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from accounts.views import CsrfView, LoginView, LogoutView, MeView, NotificationPrefsView
+from accounts.views import AvatarPhotoView, CsrfView, LoginView, LogoutView, MeView, NotificationPrefsView
 from notifications.views import (
     CronPushView,
     PushNotifyPlantsView,
@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/auth/logout', LogoutView.as_view()),
     path('api/me', MeView.as_view()),
     path('api/me/notification-prefs', NotificationPrefsView.as_view()),
+    path('api/avatars/<int:pk>/<str:digest>.jpg', AvatarPhotoView.as_view()),
     path('api/species', PlantSpeciesListView.as_view()),
     path('api/feed/watering', FeedWateringView.as_view()),
     path('api/agenda', AgendaView.as_view()),

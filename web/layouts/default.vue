@@ -13,6 +13,7 @@
     :show-user-chip="true"
     :user-name="userName"
     :user-role="userRole"
+    :avatar-url="avatarUrl"
     :user-menu-items="userMenuItems"
     @mobile-navigate="onTabNavigate"
     @notifications="notif.show()"
@@ -57,6 +58,7 @@ const mobileTabs = computed(() => (isPhoneOrTablet.value ? allMobileTabs : []))
 
 const userName = computed(() => auth.user?.first_name || auth.user?.username || 'Профиль')
 const userRole = computed(() => '')
+const avatarUrl = computed(() => auth.user?.avatar_url || '')
 
 const badge = computed(() => {
   if (plants.agenda) return plants.agenda.sections.overdue.length
