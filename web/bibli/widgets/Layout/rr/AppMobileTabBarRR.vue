@@ -15,7 +15,7 @@
         class="app-mobile-tab-bar-rr__btn"
         :class="{ 'is-active': isActive(item) }"
         :aria-current="isActive(item) ? 'page' : undefined"
-        :aria-label="item.label"
+        :aria-label="item.badge ? `${item.label}, есть полив` : item.label"
         @click="onSelect(item)"
       >
         <span class="app-mobile-tab-bar-rr__icon-wrap">
@@ -26,6 +26,7 @@
             width="24"
             height="24"
           />
+          <span v-if="item.badge" class="app-mobile-tab-bar-rr__dot" aria-hidden="true" />
         </span>
         <span class="app-mobile-tab-bar-rr__label">{{ item.label }}</span>
       </button>

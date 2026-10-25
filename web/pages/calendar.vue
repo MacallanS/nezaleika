@@ -119,7 +119,6 @@ const title = computed(() => {
 
 const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
   title: title.value,
-  description: 'Календарь поливов',
 }))
 
 const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))

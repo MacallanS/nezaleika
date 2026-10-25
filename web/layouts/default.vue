@@ -9,18 +9,14 @@
     :parent-title="chrome.parentTitle"
     :parent-to="chrome.parentTo"
     :show-header="true"
-    :show-notifications="true"
+    :show-notifications="false"
     :show-user-chip="true"
     :user-name="userName"
     :user-role="userRole"
     :avatar-url="avatarUrl"
     :user-menu-items="userMenuItems"
     @mobile-navigate="onTabNavigate"
-    @notifications="notif.show()"
   >
-    <template #header-actions>
-      <NotificationBell :badge="badge" @click="notif.show()" />
-    </template>
     <slot />
     <UndoToast />
     <NotificationsSheet />
@@ -31,7 +27,6 @@
 import { useRussRedesignShell } from 'bibli/shared/theme/rr'
 import { AppShellRR } from 'bibli/widgets/Layout/rr'
 import type { AppUserChipMenuItem } from 'bibli/widgets/Layout/rr'
-import NotificationBell from '~/components/shell/NotificationBell.vue'
 import NotificationsSheet from '~/components/shell/NotificationsSheet.vue'
 import UndoToast from '~/components/planner/UndoToast.vue'
 import { usePageChromeState } from '~/composables/usePageChrome'
@@ -47,34 +42,44 @@ useRussRedesignShell({ colorMode: 'light', density: '100', mobileBreakpoint: 102
 const auth = useAuthStore()
 const plants = usePlantsStore()
 const chrome = usePageChromeState()
-const notif = useNotificationsPanel()
 const allMobileTabs = useNezaleikaMobileTabs()
-const navItems = useNezaleikaNavItems()
+const baseNav = useNezaleikaNavItems()
 const logoUrl = useNezaleikaLogoUrl()
 
 /** Таббар только ≤1024 — иначе shell думает, что это мобилка и на десктопе. */
 const isPhoneOrTablet = useMediaQuery('(max-width: 1024px)')
-const mobileTabs = computed(() => (isPhoneOrTablet.value ? allMobileTabs : []))
+
+/** Есть что полить сегодня или просрочено — точка на «Графике», без колокольчика в шапке. */
+const needsWater = computed(() => {
+  if (plants.agenda) {
+    return plants.agenda.sections.overdue.length + plants.agenda.sections.today.length > 0
+  }
+  const cal = plants.calendar
+  if (cal) {
+    const day = cal.days[cal.today]
+    return (day?.overdue.length ?? 0) + (day?.planned.length ?? 0) > 0
+  }
+  return plants.todoCount > 0
+})
+
+const mobileTabs = computed(() => {
+  if (!isPhoneOrTablet.value) return []
+  return allMobileTabs.map((tab) => (tab.key === 'today' ? { ...tab, badge: needsWater.value } : tab))
+})
+
+const navItems = computed(() => ({
+  ...baseNav,
+  main: baseNav.main.map((item) => (item.to === '/' ? { ...item, badge: needsWater.value } : item)),
+}))
 
 const userName = computed(() => auth.user?.first_name || auth.user?.username || 'Профиль')
 const userRole = computed(() => '')
 const avatarUrl = computed(() => auth.user?.avatar_url || '')
 
-const badge = computed(() => {
-  if (plants.agenda) return plants.agenda.sections.overdue.length
-  const cal = plants.calendar
-  if (!cal) return plants.todoCount
-  return (cal.days[cal.today]?.overdue ?? []).length
-})
-
 const userMenuItems = computed((): AppUserChipMenuItem[] => [
   {
     label: 'Профиль',
     to: '/profile',
-  },
-  {
-    label: 'Уведомления',
-    command: () => notif.show(),
   },
   {
     label: 'Выйти',

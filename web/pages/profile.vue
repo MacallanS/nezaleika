@@ -100,7 +100,6 @@ const nameDirty = computed(() => nickname.value.trim() !== (auth.user?.first_nam
 
 usePageChrome(() => ({
   title: 'Профиль',
-  description: 'Имя, фото и напоминания',
 }))
 
 watch(

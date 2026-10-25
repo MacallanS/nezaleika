@@ -148,6 +148,17 @@ html.app-rr-immersive-no-tabbar.app-rr-shell .page-wrapper {
   filter: grayscale(1);
 }
 
+.app-mobile-tab-bar-rr__dot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2e7d32;
+  box-shadow: 0 0 0 2px var(--amtb-bg, #fff);
+}
+
 .app-mobile-tab-bar-rr__btn.is-active .app-mobile-tab-bar-rr__icon {
   opacity: 1;
   filter: none;

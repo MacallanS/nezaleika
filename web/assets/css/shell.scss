@@ -83,25 +83,24 @@
   background-color: #1b5e20 !important;
 }
 
-/* Колокольчик: на мобилке — у аватара */
+/* Без подзаголовка шапка — одна строка: заголовок, действие, аватар. */
 @media (max-width: 1024px) {
-  .app-page-header-rr--root {
-    position: relative;
+  .app-page-header-rr--root:not(:has(.app-page-header-rr__subtitle)) {
+    row-gap: 0;
   }
 
-  .app-page-header-rr--root .nz-bell {
-    position: absolute;
-    top: 8px;
-    right: 56px;
-    z-index: 3;
+  .app-page-header-rr--root:not(:has(.app-page-header-rr__subtitle)) .app-page-header-rr__content-row {
+    display: none;
   }
 
-  .app-page-header-rr--root .app-page-header-rr__actions:not(:has(:not(.nz-bell))) {
-    width: 0;
-    min-width: 0;
-    height: 0;
-    margin: 0;
-    overflow: visible;
+  .app-page-header-rr--root:not(:has(.app-page-header-rr__subtitle)) .app-page-header-rr__nav-row {
+    grid-column: 1;
+  }
+
+  .app-page-header-rr--root:not(:has(.app-page-header-rr__subtitle)) .app-page-header-rr__actions {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
   }
 }
 

@@ -52,7 +52,6 @@ const loaded = ref(false)
 
 const { headerActionsId, headerActionsActive } = usePageChrome({
   title: 'Растения',
-  description: 'Все цветы дома',
 })
 
 onMounted(async () => {
