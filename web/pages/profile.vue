@@ -7,14 +7,10 @@
       </div>
       <div class="profile__who">
         <strong class="profile__name">{{ displayName }}</strong>
-        <p class="profile__login">Логин: {{ auth.user?.username || '—' }}</p>
+        <p class="profile__login">{{ auth.user?.username || '—' }}</p>
       </div>
-    </section>
-
-    <section class="nz-card" aria-label="Аккаунт">
-      <button type="button" class="nz-setting" @click="accountOpen = true">
-        <span>Имя и фото</span>
-        <span class="profile__chev" aria-hidden="true">›</span>
+      <button type="button" class="profile__edit" aria-label="Имя и фото" @click="accountOpen = true">
+        <img :src="icons.pencil" width="20" height="20" alt="" />
       </button>
     </section>
 
@@ -94,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import { icons } from 'bibli/shared/assets/icons'
 import { AuthRRButton, AuthRRInputText, RrBottomSheet } from 'bibli/shared/ui/rr'
 import { notify } from '~/utils/toast'
 
@@ -292,18 +289,19 @@ async function logout() {
 .profile__avatar {
   position: relative;
   flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   margin: 0;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   background: linear-gradient(145deg, #c8e6c9, #2e7d32);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
+  line-height: 1;
 }
 .profile__avatar--edit {
   cursor: pointer;
@@ -348,16 +346,19 @@ async function logout() {
   white-space: nowrap;
 }
 .profile__who {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
+  gap: 2px;
 }
 .profile__name {
+  display: block;
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
+  line-height: 24px;
   color: var(--rr-labels-neutral-primary, #101012);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -366,7 +367,34 @@ async function logout() {
 .profile__login {
   margin: 0;
   font-size: 13px;
+  line-height: 18px;
   color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile__edit {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.profile__edit:active {
+  transform: scale(0.96);
+}
+.profile__edit img {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 .profile__sheet {
   display: flex;
