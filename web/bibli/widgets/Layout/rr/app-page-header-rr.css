@@ -316,14 +316,37 @@
 
 
 .app-page-header-rr--child .app-page-header-rr__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin: 0;
+  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-weight: 600;
   font-size: var(--rr-font-size-font-size-xl, 24px);
   line-height: var(--rr-line-height-line-height-xl, 32px);
   letter-spacing: var(--rr-tracking-tracking-xl, -0.02em);
+}
+
+.app-page-header-rr__title-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-page-header-rr__title-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: var(--rr-font-size-font-size-m, 16px);
+  line-height: var(--rr-line-height-line-height-m, 24px);
+  letter-spacing: 0;
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
 }
 
 .app-page-header-rr__title {

@@ -49,7 +49,8 @@
         v-if="childPage && title && childBackMode !== 'absolute'"
         class="app-page-header-rr__title"
       >
-        {{ title }}
+        <span class="app-page-header-rr__title-text">{{ title }}</span>
+        <span v-if="description" class="app-page-header-rr__title-meta">{{ description }}</span>
       </h1>
       <h1
         v-else-if="isMobileLayout && mobileToolbarTitle"
@@ -154,14 +155,8 @@ const mobileToolbarTitle = computed(() => {
 
 const showDesktopTitle = computed(() => Boolean(props.title) && !props.childPage)
 
-/** Строка заголовка: на child title+actions в nav-row; здесь — корневые страницы / description. */
-const showContentRow = computed(() => {
-  if (props.childPage) {
-    return Boolean(props.description)
-  }
-  // Корневая страница: всегда держим ряд (Teleport + title на desktop).
-  return true
-})
+/** Строка контента только у корневых страниц. На child description идёт справа от title. */
+const showContentRow = computed(() => !props.childPage)
 
 function syncHeaderLayoutVisibility() {
   if (typeof window === 'undefined') return
