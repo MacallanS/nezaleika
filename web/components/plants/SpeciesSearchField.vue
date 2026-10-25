@@ -8,6 +8,12 @@
       aria-haspopup="listbox"
       @click="open = true"
     >
+      <span
+        v-if="selected"
+        class="species-field__thumb"
+        :style="{ backgroundImage: `url(${illustrationForCategory(selected.category)})` }"
+        aria-hidden="true"
+      />
       <span v-if="selected" class="species-field__value">
         <strong>{{ selected.name_ru }}</strong>
         <span v-if="selected.name_lat">{{ selected.name_lat }}</span>
@@ -242,6 +248,13 @@ onBeforeUnmount(() => {
 .species-field:focus-visible {
   outline: 2px solid rgba(46, 125, 50, 0.35);
   outline-offset: 1px;
+}
+.species-field__thumb {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e8f0ea center / cover no-repeat;
 }
 .species-field__value {
   flex: 1;
