@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from notifications.models import PushSubscription
+from notifications.models import NotificationPrefs, PushSubscription
 from notifications.push import push_configured, send_web_push
 from notifications.cron import send_scheduled_push, today_payload, urgent_plants
 from notifications.serializers import PushSubscribeSerializer
@@ -45,27 +45,53 @@ class PushSubscribeView(APIView):
         return Response({'ok': True})
 
 
+class PushStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        subs = PushSubscription.objects.filter(user=request.user).count()
+        prefs = NotificationPrefs.objects.filter(user=request.user).first()
+        return Response(
+            {
+                'vapid_configured': push_configured(),
+                'subscriptions': subs,
+                'prefs_enabled': bool(prefs and prefs.enabled),
+                'remind_time': prefs.remind_time.strftime('%H:%M') if prefs else None,
+            }
+        )
+
+
 class PushTestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        subs = PushSubscription.objects.filter(user=request.user)
-        if not subs.exists():
-            return Response({'detail': 'Нет push-подписки.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not push_configured():
-            return Response({'detail': 'Push не настроен на сервере.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        payload = {
-            'title': 'Незалейка',
-            'body': 'Тестовое уведомление — всё работает!',
-            'url': '/',
-        }
-        sent = sum(1 for sub in list(subs) if send_web_push(sub, payload))
-        if not sent:
+        try:
+            subs = list(PushSubscription.objects.filter(user=request.user))
+            if not subs:
+                return Response({'detail': 'Нет push-подписки. Нажмите «Подключить на этом телефоне».'}, status=status.HTTP_400_BAD_REQUEST)
+            if not push_configured():
+                return Response({'detail': 'Push не настроен на сервере (VAPID).'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            payload = {
+                'title': 'Незалейка',
+                'body': 'Тестовое уведомление — всё работает!',
+                'url': '/',
+                'tag': 'nezaleika-test',
+            }
+            sent = sum(1 for sub in subs if send_web_push(sub, payload))
+            if not sent:
+                return Response(
+                    {'detail': 'Не удалось доставить. Удалите приложение с экрана «Домой», добавьте снова и подключите push.'},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+            return Response({'ok': True, 'sent': sent})
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception('push test crashed')
             return Response(
-                {'detail': 'Не удалось доставить. Подключите push на этом устройстве заново.'},
-                status=status.HTTP_502_BAD_GATEWAY,
+                {'detail': 'Ошибка сервера при отправке push. Попробуйте ещё раз через минуту.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        return Response({'ok': True, 'sent': sent})
 
 
 class CronPushView(APIView):

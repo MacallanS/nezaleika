@@ -9,9 +9,16 @@ function urlBase64ToUint8Array(base64String: string) {
   return arr
 }
 
-export type PushSubscribeResult =
-  | { ok: true }
-  | { ok: false; detail: string }
+export type PushSubscribeResult = { ok: true } | { ok: false; detail: string }
+
+export type PushDeviceStatus = {
+  supported: boolean
+  standalone: boolean
+  permission: NotificationPermission | 'unsupported'
+  subscribed: boolean
+  vapidConfigured: boolean | null
+  serverSubscriptions: number | null
+}
 
 export function useWebPush() {
   const supported = import.meta.client && 'serviceWorker' in navigator && 'PushManager' in window
@@ -31,22 +38,60 @@ export function useWebPush() {
     )
   }
 
+  async function getLocalSubscription(): Promise<PushSubscription | null> {
+    if (!supported) return null
+    try {
+      const reg = await navigator.serviceWorker.ready
+      return (await reg.pushManager.getSubscription()) ?? null
+    } catch {
+      return null
+    }
+  }
+
+  async function refreshStatus(): Promise<PushDeviceStatus> {
+    const status: PushDeviceStatus = {
+      supported: Boolean(supported),
+      standalone: isStandalone(),
+      permission: supported && 'Notification' in window ? Notification.permission : 'unsupported',
+      subscribed: false,
+      vapidConfigured: null,
+      serverSubscriptions: null,
+    }
+    if (supported) {
+      status.subscribed = Boolean(await getLocalSubscription())
+    }
+    try {
+      await ensureAuth()
+      const { data } = await getApi().get<{
+        vapid_configured: boolean
+        subscriptions: number
+      }>('/api/push/status')
+      status.vapidConfigured = data.vapid_configured
+      status.serverSubscriptions = data.subscriptions
+    } catch {
+      /* ignore */
+    }
+    return status
+  }
+
   async function subscribe(): Promise<PushSubscribeResult> {
     if (!supported) {
       if (isIosSafari() && !isStandalone()) {
-        return { ok: false, detail: 'На iPhone добавьте приложение на экран «Домой», затем подключите push.' }
+        return { ok: false, detail: 'На iPhone: Поделиться → На экран «Домой», откройте иконку, затем подключите push.' }
       }
       return { ok: false, detail: 'Этот браузер не поддерживает push-уведомления.' }
+    }
+    if (isIosSafari() && !isStandalone()) {
+      return { ok: false, detail: 'На iPhone push работает только из приложения на экране «Домой».' }
     }
     await ensureAuth()
     const { data } = await getApi().get<{ publicKey: string }>('/api/push/vapid-public-key')
     if (!data.publicKey) {
-      console.warn('[push] VAPID public key not configured')
       return { ok: false, detail: 'Push не настроен на сервере (нет VAPID-ключа).' }
     }
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
-      return { ok: false, detail: 'Разрешение на уведомления отклонено.' }
+      return { ok: false, detail: 'Разрешите уведомления в настройках телефона для Незалейки.' }
     }
     try {
       const reg = await navigator.serviceWorker.ready
@@ -58,7 +103,6 @@ export function useWebPush() {
       try {
         sub = await reg.pushManager.subscribe(options)
       } catch {
-        // A subscription made with another VAPID key must be dropped first.
         await (await reg.pushManager.getSubscription())?.unsubscribe()
         sub = await reg.pushManager.subscribe(options)
       }
@@ -91,5 +135,13 @@ export function useWebPush() {
     }
   }
 
-  return { supported, subscribe, sendTest }
+  return {
+    supported,
+    isIosSafari,
+    isStandalone,
+    subscribe,
+    sendTest,
+    refreshStatus,
+    getLocalSubscription,
+  }
 }

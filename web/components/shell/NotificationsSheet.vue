@@ -98,7 +98,7 @@ import { notify } from '~/utils/toast'
 const plants = usePlantsStore()
 const { open, hide } = useNotificationsPanel()
 const { prefs, loaded, load, save } = useNotificationPrefs()
-const { supported: pushSupported, subscribe, sendTest } = useWebPush()
+const { supported: pushSupported, subscribe, sendTest, refreshStatus } = useWebPush()
 const pushReady = ref(false)
 
 const overdue = computed((): PlantInfo[] => {
@@ -123,14 +123,8 @@ watch(open, async (v) => {
     /* ignore */
   }
   void plants.fetchAgenda().catch(() => undefined)
-  if (pushSupported && 'serviceWorker' in navigator) {
-    try {
-      const reg = await navigator.serviceWorker.ready
-      pushReady.value = Boolean(await reg.pushManager.getSubscription())
-    } catch {
-      pushReady.value = false
-    }
-  }
+  const st = await refreshStatus()
+  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
 })
 
 async function onSave() {

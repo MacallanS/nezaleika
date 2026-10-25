@@ -8,6 +8,7 @@ from accounts.views import AvatarPhotoView, CsrfView, LoginView, LogoutView, MeV
 from notifications.views import (
     CronPushView,
     PushNotifyPlantsView,
+    PushStatusView,
     PushSubscribeView,
     PushTestView,
     VapidPublicKeyView,
@@ -44,6 +45,7 @@ urlpatterns = [
     path('api/waterings/<int:pk>', WateringDestroyView.as_view()),
     path('api/photos/<int:pk>/<str:digest>.jpg', PlantPhotoView.as_view()),
     path('api/push/vapid-public-key', VapidPublicKeyView.as_view()),
+    path('api/push/status', PushStatusView.as_view()),
     path('api/push/subscribe', PushSubscribeView.as_view()),
     path('api/push/test', PushTestView.as_view()),
     path('api/push/notify-urgent', PushNotifyPlantsView.as_view()),

@@ -34,9 +34,13 @@
 
     <section class="nz-card" aria-label="Уведомления">
       <h2 class="nz-card__title">Уведомления</h2>
+      <div class="profile__push-status" :class="{ 'is-ok': pushReady, 'is-bad': pushBlocked }">
+        <span class="profile__push-dot" aria-hidden="true" />
+        <span>{{ pushStatusText }}</span>
+      </div>
       <label class="nz-setting">
         <span>Напоминания</span>
-        <input v-model="prefs.enabled" class="nz-switch" type="checkbox" @change="onSave" />
+        <input v-model="prefs.enabled" class="nz-switch" type="checkbox" @change="onToggleEnabled" />
       </label>
       <label class="nz-setting" :class="{ 'is-off': !prefs.enabled }">
         <span>Время</span>
@@ -49,15 +53,19 @@
         />
       </label>
       <button type="button" class="nz-setting" @click="openNotif">
-        <span>Статус и push</span>
+        <span>Что полить сегодня</span>
         <span class="profile__chev" aria-hidden="true">›</span>
       </button>
     </section>
 
     <section class="nz-card nz-card--pad profile__actions">
-      <AuthRRButton v-if="pushSupported" @click="enablePush">Подключить на этом телефоне</AuthRRButton>
-      <AuthRRButton variant="neutral-secondary" @click="testPush">Проверить уведомление</AuthRRButton>
-      <p class="nz-hint">На iPhone сначала добавьте приложение на экран «Домой», потом включите напоминания.</p>
+      <AuthRRButton v-if="!pushReady" :disabled="pushBusy" @click="enablePush">
+        {{ pushBusy ? 'Подключаем…' : 'Подключить push на этом телефоне' }}
+      </AuthRRButton>
+      <AuthRRButton variant="neutral-secondary" :disabled="pushBusy" @click="testPush">
+        Проверить уведомление
+      </AuthRRButton>
+      <p class="nz-hint">{{ pushHint }}</p>
     </section>
 
     <section class="nz-card">
@@ -73,11 +81,17 @@ import { notify } from '~/utils/toast'
 const auth = useAuthStore()
 const { prefs, load, save } = useNotificationPrefs()
 const { show: openNotif } = useNotificationsPanel()
-const { supported: pushSupported, subscribe, sendTest } = useWebPush()
+const { supported: pushSupported, isIosSafari, isStandalone, subscribe, sendTest, refreshStatus } =
+  useWebPush()
 
 const nickname = ref(auth.user?.first_name || '')
 const saving = ref(false)
 const localPreview = ref('')
+const pushBusy = ref(false)
+const pushReady = ref(false)
+const pushBlocked = ref(false)
+const pushStatusText = ref('Проверяем push…')
+const pushHint = ref('На iPhone: Поделиться → На экран «Домой», откройте иконку и подключите push.')
 
 const displayName = computed(() => auth.user?.first_name || auth.user?.username || 'Профиль')
 const initials = computed(() => (displayName.value.trim().slice(0, 1) || 'Н').toUpperCase())
@@ -96,9 +110,38 @@ watch(
   },
 )
 
+async function refreshPushUi() {
+  const st = await refreshStatus()
+  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
+  pushBlocked.value = Boolean(isIosSafari() && !st.standalone)
+  if (!st.supported) {
+    pushStatusText.value = 'Браузер не поддерживает push'
+    pushHint.value = 'Откройте Незалейку в Safari и добавьте на экран «Домой».'
+  } else if (isIosSafari() && !st.standalone) {
+    pushStatusText.value = 'Нужно приложение на экране «Домой»'
+    pushHint.value = 'Safari → Поделиться → На экран «Домой». Потом откройте иконку и нажмите «Подключить push».'
+  } else if (st.vapidConfigured === false) {
+    pushStatusText.value = 'Сервер push не настроен'
+    pushHint.value = 'Напишите нам — на сервере нет VAPID-ключей.'
+  } else if (pushReady.value) {
+    pushStatusText.value = 'Push на этом телефоне включён'
+    pushHint.value = `Ежедневное напоминание около ${prefs.value.remind_time}. Кнопка ниже отправит тест сразу.`
+  } else if (st.permission === 'denied') {
+    pushStatusText.value = 'Уведомления запрещены в системе'
+    pushHint.value = 'Разрешите уведомления для Незалейки в настройках iPhone → Незалейка.'
+  } else {
+    pushStatusText.value = 'Push ещё не подключён'
+    pushHint.value = pushSupported
+      ? 'Нажмите «Подключить push» и разрешите уведомления.'
+      : 'Этот браузер не умеет push.'
+  }
+}
+
 onMounted(() => {
   nickname.value = auth.user?.first_name || ''
-  void load().catch(() => notify('Не удалось загрузить настройки', 'warn'))
+  void load()
+    .then(() => refreshPushUi())
+    .catch(() => notify('Не удалось загрузить настройки', 'warn'))
 })
 
 onBeforeUnmount(() => {
@@ -162,21 +205,51 @@ async function clearAvatar() {
   }
 }
 
+async function onToggleEnabled() {
+  await onSave()
+  if (prefs.value.enabled && !pushReady.value) {
+    await enablePush()
+  }
+}
+
 async function enablePush() {
-  const result = await subscribe()
-  if (result.ok) {
-    prefs.value.enabled = true
-    await onSave()
-    notify('Напоминания подключены')
-  } else {
-    notify(result.detail, 'warn')
+  if (pushBusy.value) return
+  pushBusy.value = true
+  try {
+    const result = await subscribe()
+    if (result.ok) {
+      prefs.value.enabled = true
+      await onSave()
+      notify('Напоминания подключены')
+    } else {
+      notify(result.detail, 'warn')
+    }
+  } finally {
+    pushBusy.value = false
+    await refreshPushUi()
   }
 }
 
 async function testPush() {
-  const result = await sendTest()
-  if (result.ok) notify('Проверочное уведомление отправлено')
-  else notify(result.detail || 'Уведомление не отправилось', 'warn')
+  if (pushBusy.value) return
+  pushBusy.value = true
+  try {
+    if (!pushReady.value) {
+      const connected = await subscribe()
+      if (!connected.ok) {
+        notify(connected.detail, 'warn')
+        return
+      }
+      prefs.value.enabled = true
+      await onSave()
+    }
+    const result = await sendTest()
+    if (result.ok) notify('Проверочное уведомление отправлено — смотрите шторку')
+    else notify(result.detail || 'Уведомление не отправилось', 'warn')
+  } finally {
+    pushBusy.value = false
+    await refreshPushUi()
+  }
 }
 
 async function logout() {
@@ -282,5 +355,32 @@ async function logout() {
 }
 .profile__actions {
   gap: 10px;
+}
+.profile__push-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f2f3f7;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5f6b70;
+}
+.profile__push-status.is-ok {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.profile__push-status.is-bad {
+  background: #fff3e0;
+  color: #e65100;
+}
+.profile__push-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
 }
 </style>
