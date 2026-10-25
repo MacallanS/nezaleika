@@ -283,7 +283,7 @@ async function logout() {
 }
 .profile__hero {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 14px;
 }
