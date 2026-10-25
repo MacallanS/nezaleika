@@ -4,6 +4,13 @@
 
     <template v-else>
       <label class="detail__hero" :class="{ 'detail__hero--empty': !plant.photo_url }">
+        <input
+          type="file"
+          accept="image/*"
+          class="detail__file"
+          aria-label="Загрузить фото растения"
+          @change="onPhoto"
+        />
         <img
           v-if="plant.photo_url"
           class="detail__photo"
@@ -15,11 +22,18 @@
           class="detail__empty-photo"
           :style="{ backgroundImage: `url(${illustrationForCategory(plant.category || plant.species_detail?.category)})` }"
           aria-hidden="true"
-        >
-          <span>Нет фото — рисунок вида</span>
-        </div>
-        <input type="file" accept="image/*" class="detail__file" @change="onPhoto" />
-        <span class="detail__hero-hint">{{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}</span>
+        />
+        <span class="detail__hero-hint">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+          {{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}
+        </span>
       </label>
 
       <section class="card">
@@ -289,12 +303,14 @@ function goBack() {
 .detail__hero {
   position: relative;
   display: block;
-  height: 240px;
+  height: min(52vw, 280px);
+  min-height: 200px;
   margin: 0 0 12px;
   border-radius: 20px;
   overflow: hidden;
   background: #e8f0ea;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .detail__hero--empty {
   background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 55%, #a5d6a7 100%);
@@ -303,24 +319,16 @@ function goBack() {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
 .detail__empty-photo {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding-bottom: 48px;
-  color: #1b5e20;
-  font-size: 14px;
-  font-weight: 700;
   pointer-events: none;
   background-color: #e8f0ea;
   background-size: cover;
   background-position: center;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 .detail__species-line {
   margin: 0 0 8px;
@@ -332,23 +340,35 @@ function goBack() {
 }
 .detail__file {
   position: absolute;
-  inset: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
   opacity: 0;
-  cursor: pointer;
 }
 .detail__hero-hint {
   position: absolute;
   left: 50%;
-  bottom: 16px;
+  bottom: 14px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transform: translateX(-50%);
-  padding: 8px 14px;
+  padding: 9px 14px;
   border-radius: 999px;
-  background: rgba(16, 24, 40, 0.72);
+  background: rgba(16, 24, 40, 0.78);
   color: #fff;
   font-size: 13px;
   font-weight: 700;
+  line-height: 1;
   pointer-events: none;
   white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.18);
 }
 .detail__hero:not(.detail__hero--empty) .detail__hero-hint {
   left: auto;
