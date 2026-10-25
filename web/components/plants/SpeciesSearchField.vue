@@ -234,15 +234,17 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 10px;
   min-height: 48px;
-  padding: 10px 12px 10px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--rr-color-border-subtle, #dedee3);
-  background: var(--rr-color-bg-surface-secondary, #fff);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.06);
+  height: var(--auth-rr-control-h, var(--rr-size-3-xl, 48px));
+  padding: 0 12px 0 14px;
+  border-radius: var(--rr-radius-l, 12px);
+  border: 1px solid #dedee3;
+  background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  box-shadow: none;
   font: inherit;
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
+  color: var(--rr-labels-neutral-primary, #101012);
 }
 .species-field--open,
 .species-field:focus-visible {

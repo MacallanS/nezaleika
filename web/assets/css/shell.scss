@@ -23,6 +23,32 @@
   max-width: 560px;
 }
 
+/*
+ * AuthRR-поля в Незалейке: токен границы почти прозрачный (fintech),
+ * на сером фоне страницы инпуты «пропадают». Даём контраст явно.
+ */
+.nz-page--form .auth-rr-input__control,
+.nz-page--form .auth-rr-input-text .auth-rr-input__control,
+.nz-card .auth-rr-input__control {
+  min-height: 48px;
+  border-color: #dedee3 !important;
+  background-color: #f2f3f7 !important;
+  color: #101012 !important;
+  box-shadow: none;
+}
+
+.nz-page--form .auth-rr-input__control:focus,
+.nz-page--form .auth-rr-input__control:focus-visible,
+.nz-card .auth-rr-input__control:focus,
+.nz-card .auth-rr-input__control:focus-visible {
+  border-color: #2e7d32 !important;
+  background-color: #fff !important;
+}
+
+.nz-page--form .auth-rr-input__control::placeholder {
+  color: #8a8a90 !important;
+}
+
 .nz-card {
   background: var(--rr-backgrounds-primary, #fff);
   border-radius: var(--rr-radius-l, 16px);

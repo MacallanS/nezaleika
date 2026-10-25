@@ -10,36 +10,49 @@
         />
         <AuthRRInputText v-model="room" label="Где стоит" placeholder="Кухня, спальня…" />
         <AuthRRField label="Когда последний раз поливали">
-          <input v-model="lastWatered" type="date" class="add-page__date" :max="todayIso" required />
+          <input
+            v-model="lastWatered"
+            type="date"
+            class="auth-rr-input__control auth-rr-input__control--align-left add-page__date"
+            :max="todayIso"
+            required
+          />
         </AuthRRField>
       </section>
 
       <section class="nz-card nz-card--pad add-page__card">
-        <p class="add-page__photo-label">Фото</p>
-        <label class="add-page__photo" :class="{ 'add-page__photo--filled': !!coverUrl }">
-          <input type="file" accept="image/*" class="add-page__file" @change="onFile" />
-          <div
-            v-if="coverUrl"
-            class="add-page__cover"
-            :style="{ backgroundImage: `url(${coverUrl})` }"
-            aria-hidden="true"
-          />
-          <div v-else class="add-page__photo-empty">
-            <span class="add-page__photo-icon" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </span>
-            <strong>{{ selected ? 'Добавить своё фото' : 'Фото цветка' }}</strong>
-            <span>{{ selected ? 'Или оставим рисунок вида' : 'Сначала выберите вид — появится рисунок' }}</span>
-          </div>
-          <span v-if="coverUrl" class="add-page__photo-badge">{{ photoFile ? 'Сменить' : 'Своё фото' }}</span>
-        </label>
+        <AuthRRField label="Фото">
+          <label class="add-page__photo" :class="{ 'add-page__photo--filled': !!coverUrl }">
+            <input
+              type="file"
+              accept="image/*"
+              class="add-page__file"
+              aria-label="Загрузить фото растения"
+              @change="onFile"
+            />
+            <div
+              v-if="coverUrl"
+              class="add-page__cover"
+              :style="{ backgroundImage: `url(${coverUrl})` }"
+              aria-hidden="true"
+            />
+            <div v-else class="add-page__photo-empty">
+              <span class="add-page__photo-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              </span>
+              <strong>{{ selected ? 'Добавить своё фото' : 'Фото цветка' }}</strong>
+              <span>{{ selected ? 'Или оставим рисунок вида' : 'Сначала выберите вид — появится рисунок' }}</span>
+            </div>
+            <span v-if="coverUrl" class="add-page__photo-badge">{{ photoFile ? 'Сменить' : 'Своё фото' }}</span>
+          </label>
+        </AuthRRField>
         <p v-if="selected && !photoFile" class="nz-hint">Пока без фото — покажем иллюстрацию вида.</p>
       </section>
 
@@ -152,44 +165,32 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 .add-page__card {
-  gap: 14px;
+  gap: 16px;
 }
 .add-page__date {
-  width: 100%;
+  /* iOS date: без лишней высоты, текст слева как у остальных полей */
+  appearance: none;
+  -webkit-appearance: none;
   min-height: 48px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--rr-color-border-subtle, #dedee3);
-  background: var(--rr-color-bg-surface-secondary, #fff);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.06);
-  font: inherit;
-  font-size: 15px;
-  color: var(--rr-labels-neutral-primary, #101012);
-  box-sizing: border-box;
-}
-.add-page__date:focus {
-  outline: 2px solid rgba(46, 125, 50, 0.35);
-  outline-offset: 1px;
-}
-.add-page__photo-label {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+  height: auto;
+  padding-block: 12px;
 }
 .add-page__photo {
   position: relative;
   display: block;
   margin: 0;
-  min-height: 180px;
+  min-height: 200px;
   border-radius: 16px;
   overflow: hidden;
   background: #e8f0ea;
+  border: 1px dashed #9ccc9f;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .add-page__photo--filled {
   background: #d7e6da;
+  border-style: solid;
+  border-color: transparent;
 }
 .add-page__file {
   position: absolute;
@@ -216,8 +217,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 180px;
-  padding: 24px 16px;
+  min-height: 200px;
+  padding: 28px 16px;
   text-align: center;
   color: #3d5a40;
   pointer-events: none;
@@ -235,17 +236,24 @@ onBeforeUnmount(() => {
 }
 .add-page__photo-icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
   margin-bottom: 4px;
+  border-radius: 16px;
+  background: #fff;
   color: #2e7d32;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
 }
 .add-page__photo-badge {
   position: absolute;
   right: 12px;
   bottom: 12px;
   z-index: 3;
-  padding: 6px 10px;
+  padding: 7px 12px;
   border-radius: 999px;
-  background: rgba(16, 16, 18, 0.72);
+  background: rgba(16, 16, 18, 0.78);
   color: #fff;
   font-size: 12px;
   font-weight: 650;
