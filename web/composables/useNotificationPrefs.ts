@@ -6,6 +6,7 @@ export type NotificationPrefs = {
   remind_time: string
   timezone_name: string
   only_urgent: boolean
+  season_alerts: boolean
 }
 
 const DEFAULTS: NotificationPrefs = {
@@ -13,6 +14,7 @@ const DEFAULTS: NotificationPrefs = {
   remind_time: '09:00',
   timezone_name: 'Europe/Moscow',
   only_urgent: true,
+  season_alerts: true,
 }
 
 export function useNotificationPrefs() {

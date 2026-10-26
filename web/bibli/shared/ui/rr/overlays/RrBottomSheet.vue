@@ -175,8 +175,10 @@ const panelRef = ref(null)
 const dragY = ref(0)
 const dragging = ref(false)
 const isDesktop = ref(false)
-/** iOS Safari: layout 100lvh уходит под URL-бар — пиним оверлей к visualViewport. */
+/** Visible viewport box (resize only — scroll is iOS keyboard pan). */
 const vvBox = ref(null)
+/** Keyboard / browser chrome inset from bottom of layout viewport. */
+const keyboardInset = ref(0)
 
 /** overlay refcount + swipe state */
 let overlayHeld = false
@@ -209,12 +211,15 @@ const rootStyle = computed(() => {
   if (resolvedContentPadding.value) {
     style['--profile-sheet-inset'] = resolvedContentPadding.value
   }
+  const inset = keyboardInset.value
+  style['--profile-sheet-keyboard-inset'] = `${inset}px`
   const box = vvBox.value
   if (box && !isDesktop.value) {
-    style.top = `${box.top}px`
+    // Pin to layout origin; shrink height by keyboard instead of following vv.offsetTop pan.
+    style.top = '0px'
     style.left = `${box.left}px`
     style.width = `${box.width}px`
-    style.height = `${box.height}px`
+    style.height = `${box.height + Math.max(0, box.top)}px`
     style.right = 'auto'
     style.bottom = 'auto'
     style['--profile-sheet-vv-height'] = `${box.height}px`
@@ -224,8 +229,8 @@ const rootStyle = computed(() => {
 
 const panelMaxHeightCss = computed(() => {
   const p = pct.value
-  // visualViewport.height — видимая высота Safari (без плашки URL/toolbar)
-  return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100}))`
+  const kb = `var(--profile-sheet-keyboard-inset, 0px)`
+  return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100} - ${kb}))`
 })
 
 const panelStyle = computed(() => {
@@ -236,6 +241,7 @@ const panelStyle = computed(() => {
     transition: transitioning
       ? 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)'
       : 'none',
+    marginBottom: `var(--profile-sheet-keyboard-inset, 0px)`,
   }
   if (isDesktop.value && resolvedMaxWidth.value) {
     base.maxWidth = resolvedMaxWidth.value
@@ -249,7 +255,7 @@ const panelStyle = computed(() => {
   }
   return {
     ...base,
-    height: `calc(var(--profile-sheet-vv-height, 100dvh) * ${pct.value / 100})`,
+    height: `calc(var(--profile-sheet-vv-height, 100dvh) * ${pct.value / 100} - var(--profile-sheet-keyboard-inset, 0px))`,
     maxHeight: panelMaxHeightCss.value,
   }
 })
@@ -273,6 +279,7 @@ function syncDesktopMq() {
 function syncVisualViewport() {
   if (typeof window === 'undefined' || isDesktop.value) {
     vvBox.value = null
+    keyboardInset.value = 0
     return
   }
   const vv = window.visualViewport
@@ -283,6 +290,7 @@ function syncVisualViewport() {
       width: window.innerWidth,
       height: window.innerHeight,
     }
+    keyboardInset.value = 0
     return
   }
   vvBox.value = {
@@ -291,6 +299,8 @@ function syncVisualViewport() {
     width: vv.width,
     height: vv.height,
   }
+  // Only resize: on iOS, vv.scroll is keyboard pan, not a layout change.
+  keyboardInset.value = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
 }
 
 function startVisualViewportWatch() {
@@ -299,7 +309,6 @@ function startVisualViewportWatch() {
   const vv = window.visualViewport
   window.addEventListener('resize', syncVisualViewport)
   vv?.addEventListener('resize', syncVisualViewport)
-  vv?.addEventListener('scroll', syncVisualViewport)
   vvListening = true
 }
 
@@ -308,9 +317,9 @@ function stopVisualViewportWatch() {
   const vv = window.visualViewport
   window.removeEventListener('resize', syncVisualViewport)
   vv?.removeEventListener('resize', syncVisualViewport)
-  vv?.removeEventListener('scroll', syncVisualViewport)
   vvListening = false
   vvBox.value = null
+  keyboardInset.value = 0
 }
 
 function onKeydown(event) {

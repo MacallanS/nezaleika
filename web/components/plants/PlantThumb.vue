@@ -40,8 +40,11 @@ const thumbStyle = computed(() => {
   padding: 0;
   border: none;
   border-radius: 10px;
+  overflow: hidden;
   background: #e8f0ea center / cover no-repeat;
+  background-clip: padding-box;
   -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
 }
 .plant-thumb:not(.plant-thumb--static) {
   cursor: pointer;

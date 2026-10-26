@@ -16,7 +16,7 @@
         :inputmode="inputmode"
         :disabled="disabled"
         :readonly="readonly"
-        autocapitalize="off"
+        :autocapitalize="autocapitalize"
         autocorrect="off"
         spellcheck="false"
         @blur="emit('blur', $event)"
@@ -59,6 +59,7 @@ const props = withDefaults(
     readonly?: boolean;
     clearable?: boolean;
     fieldId?: string;
+    autocapitalize?: string;
   }>(),
   {
     modelValue: '',
@@ -73,6 +74,7 @@ const props = withDefaults(
     readonly: false,
     clearable: false,
     fieldId: '',
+    autocapitalize: 'off',
   },
 );
 

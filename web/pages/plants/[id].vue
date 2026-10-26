@@ -3,38 +3,66 @@
     <div v-if="!plant" class="detail__loading">Загружаем…</div>
 
     <template v-else>
-      <label class="detail__hero" :class="{ 'detail__hero--empty': !plant.photo_url }">
-        <input
-          type="file"
-          accept="image/*"
-          class="detail__file"
-          aria-label="Загрузить фото растения"
-          @change="onPhoto"
-        />
-        <img
-          v-if="plant.photo_url"
-          class="detail__photo"
-          :src="plant.photo_url"
-          :alt="plant.name"
-        />
-        <div
-          v-else
-          class="detail__empty-photo"
-          :style="{ backgroundImage: `url(${illustrationForCategory(plant.category || plant.species_detail?.category)})` }"
-          aria-hidden="true"
-        />
-        <span class="detail__hero-hint">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
-              stroke="currentColor"
-              stroke-width="1.6"
+      <div class="detail__hero" :class="{ 'detail__hero--empty': !plant.photo_url }">
+        <template v-if="plant.photo_url">
+          <button
+            type="button"
+            class="detail__photo-hit"
+            aria-label="Посмотреть фото"
+            @click="photoPreviewOpen = true"
+          >
+            <img class="detail__photo" :src="plant.photo_url" :alt="plant.name" />
+          </button>
+          <label class="detail__hero-hint detail__hero-hint--action">
+            <input
+              type="file"
+              accept="image/*"
+              class="detail__file"
+              aria-label="Сменить фото"
+              @change="onPhoto"
             />
-            <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
-          </svg>
-          {{ plant.photo_url ? 'Сменить фото' : 'Добавить фото' }}
-        </span>
-      </label>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+            Сменить фото
+          </label>
+        </template>
+        <label v-else class="detail__upload">
+          <input
+            type="file"
+            accept="image/*"
+            class="detail__file"
+            aria-label="Добавить фото"
+            @change="onPhoto"
+          />
+          <div
+            class="detail__empty-photo"
+            :style="{ backgroundImage: `url(${illustrationForCategory(plant.category || plant.species_detail?.category)})` }"
+            aria-hidden="true"
+          />
+          <span class="detail__hero-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M4 7.5A2.5 2.5 0 0 1 6.5 5h2.1l.7-1.4A1.5 1.5 0 0 1 10.6 3h2.8a1.5 1.5 0 0 1 1.3.7L15.4 5h2.1A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+            Добавить фото
+          </span>
+        </label>
+      </div>
+      <SpeciesPhotoPreview
+        v-model="photoPreviewOpen"
+        :src="plant.photo_url"
+        :alt="plant.name"
+      />
 
       <section class="card">
         <h1 class="detail__name">{{ plant.name }}</h1>
@@ -97,7 +125,8 @@
           </p>
           <AuthRRInputText
             v-model="form.name"
-            label="Кличка"
+            label="Имя"
+            autocapitalize="sentences"
             :placeholder="plant.species_detail?.name_ru || 'Как зовёте дома'"
           />
           <AuthRRInputText v-model="form.room" label="Где стоит" placeholder="Кухня, спальня…" />
@@ -116,6 +145,7 @@
 <script setup lang="ts">
 import { AuthRRButton, AuthRRInputText } from 'bibli/shared/ui/rr'
 import HabitHeatmap from '~/components/planner/HabitHeatmap.vue'
+import SpeciesPhotoPreview from '~/components/plants/SpeciesPhotoPreview.vue'
 import type { PlantDetail, PlantStats, WateringRecord } from '~/stores/plants'
 import { ensureAuth, getApi } from '~/utils/api'
 import { formatDayMonth, isoDate, pluralDays, relativeDayLabel } from '~/utils/dates'
@@ -128,6 +158,7 @@ const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
 
 const id = computed(() => Number(route.params.id))
+const photoPreviewOpen = ref(false)
 const plant = ref<PlantDetail | null>(null)
 
 usePageChrome(
@@ -309,11 +340,25 @@ function goBack() {
   border-radius: 20px;
   overflow: hidden;
   background: #e8f0ea;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .detail__hero--empty {
   background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 55%, #a5d6a7 100%);
+}
+.detail__upload {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.detail__photo-hit {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
 }
 .detail__photo {
   width: 100%;
@@ -321,6 +366,7 @@ function goBack() {
   object-fit: cover;
   object-position: center;
   display: block;
+  pointer-events: none;
 }
 .detail__empty-photo {
   position: absolute;
@@ -366,7 +412,10 @@ function goBack() {
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
-  pointer-events: none;
+  cursor: pointer;
+}
+.detail__hero-hint--action {
+  pointer-events: auto;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(16, 24, 40, 0.18);
 }

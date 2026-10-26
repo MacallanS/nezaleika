@@ -11,7 +11,7 @@
       <span
         v-if="selected"
         class="species-field__thumb"
-        :style="{ backgroundImage: `url(${illustrationForCategory(selected.category)})` }"
+        :style="{ backgroundImage: `url(${speciesThumb(selected)})` }"
         aria-hidden="true"
       />
       <span v-if="selected" class="species-field__value">
@@ -80,10 +80,12 @@
             :aria-selected="draftId === s.id ? 'true' : 'false'"
             @click="draftId = s.id"
           >
-            <span
+            <button
+              type="button"
               class="species-sheet__thumb"
-              :style="{ backgroundImage: `url(${illustrationForCategory(s.category)})` }"
-              aria-hidden="true"
+              :style="{ backgroundImage: `url(${speciesThumb(s)})` }"
+              :aria-label="`Посмотреть ${s.name_ru}`"
+              @click.stop="openPreview(s)"
             />
             <span class="species-sheet__label">
               <strong>{{ s.name_ru }}</strong>
@@ -110,20 +112,24 @@
       <AuthRRButton type="button" label="Выбрать" :disabled="draftId == null" @click="apply" />
     </template>
   </RrBottomSheet>
+
+  <SpeciesPhotoPreview v-model="previewOpen" :src="previewSrc" :alt="previewAlt" />
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { authRrIcons } from 'bibli/shared/assets/auth/rr'
 import { AuthRRButton, AuthRRField, RrBottomSheet, RrSearchIcon, RrSelectScroll } from 'bibli/shared/ui/rr'
+import SpeciesPhotoPreview from '~/components/plants/SpeciesPhotoPreview.vue'
 import { ensureAuth, getApi } from '~/utils/api'
-import { illustrationForCategory } from '~/utils/plantIllustrations'
+import { resolveSpeciesImage } from '~/utils/plantIllustrations'
 
 export interface SpeciesOption {
   id: number
   name_ru: string
   name_lat: string
   category?: string
+  image_url?: string | null
 }
 
 const props = withDefaults(
@@ -149,6 +155,9 @@ const results = ref<SpeciesOption[]>([])
 const draftId = ref<number | null>(null)
 const searching = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
+const previewOpen = ref(false)
+const previewSrc = ref<string | null>(null)
+const previewAlt = ref('')
 
 const selected = computed(() => props.modelValue)
 
@@ -161,24 +170,22 @@ const emptyHint = computed(() => {
 
 let searchSeq = 0
 let searchTimer: ReturnType<typeof setTimeout> | undefined
-let focusTimer: ReturnType<typeof setTimeout> | undefined
+
+function speciesThumb(s: Pick<SpeciesOption, 'image_url' | 'category'>) {
+  return resolveSpeciesImage(s.image_url, s.category)
+}
+
+function openPreview(s: SpeciesOption) {
+  previewSrc.value = speciesThumb(s)
+  previewAlt.value = s.name_ru
+  previewOpen.value = true
+}
 
 watch(open, (v) => {
-  clearTimeout(focusTimer)
   if (!v) return
   draftId.value = props.modelValue?.id ?? null
   query.value = ''
   results.value = props.modelValue ? [props.modelValue] : []
-  // После раскладки шита — иначе iOS поднимает клавиатуру до появления списка
-  focusTimer = setTimeout(() => {
-    void nextTick(() => {
-      try {
-        searchInputRef.value?.focus({ preventScroll: true })
-      } catch {
-        searchInputRef.value?.focus()
-      }
-    })
-  }, 280)
 })
 
 function clearQuery() {
@@ -223,7 +230,6 @@ function apply() {
 
 onBeforeUnmount(() => {
   clearTimeout(searchTimer)
-  clearTimeout(focusTimer)
 })
 </script>
 
@@ -299,32 +305,53 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 .species-sheet__search {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
-}
-.species-sheet__search-icon {
-  position: absolute;
-  left: 12px;
-  color: #9aa5ad;
-  display: inline-flex;
-  pointer-events: none;
-}
-.species-sheet__input {
-  width: 100%;
-  height: 44px;
-  padding: 0 40px 0 40px;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  padding: 0 12px;
   border-radius: 12px;
   border: 1px solid var(--rr-color-border-subtle, #dedee3);
   background: var(--rr-backgrounds-quaternary, #f2f3f7);
+  color: var(--rr-labels-neutral-secondary, rgba(60, 60, 67, 0.72));
+}
+.species-sheet__search-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: #93939c;
+}
+.species-sheet__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
   font: inherit;
   font-size: 15px;
-  box-sizing: border-box;
+  color: var(--rr-labels-neutral-primary, #101012);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.species-sheet__input::-webkit-search-decoration,
+.species-sheet__input::-webkit-search-cancel-button,
+.species-sheet__input::-webkit-search-results-button,
+.species-sheet__input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }
 .species-sheet__clear {
-  position: absolute;
-  right: 6px;
+  flex: 0 0 auto;
   border: none;
   background: transparent;
   padding: 4px;
@@ -356,8 +383,11 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
+  padding: 0;
+  border: none;
   border-radius: 10px;
   background: #e8f0ea center / cover no-repeat;
+  cursor: zoom-in;
 }
 .species-sheet__item--selected {
   background: rgba(46, 125, 50, 0.06);

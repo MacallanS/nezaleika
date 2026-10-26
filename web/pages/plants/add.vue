@@ -5,7 +5,8 @@
         <SpeciesSearchField v-model="selected" />
         <AuthRRInputText
           v-model="name"
-          label="Кличка"
+          label="Имя"
+          autocapitalize="sentences"
           :placeholder="selected ? `${selected.name_ru} у окна` : 'Как зовёте дома'"
         />
         <AuthRRInputText v-model="room" label="Где стоит" placeholder="Кухня, спальня…" />

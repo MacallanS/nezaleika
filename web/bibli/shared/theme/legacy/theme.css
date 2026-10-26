@@ -271,7 +271,7 @@ input[type="password"]:not(.rr-multi-select__input):not(.rr-point-select__input)
 input[type="number"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
 input[type="tel"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-input-phone__input):not(.auth-rr-otp__code-input),
 input[type="url"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-search-input__field):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input),
-input[type="search"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-multi-select__search-input):not(.rr-point-select__search-input):not(.rr-search-input__field):not(.profile-select-sheet__search-input):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input):not(.staff-notes-add__input) {
+input[type="search"]:not(.rr-multi-select__input):not(.rr-point-select__input):not(.rr-multi-select__search-input):not(.rr-point-select__search-input):not(.rr-search-input__field):not(.profile-select-sheet__search-input):not(.species-sheet__input):not(.search-input):not(.auth-rr-input__control):not(.auth-rr-otp__code-input):not(.staff-notes-add__input) {
   box-sizing: border-box;
   min-height: var(--ui-input-height);
   height: var(--ui-input-height);

@@ -6,19 +6,21 @@
         <span class="day__count">{{ overdue.length }}</span>
       </header>
       <div class="day__list">
-        <TaskRow
-          v-for="row in overdue"
-          :key="row.key"
-          :plant="plant(row.plantId)"
-          tone="overdue"
-          snoozable
-          due-label="просрочено"
-          :checkable="row.checkable"
-          :busy="pending[row.plantId]"
-          @check="$emit('check', row.plantId, today, false)"
-          @snooze="$emit('snooze', row.plantId)"
-          @open="$emit('open', row.plantId)"
-        />
+        <div class="day__list-inner">
+          <TaskRow
+            v-for="row in overdue"
+            :key="row.key"
+            :plant="plant(row.plantId)"
+            tone="overdue"
+            snoozable
+            due-label="просрочено"
+            :checkable="row.checkable"
+            :busy="pending[row.plantId]"
+            @check="$emit('check', row.plantId, today, false)"
+            @snooze="$emit('snooze', row.plantId)"
+            @open="$emit('open', row.plantId)"
+          />
+        </div>
       </div>
     </section>
 
@@ -34,23 +36,25 @@
         <span v-if="group.aside" class="day__count">{{ group.aside }}</span>
       </header>
       <div class="day__list">
-        <TaskRow
-          v-for="row in group.rows"
-          :key="row.key"
-          :plant="plant(row.plantId)"
-          :done="row.done"
-          :done-by="row.doneBy"
-          :tone="row.tone"
-          :snoozable="row.snoozable"
-          :checkable="row.checkable"
-          :undoable="row.done && canUndo(row.wateringId)"
-          :due-label="rowLabel(row)"
-          :busy="pending[row.plantId]"
-          @check="$emit('check', row.plantId, group.iso, row.past)"
-          @uncheck="row.wateringId != null && $emit('uncheck', row.wateringId)"
-          @snooze="$emit('snooze', row.plantId)"
-          @open="$emit('open', row.plantId)"
-        />
+        <div class="day__list-inner">
+          <TaskRow
+            v-for="row in group.rows"
+            :key="row.key"
+            :plant="plant(row.plantId)"
+            :done="row.done"
+            :done-by="row.doneBy"
+            :tone="row.tone"
+            :snoozable="row.snoozable"
+            :checkable="row.checkable"
+            :undoable="row.done && canUndo(row.wateringId)"
+            :due-label="rowLabel(row)"
+            :busy="pending[row.plantId]"
+            @check="$emit('check', row.plantId, group.iso, row.past)"
+            @uncheck="row.wateringId != null && $emit('uncheck', row.wateringId)"
+            @snooze="$emit('snooze', row.plantId)"
+            @open="$emit('open', row.plantId)"
+          />
+        </div>
       </div>
     </section>
 
@@ -166,15 +170,19 @@ function rowLabel(row: BoardRow): string {
   color: #d32f2f;
 }
 .day__list {
+  /* Рамка и клип на разных узлах — иначе overflow+radius режут бордер пикселями */
   background: #fff;
   border-radius: 16px;
-  overflow: hidden;
-  isolation: isolate;
   border: 2px solid transparent;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
+.day__list-inner {
+  border-radius: 14px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fff;
+}
 .day--on .day__list {
-  /* border вместо box-shadow: overflow:hidden обрезал кольцо и оно выглядело криво */
   border-color: #2e7d32;
   box-shadow: none;
 }

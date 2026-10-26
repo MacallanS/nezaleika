@@ -43,6 +43,7 @@ class PlantSpeciesSerializer(serializers.ModelSerializer):
             'autumn_days',
             'winter_days',
             'care_hint',
+            'image_url',
         )
 
 

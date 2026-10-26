@@ -177,6 +177,71 @@ EXTRA = [
     ('фуксия', 'Фуксия', 'Fuchsia', 'flowering'),
     ('бальзамин', 'Бальзамин', 'Impatiens walleriana', 'flowering'),
     ('каланхоэ-цветущее', 'Каланхоэ цветущее', 'Kalanchoe blossfeldiana', 'flowering'),
+    # flowering expansion (~50 popular house flowers)
+    ('пуансеттия', 'Пуансеттия', 'Euphorbia pulcherrima', 'flowering'),
+    ('стрелиция', 'Стрелиция', 'Strelitzia reginae', 'flowering'),
+    ('калодиум', 'Калодиум', 'Caladium bicolor', 'flowering'),
+    ('эустома', 'Эустома', 'Eustoma grandiflorum', 'flowering'),
+    ('мимоза-стыдливая', 'Мимоза стыдливая', 'Mimosa pudica', 'flowering'),
+    ('банан-комнатный', 'Банан комнатный', 'Musa acuminata', 'flowering'),
+    ('гиацинт', 'Гиацинт', 'Hyacinthus orientalis', 'flowering'),
+    ('тюльпан-комнатный', 'Тюльпан комнатный', 'Tulipa', 'flowering'),
+    ('нарцисс-комнатный', 'Нарцисс комнатный', 'Narcissus', 'flowering'),
+    ('лилия-комнатная', 'Лилия комнатная', 'Lilium', 'flowering'),
+    ('гербера', 'Гербера', 'Gerbera jamesonii', 'flowering'),
+    ('хризантема-комнатная', 'Хризантема комнатная', 'Chrysanthemum morifolium', 'flowering'),
+    ('камелия', 'Камелия', 'Camellia japonica', 'flowering'),
+    ('олеандр', 'Олеандр', 'Nerium oleander', 'flowering'),
+    ('бугенвиллия', 'Бугенвиллия', 'Bougainvillea', 'flowering'),
+    ('пассифлора', 'Пассифлора', 'Passiflora caerulea', 'flowering'),
+    ('плюмерия', 'Плюмерия', 'Plumeria', 'flowering'),
+    ('альстремерия', 'Альстремерия', 'Alstroemeria', 'flowering'),
+    ('фрезия', 'Фрезия', 'Freesia', 'flowering'),
+    ('крокус', 'Крокус', 'Crocus', 'flowering'),
+    ('мускари', 'Мускари', 'Muscari', 'flowering'),
+    ('подснежник', 'Подснежник', 'Galanthus', 'flowering'),
+    ('ирис-комнатный', 'Ирис', 'Iris', 'flowering'),
+    ('меденилла', 'Меденилла', 'Medinilla magnifica', 'flowering'),
+    ('клеродендрум', 'Клеродендрум', 'Clerodendrum thomsoniae', 'flowering'),
+    ('абутилон', 'Абутилон', 'Abutilon', 'flowering'),
+    ('броваллия', 'Броваллия', 'Browallia', 'flowering'),
+    ('катарантус', 'Катарантус', 'Catharanthus roseus', 'flowering'),
+    ('экзакум', 'Экзакум', 'Exacum affine', 'flowering'),
+    ('кроссандра', 'Кроссандра', 'Crossandra infundibuliformis', 'flowering'),
+    ('афеландра', 'Афеландра', 'Aphelandra squarrosa', 'flowering'),
+    ('пахистахис', 'Пахистахис', 'Pachystachys lutea', 'flowering'),
+    ('якобиния', 'Якобиния', 'Justicia carnea', 'flowering'),
+    ('руэллия', 'Руэллия', 'Ruellia', 'flowering'),
+    ('лаванда-комнатная', 'Лаванда комнатная', 'Lavandula angustifolia', 'flowering'),
+    ('гортензия-комнатная', 'Гортензия комнатная', 'Hydrangea macrophylla', 'flowering'),
+    ('примула', 'Примула', 'Primula', 'flowering'),
+    ('виола', 'Виола', 'Viola', 'flowering'),
+    ('каланхоэ-каландива', 'Каланхоэ Каландива', 'Kalanchoe Calandiva', 'flowering'),
+    ('декабрист', 'Декабрист', 'Schlumbergera truncata', 'flowering'),
+    ('пасхальный-кактус', 'Пасхальный кактус', 'Rhipsalidopsis gaertneri', 'flowering'),
+    ('агапантус', 'Агапантус', 'Agapanthus', 'flowering'),
+    ('вальтота', 'Вальтота', 'Cyrtanthus elatus', 'flowering'),
+    ('нерине', 'Нерине', 'Nerine', 'flowering'),
+    ('эукомис', 'Эукомис', 'Eucomis', 'flowering'),
+    ('кринум', 'Кринум', 'Crinum', 'flowering'),
+    ('гемантус', 'Гемантус', 'Haemanthus', 'flowering'),
+    ('спрекелия', 'Спрекелия', 'Sprekelia formosissima', 'flowering'),
+    ('тигридия', 'Тигридия', 'Tigridia', 'flowering'),
+    ('канна', 'Канна', 'Canna', 'flowering'),
+    ('кальцеолярия', 'Кальцеолярия', 'Calceolaria', 'flowering'),
+    ('цинерария', 'Цинерария', 'Pericallis × hybrida', 'flowering'),
+    ('кальмия', 'Кальмия', 'Kalmia', 'flowering'),
+    ('олеандр-карликовый', 'Олеандр карликовый', 'Nerium oleander dwarf', 'flowering'),
+    ('мурайя', 'Мурайя', 'Murraya paniculata', 'flowering'),
+    ('жасмин-самбак', 'Жасмин самбак', 'Jasminum sambac', 'flowering'),
+    ('бругмансия', 'Бругмансия', 'Brugmansia', 'flowering'),
+    ('датара', 'Датара', 'Datura', 'flowering'),
+    ('колумнея', 'Колумнея', 'Columnea', 'flowering'),
+    ('эсхинантус', 'Эсхинантус', 'Aeschynanthus', 'flowering'),
+    ('нематантус', 'Нематантус', 'Nematanthus', 'flowering'),
+    ('синнингия', 'Синнингия', 'Sinningia', 'flowering'),
+    ('смитианта', 'Смитианта', 'Smithiantha', 'flowering'),
+    ('кодонанта', 'Кодонанта', 'Codonanthe', 'flowering'),
 ]
 
 
@@ -192,6 +257,7 @@ def row_from(slug: str, name_ru: str, name_lat: str, category: str, intervals=No
         'autumn': str(autumn),
         'winter': str(winter),
         'care_hint': hint or HINTS.get(category, HINTS['other']),
+        'image_url': '',
     }
 
 
@@ -211,6 +277,7 @@ def main() -> None:
             'autumn': r.get('autumn') or r['spring'],
             'winter': r['winter'],
             'care_hint': hint,
+            'image_url': (r.get('image_url') or '').strip(),
         }
 
     added = 0
@@ -224,9 +291,20 @@ def main() -> None:
         added += 1
 
     rows = sorted(by_slug.values(), key=lambda r: r['name_ru'].casefold())
-    fieldnames = ['slug', 'name_ru', 'name_lat', 'category', 'spring', 'summer', 'autumn', 'winter', 'care_hint']
+    fieldnames = [
+        'slug',
+        'name_ru',
+        'name_lat',
+        'category',
+        'spring',
+        'summer',
+        'autumn',
+        'winter',
+        'care_hint',
+        'image_url',
+    ]
     with CSV_PATH.open('w', encoding='utf-8', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
         writer.writerows(rows)
 

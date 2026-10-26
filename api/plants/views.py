@@ -77,21 +77,18 @@ class PlantSpeciesListView(generics.ListAPIView):
         return PlantSpecies.objects.all()
 
     def list(self, request, *args, **kwargs):
+        from plants.services.species_search import filter_species
+
         q = request.query_params.get('q', '').strip()
         # Full catalog is not exposed — UI must search (min 2 chars).
-        # Filter in Python: SQLite LOWER/icontains is unreliable for Cyrillic.
+        # Flexible match in Python: SQLite LOWER/icontains is unreliable for Cyrillic.
         if len(q) < 2:
             return Response([])
-        needle = q.casefold()
         qs = self.get_queryset()
         cat = request.query_params.get('category')
         if cat:
             qs = qs.filter(category=cat)
-        matched = [
-            s
-            for s in qs
-            if needle in s.name_ru.casefold() or needle in (s.name_lat or '').casefold()
-        ]
+        matched = filter_species(list(qs), q, limit=30)
         return Response(self.get_serializer(matched, many=True).data)
 
 

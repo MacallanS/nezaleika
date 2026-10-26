@@ -64,4 +64,4 @@ Postgres на порту **5433**, API на **8000**.
 
 ## Справочник растений
 
-115 видов в `api/plants/fixtures/species_large.csv`. Обновление: правка CSV → `python manage.py import_species_csv`.
+~300 видов в `api/plants/fixtures/species_large.csv` (flowering расширен). Обновление: `python scripts/expand_species_csv.py` → `python manage.py import_species_csv`. Фото видов: `python scripts/fetch_species_images.py --category flowering`.

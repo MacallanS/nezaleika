@@ -25,6 +25,12 @@ class PlantSpecies(models.Model):
     autumn_days = models.PositiveSmallIntegerField(null=True, blank=True, help_text='Осень; если пусто — как весна')
     winter_days = models.PositiveSmallIntegerField(help_text='Интервал полива зимой, дней')
     care_hint = models.TextField(blank=True)
+    image_url = models.CharField(
+        max_length=400,
+        blank=True,
+        default='',
+        help_text='Site-relative path, e.g. /species/monstera.webp',
+    )
 
     class Meta:
         ordering = ['name_ru']

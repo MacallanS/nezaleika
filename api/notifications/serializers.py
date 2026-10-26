@@ -8,7 +8,7 @@ from notifications.models import NotificationPrefs, PushSubscription
 class NotificationPrefsSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationPrefs
-        fields = ('enabled', 'remind_time', 'timezone_name', 'only_urgent')
+        fields = ('enabled', 'remind_time', 'timezone_name', 'only_urgent', 'season_alerts')
 
     def validate_timezone_name(self, value):
         try:

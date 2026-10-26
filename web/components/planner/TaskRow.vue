@@ -197,7 +197,7 @@ function onOpen() {
   background: #fff;
 }
 .task + .task {
-  box-shadow: inset 0 1px 0 var(--rr-borders-neutral-secondary, #eef0f2);
+  border-top: 1px solid var(--rr-borders-neutral-secondary, #eef0f2);
 }
 .task__actions {
   position: absolute;

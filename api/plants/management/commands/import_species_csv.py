@@ -10,7 +10,7 @@ DEFAULT_CSV = Path(__file__).resolve().parent.parent.parent / 'fixtures' / 'spec
 
 
 class Command(BaseCommand):
-    help = 'Import plant species from CSV (slug,name_ru,name_lat,category,spring,summer,autumn,winter,care_hint)'
+    help = 'Import plant species from CSV (slug,name_ru,name_lat,category,spring,summer,autumn,winter,care_hint,image_url)'
 
     def add_arguments(self, parser):
         parser.add_argument('--file', type=str, default=str(DEFAULT_CSV))
@@ -33,6 +33,7 @@ class Command(BaseCommand):
                     'summer_days': int(row['summer']),
                     'winter_days': int(row['winter']),
                     'care_hint': row.get('care_hint', '').strip(),
+                    'image_url': (row.get('image_url') or '').strip(),
                 }
                 autumn = row.get('autumn', '').strip()
                 defaults['autumn_days'] = int(autumn) if autumn else None

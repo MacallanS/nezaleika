@@ -72,6 +72,16 @@
             @change="onSave"
           />
         </label>
+        <label class="nz-setting" :class="{ 'is-off': !prefs.enabled }">
+          <span>О сезоне полива</span>
+          <input
+            v-model="prefs.season_alerts"
+            class="nz-switch"
+            type="checkbox"
+            :disabled="!prefs.enabled"
+            @change="onSave"
+          />
+        </label>
       </section>
 
       <section class="nz-card nz-card--pad nz-notif__actions">

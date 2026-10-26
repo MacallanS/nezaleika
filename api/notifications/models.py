@@ -11,7 +11,17 @@ class NotificationPrefs(models.Model):
         default=True,
         help_text='Только просроченные и на сегодня',
     )
+    season_alerts = models.BooleanField(
+        default=True,
+        help_text='Пуш в первый день сезона полива',
+    )
     last_sent_on = models.DateField(null=True, blank=True)
+    last_season_notified = models.CharField(
+        max_length=16,
+        blank=True,
+        default='',
+        help_text='Последний сезон, о котором уже слали пуш (spring/summer/autumn/winter)',
+    )
 
     class Meta:
         verbose_name = 'Настройки уведомлений'
