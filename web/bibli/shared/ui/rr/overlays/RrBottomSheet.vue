@@ -175,9 +175,8 @@ const panelRef = ref(null)
 const dragY = ref(0)
 const dragging = ref(false)
 const isDesktop = ref(false)
-/** Visible viewport (shrinks / shifts under iOS keyboard). */
-const viewportHeight = ref(0)
-const viewportOffsetTop = ref(0)
+/** iOS Safari: layout 100lvh уходит под URL-бар — пиним оверлей к visualViewport. */
+const vvBox = ref(null)
 
 /** overlay refcount + swipe state */
 let overlayHeld = false
@@ -185,20 +184,13 @@ let startY = 0
 let startDragY = 0
 let closeTimer = null
 let desktopMq = null
+let vvListening = false
 
 const pct = computed(() => clamp(props.heightPercent, 20, 100))
 const forceSheet = computed(() => props.placement === 'sheet')
 const showHandleEffective = computed(() => props.showHandle && !isDesktop.value)
 const swipeEnabled = computed(() => props.swipeToDismiss && !isDesktop.value)
 const showCloseButton = computed(() => isDesktop.value)
-
-function maxPanelCss() {
-  const vv = viewportHeight.value
-  if (vv > 0 && !isDesktop.value) {
-    return `min(${pct.value}dvh, ${pct.value}vh, ${vv}px)`
-  }
-  return `min(${pct.value}dvh, ${pct.value}vh)`
-}
 
 const resolvedMaxWidth = computed(() => {
   const v = props.maxWidth
@@ -217,13 +209,23 @@ const rootStyle = computed(() => {
   if (resolvedContentPadding.value) {
     style['--profile-sheet-inset'] = resolvedContentPadding.value
   }
-  // Keep sheet in the visible area above the soft keyboard (iOS Safari).
-  if (!isDesktop.value && viewportHeight.value > 0) {
-    style.top = `${viewportOffsetTop.value}px`
-    style.height = `${viewportHeight.value}px`
+  const box = vvBox.value
+  if (box && !isDesktop.value) {
+    style.top = `${box.top}px`
+    style.left = `${box.left}px`
+    style.width = `${box.width}px`
+    style.height = `${box.height}px`
+    style.right = 'auto'
     style.bottom = 'auto'
+    style['--profile-sheet-vv-height'] = `${box.height}px`
   }
   return style
+})
+
+const panelMaxHeightCss = computed(() => {
+  const p = pct.value
+  // visualViewport.height — видимая высота Safari (без плашки URL/toolbar)
+  return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100}))`
 })
 
 const panelStyle = computed(() => {
@@ -242,13 +244,13 @@ const panelStyle = computed(() => {
     return {
       ...base,
       height: 'auto',
-      maxHeight: maxPanelCss(),
+      maxHeight: panelMaxHeightCss.value,
     }
   }
   return {
     ...base,
-    height: maxPanelCss(),
-    maxHeight: maxPanelCss(),
+    height: `calc(var(--profile-sheet-vv-height, 100dvh) * ${pct.value / 100})`,
+    maxHeight: panelMaxHeightCss.value,
   }
 })
 
@@ -268,11 +270,47 @@ function syncDesktopMq() {
   isDesktop.value = forceSheet.value ? false : Boolean(desktopMq?.matches)
 }
 
-function syncViewportHeight() {
-  if (typeof window === 'undefined') return
+function syncVisualViewport() {
+  if (typeof window === 'undefined' || isDesktop.value) {
+    vvBox.value = null
+    return
+  }
   const vv = window.visualViewport
-  viewportHeight.value = Math.round(vv?.height || window.innerHeight || 0)
-  viewportOffsetTop.value = Math.round(vv?.offsetTop || 0)
+  if (!vv) {
+    vvBox.value = {
+      top: 0,
+      left: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }
+    return
+  }
+  vvBox.value = {
+    top: vv.offsetTop,
+    left: vv.offsetLeft,
+    width: vv.width,
+    height: vv.height,
+  }
+}
+
+function startVisualViewportWatch() {
+  if (typeof window === 'undefined' || vvListening) return
+  syncVisualViewport()
+  const vv = window.visualViewport
+  window.addEventListener('resize', syncVisualViewport)
+  vv?.addEventListener('resize', syncVisualViewport)
+  vv?.addEventListener('scroll', syncVisualViewport)
+  vvListening = true
+}
+
+function stopVisualViewportWatch() {
+  if (typeof window === 'undefined' || !vvListening) return
+  const vv = window.visualViewport
+  window.removeEventListener('resize', syncVisualViewport)
+  vv?.removeEventListener('resize', syncVisualViewport)
+  vv?.removeEventListener('scroll', syncVisualViewport)
+  vvListening = false
+  vvBox.value = null
 }
 
 function onKeydown(event) {
@@ -309,12 +347,14 @@ async function openSheet() {
   rendered.value = true
   dragY.value = 0
   dragging.value = false
+  startVisualViewportWatch()
   lockBodyScroll()
   if (!overlayHeld) {
     acquireAppOverlay()
     overlayHeld = true
   }
   await nextTick()
+  syncVisualViewport()
   // На десктопе — без выезжающего свайп-жеста снизу
   if (!isDesktop.value) {
     dragY.value = panelOffsetHeight()
@@ -337,6 +377,7 @@ function finishClose({ force = false } = {}) {
     rendered.value = false
     dragY.value = 0
     dragging.value = false
+    stopVisualViewportWatch()
     unlockBodyScroll()
     if (overlayHeld) {
       releaseAppOverlay()
@@ -441,16 +482,13 @@ onMounted(() => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
   desktopMq = window.matchMedia(DESKTOP_MQ)
   syncDesktopMq()
-  syncViewportHeight()
   desktopMq.addEventListener?.('change', syncDesktopMq)
   window.addEventListener('keydown', onKeydown)
-  window.visualViewport?.addEventListener('resize', syncViewportHeight)
-  window.visualViewport?.addEventListener('scroll', syncViewportHeight)
-  window.addEventListener('resize', syncViewportHeight, { passive: true })
 })
 
 onBeforeUnmount(() => {
   clearCloseTimer()
+  stopVisualViewportWatch()
   if (overlayHeld) {
     releaseAppOverlay()
     overlayHeld = false
@@ -459,9 +497,6 @@ onBeforeUnmount(() => {
   desktopMq?.removeEventListener?.('change', syncDesktopMq)
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', onKeydown)
-    window.visualViewport?.removeEventListener('resize', syncViewportHeight)
-    window.visualViewport?.removeEventListener('scroll', syncViewportHeight)
-    window.removeEventListener('resize', syncViewportHeight)
   }
 })
 
@@ -485,20 +520,22 @@ defineExpose({ close: requestClose })
   width: 100%;
   height: 100%;
   height: 100dvh;
-  height: 100lvh;
+  /* не 100lvh: на iOS Safari large viewport уходит под нижнюю плашку браузера */
   min-height: -webkit-fill-available;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   pointer-events: auto;
   font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
-  /* доп. зазор под URL-бар только в обычном браузере; в PWA — 0, шит к низу экрана */
+  /* fallback, если visualViewport ещё не синхронизирован */
+  --profile-sheet-vv-height: 100dvh;
   --profile-sheet-browser-bar: 0px;
 }
 
 @media (display-mode: browser) {
   .profile-bottom-sheet {
-    --profile-sheet-browser-bar: var(--rr-spacing-padding-l, 12px);
+    /* запас под chrome Safari, если vv ещё не успел; основной фикс — vvBox */
+    --profile-sheet-browser-bar: max(12px, env(safe-area-inset-bottom, 0px));
   }
 }
 

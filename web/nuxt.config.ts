@@ -46,7 +46,7 @@ export default defineNuxtConfig({
     head: {
       title: 'Незалейка',
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content' },
         { name: 'theme-color', content: '#f4f6f5' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
@@ -191,6 +191,8 @@ export default defineNuxtConfig({
     },
     client: {
       installPrompt: true,
+      // autoUpdate + pwa-update.client: needRefresh → activate + hard reload
+      periodicSyncForUpdates: 60,
     },
   },
 })
