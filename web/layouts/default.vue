@@ -17,6 +17,11 @@
     :user-menu-items="userMenuItems"
     @mobile-navigate="onTabNavigate"
   >
+    <PullToRefreshIndicator
+      :distance="ptrPullDistance"
+      :phase="ptrPhase"
+      :animating="ptrIsAnimating"
+    />
     <slot />
     <UndoToast />
     <NotificationsSheet />
@@ -28,6 +33,7 @@ import { useRussRedesignShell } from 'bibli/shared/theme/rr'
 import { AppShellRR } from 'bibli/widgets/Layout/rr'
 import type { AppUserChipMenuItem } from 'bibli/widgets/Layout/rr'
 import NotificationsSheet from '~/components/shell/NotificationsSheet.vue'
+import PullToRefreshIndicator from '~/components/shell/PullToRefreshIndicator.vue'
 import UndoToast from '~/components/planner/UndoToast.vue'
 import { usePageChromeState } from '~/composables/usePageChrome'
 import {
@@ -36,12 +42,14 @@ import {
   useNezaleikaNavItems,
 } from '~/composables/useNezaleikaShell'
 import { addDays, isoDate, parseIsoDate } from '~/utils/dates'
+import { isStandalonePwa, probeServiceWorkerUpdate } from '~/utils/pwaUpdate'
 
 useRussRedesignShell({ colorMode: 'light', density: '100', mobileBreakpoint: 1024 })
 
 const auth = useAuthStore()
 const plants = usePlantsStore()
 const chrome = usePageChromeState()
+const route = useRoute()
 const allMobileTabs = useNezaleikaMobileTabs()
 const baseNav = useNezaleikaNavItems()
 const logoUrl = useNezaleikaLogoUrl()
@@ -96,7 +104,52 @@ function onTabNavigate(to: string) {
   void navigateTo(to)
 }
 
+function resolvePtrScrollEl(): HTMLElement | null {
+  if (!import.meta.client) return null
+  return document.querySelector('.app-shell-rr__content')
+}
+
+async function refreshCurrentRouteData() {
+  const path = route.path.replace(/\/+$/, '') || '/'
+  const today = isoDate(new Date())
+  const to = isoDate(addDays(parseIsoDate(today), 41))
+
+  if (path === '/plants' || path.startsWith('/plants')) {
+    await plants.fetchList()
+    return
+  }
+  await plants.fetchCalendar(today, to)
+}
+
+const {
+  pullDistance: ptrPullDistance,
+  phase: ptrPhase,
+  isActive: ptrIsActive,
+  isAnimating: ptrIsAnimating,
+  rebind: rebindPullToRefresh,
+} = usePullToRefresh(resolvePtrScrollEl, {
+  enabled: () => isStandalonePwa() && isPhoneOrTablet.value,
+  onRefresh: async () => {
+    await probeServiceWorkerUpdate()
+    await refreshCurrentRouteData()
+  },
+})
+
+watch(
+  () => [route.path, isPhoneOrTablet.value],
+  () => {
+    void rebindPullToRefresh()
+  },
+  { flush: 'post' },
+)
+
+watch(ptrIsActive, (active) => {
+  if (!import.meta.client) return
+  document.documentElement.classList.toggle('nz-ptr-active', active)
+})
+
 onMounted(() => {
+  void rebindPullToRefresh()
   if (plants.calendar || !auth.user) return
   const today = isoDate(new Date())
   void plants.fetchCalendar(today, isoDate(addDays(parseIsoDate(today), 14))).catch(() => {})

@@ -69,6 +69,7 @@
           <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
         </div>
 
+        <ServerWakingHint :show="slowApi" />
         <div v-if="loading && !plants.calendar" class="cal__placeholder">Загружаем…</div>
         <ScheduleAgenda
           v-else-if="plants.calendar"
@@ -91,6 +92,7 @@
 <script setup lang="ts">
 import MonthGrid from '~/components/planner/MonthGrid.vue'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import WeekStrip from '~/components/planner/WeekStrip.vue'
 import { addDays, formatMonthYear, isoDate, parseIsoDate, startOfWeek } from '~/utils/dates'
 
@@ -104,6 +106,7 @@ const selected = ref(isoDate(now))
 const month = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 const weekStart = ref(startOfWeek(now))
 const loading = ref(true)
+const { slow: slowApi } = useSlowApiHint(loading)
 
 const range = computed(() => {
   if (mode.value === 'week') {

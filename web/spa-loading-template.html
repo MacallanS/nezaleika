@@ -1,0 +1,79 @@
+<div
+  id="nz-boot-shell"
+  class="nz-boot-shell"
+  hidden
+  aria-live="polite"
+  aria-busy="false"
+>
+  <style>
+    .nz-boot-shell {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      padding-top: calc(24px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      box-sizing: border-box;
+      background: #f4f6f5;
+      font-family: Manrope, system-ui, -apple-system, sans-serif;
+      color: #101012;
+    }
+    .nz-boot-shell.is-visible {
+      display: flex;
+    }
+    .nz-boot-shell__card {
+      width: min(100%, 360px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .nz-boot-shell__leaf {
+      width: 48px;
+      height: 48px;
+    }
+    .nz-boot-shell__title {
+      margin: 8px 0 0;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 28px;
+    }
+    .nz-boot-shell__subtitle {
+      margin: 0;
+      font-size: 15px;
+      line-height: 22px;
+      color: rgba(60, 60, 67, 0.72);
+    }
+    .nz-boot-shell__spinner {
+      width: 28px;
+      height: 28px;
+      margin-top: 8px;
+      border: 2.5px solid #c8e6c9;
+      border-top-color: #2e7d32;
+      border-radius: 50%;
+      animation: nz-boot-spin 0.75s linear infinite;
+    }
+    @keyframes nz-boot-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+  <div class="nz-boot-shell__card">
+    <svg class="nz-boot-shell__leaf" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 3.2C12 3.2 6.5 10.2 6.5 14.2a5.5 5.5 0 0 0 11 0C17.5 10.2 12 3.2 12 3.2Z"
+        stroke="#2e7d32"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <h1 class="nz-boot-shell__title" data-nz-boot-title>Незалейка</h1>
+    <p class="nz-boot-shell__subtitle" data-nz-boot-subtitle>Открываем приложение</p>
+    <div class="nz-boot-shell__spinner" aria-hidden="true"></div>
+  </div>
+</div>

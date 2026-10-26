@@ -17,6 +17,8 @@
       </div>
     </Teleport>
 
+    <ServerWakingHint :show="slowApi" />
+
     <div v-if="!plants.calendar && loading" class="today__skeleton">
       <div v-for="i in 5" :key="i" class="today__skeleton-row" />
     </div>
@@ -48,6 +50,7 @@
 <script setup lang="ts">
 import { AuthRRButton } from 'bibli/shared/ui/rr'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import { buildBoard } from '~/utils/scheduleBoard'
 import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
 
@@ -59,6 +62,7 @@ const { isSnoozed, snoozeUntilTomorrow } = useWateringSnooze()
 const loading = ref(true)
 const loaded = ref(false)
 const snoozeTick = ref(0)
+const { slow: slowApi } = useSlowApiHint(loading)
 
 const todayIso = computed(() => plants.calendar?.today ?? isoDate(new Date()))
 const range = computed(() => ({

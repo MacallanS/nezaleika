@@ -56,9 +56,12 @@ export default defineNuxtConfig({
         { rel: 'icon', href: `${basePath}icons/leaf.svg`, type: 'image/svg+xml' },
         { rel: 'apple-touch-icon', href: `${basePath}icons/apple-touch.png` },
         { rel: 'manifest', href: `${basePath}manifest.webmanifest` },
+        { rel: 'dns-prefetch', href: 'https://nezaleika-api.onrender.com' },
+        { rel: 'preconnect', href: 'https://nezaleika-api.onrender.com', crossorigin: '' },
       ],
     },
   },
+  spaLoadingTemplate: 'spa-loading-template.html',
   compatibilityDate: '2025-01-01',
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
@@ -183,7 +186,8 @@ export default defineNuxtConfig({
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',
-            networkTimeoutSeconds: 8,
+            // Free Render cold start often exceeds 8s — wait longer before falling back.
+            networkTimeoutSeconds: 45,
             expiration: { maxEntries: 64, maxAgeSeconds: 300 },
           },
         },

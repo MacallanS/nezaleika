@@ -9,6 +9,11 @@
   display: none !important;
 }
 
+/* Pull-to-refresh: не отдавать жест native bounce на iOS */
+html.nz-ptr-active .app-shell-rr__content {
+  overscroll-behavior-y: none;
+}
+
 .nz-page {
   width: 100%;
   min-width: 0;

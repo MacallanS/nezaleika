@@ -8,6 +8,8 @@
       <RrSearchInput v-model="query" placeholder="Поиск по имени, виду, комнате" />
     </div>
 
+    <ServerWakingHint :show="slowApi" />
+
     <p v-if="loaded && !plants.list.length" class="plist__empty">
       Пока пусто. <NuxtLink to="/plants/add">Добавьте первый цветок</NuxtLink>
     </p>
@@ -41,6 +43,7 @@
 <script setup lang="ts">
 import { RrSearchInput } from 'bibli/shared/ui/rr'
 import PlantThumb from '~/components/plants/PlantThumb.vue'
+import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import type { PlantDetail } from '~/stores/plants'
 import { formatDayMonth, pluralDays } from '~/utils/dates'
 
@@ -49,15 +52,19 @@ const NO_ROOM = 'Без комнаты'
 const plants = usePlantsStore()
 const query = ref('')
 const loaded = ref(false)
+const loading = ref(true)
+const { slow: slowApi } = useSlowApiHint(loading)
 
 const { headerActionsId, headerActionsActive } = usePageChrome({
   title: 'Растения',
 })
 
 onMounted(async () => {
+  loading.value = true
   try {
     await plants.fetchList()
   } finally {
+    loading.value = false
     loaded.value = true
   }
 })
