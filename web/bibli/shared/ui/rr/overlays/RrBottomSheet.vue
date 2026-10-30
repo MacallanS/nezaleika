@@ -9,6 +9,7 @@
         'profile-bottom-sheet--desktop': isDesktop,
         'profile-bottom-sheet--sheet': forceSheet,
         'profile-bottom-sheet--custom-inset': Boolean(resolvedContentPadding),
+        'profile-bottom-sheet--keyboard': !isDesktop && keyboardInset > 0,
       }"
       role="dialog"
       aria-modal="true"
@@ -33,6 +34,7 @@
         class="profile-bottom-sheet__panel"
         :class="{ 'profile-bottom-sheet__panel--fit': heightMode === 'fit' }"
         :style="panelStyle"
+        @focusin="onPanelFocusIn"
         @touchstart.passive="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
@@ -175,8 +177,10 @@ const panelRef = ref(null)
 const dragY = ref(0)
 const dragging = ref(false)
 const isDesktop = ref(false)
-/** Visible viewport box. On iOS this moves with the keyboard. */
-const vvBox = ref(null)
+/** Px the keyboard covers at the bottom of the layout viewport. */
+const keyboardInset = ref(0)
+/** Visible viewport height. Already excludes the keyboard. */
+const vvHeight = ref(0)
 
 /** overlay refcount + swipe state */
 let overlayHeld = false
@@ -185,7 +189,6 @@ let startDragY = 0
 let closeTimer = null
 let desktopMq = null
 let vvListening = false
-let pinningScroll = false
 
 const pct = computed(() => clamp(props.heightPercent, 20, 100))
 const forceSheet = computed(() => props.placement === 'sheet')
@@ -210,22 +213,23 @@ const rootStyle = computed(() => {
   if (resolvedContentPadding.value) {
     style['--profile-sheet-inset'] = resolvedContentPadding.value
   }
-  const box = vvBox.value
-  if (box && !isDesktop.value) {
-    // Cover only the area above the keyboard. A second inset shrinks the sheet again in PWA.
-    style.top = `${box.top}px`
-    style.left = `${box.left}px`
-    style.width = `${box.width}px`
-    style.height = `${box.height}px`
-    style.right = 'auto'
-    style.bottom = 'auto'
-    style['--profile-sheet-vv-height'] = `${box.height}px`
+  if (!isDesktop.value) {
+    const inset = keyboardInset.value
+    // Stay pinned to the layout viewport. The panel lifts by this inset.
+    style['--profile-sheet-keyboard-inset'] = `${inset}px`
+    if (vvHeight.value > 0) {
+      style['--profile-sheet-vv-height'] = `${vvHeight.value}px`
+    }
+    // -webkit-fill-available must not stretch the overlay under the keyboard.
+    style.minHeight = '0px'
+    if (inset > 0) style.height = 'auto'
   }
   return style
 })
 
 const panelMaxHeightCss = computed(() => {
   const p = pct.value
+  // vv-height is already the visible area, so do not subtract the inset again.
   return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100}))`
 })
 
@@ -235,7 +239,7 @@ const panelStyle = computed(() => {
   const base = {
     transform: `translate3d(0, ${y}px, 0)`,
     transition: transitioning
-      ? 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)'
+      ? 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1), margin-bottom 180ms ease-out'
       : 'none',
   }
   if (isDesktop.value && resolvedMaxWidth.value) {
@@ -269,34 +273,39 @@ function clamp(n, min, max) {
 
 function syncDesktopMq() {
   isDesktop.value = forceSheet.value ? false : Boolean(desktopMq?.matches)
+  if (isDesktop.value) {
+    keyboardInset.value = 0
+    vvHeight.value = 0
+  } else if (rendered.value) {
+    syncVisualViewport()
+  }
 }
 
 function syncVisualViewport() {
   if (typeof window === 'undefined' || isDesktop.value) {
-    vvBox.value = null
+    keyboardInset.value = 0
+    vvHeight.value = 0
     return
   }
   const vv = window.visualViewport
   if (!vv) {
-    vvBox.value = {
-      top: 0,
-      left: 0,
-      width: window.innerWidth,
-      height: window.innerHeight,
-    }
+    keyboardInset.value = 0
+    vvHeight.value = window.innerHeight
     return
   }
-  vvBox.value = {
-    top: vv.offsetTop,
-    left: vv.offsetLeft,
-    width: vv.width,
-    height: vv.height,
-  }
-  // iOS PWA scrolls the page to reveal the focused field; the sheet stays on the visual viewport.
-  if (pinningScroll || (window.scrollX === 0 && window.scrollY === 0)) return
-  pinningScroll = true
-  window.scrollTo(0, 0)
-  pinningScroll = false
+  vvHeight.value = Math.round(vv.height)
+  keyboardInset.value = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
+}
+
+function onPanelFocusIn(event) {
+  const target = event.target
+  if (!target || typeof target.scrollIntoView !== 'function') return
+  const body = panelRef.value?.querySelector('.profile-bottom-sheet__body')
+  if (!body || !body.contains(target)) return
+  syncVisualViewport()
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  })
 }
 
 function startVisualViewportWatch() {
@@ -316,7 +325,8 @@ function stopVisualViewportWatch() {
   vv?.removeEventListener('resize', syncVisualViewport)
   vv?.removeEventListener('scroll', syncVisualViewport)
   vvListening = false
-  vvBox.value = null
+  keyboardInset.value = 0
+  vvHeight.value = 0
 }
 
 function onKeydown(event) {
@@ -535,12 +545,18 @@ defineExpose({ close: requestClose })
   font-family: var(--rr-font-family-font-family, Manrope, system-ui, sans-serif);
   /* fallback, если visualViewport ещё не синхронизирован */
   --profile-sheet-vv-height: 100dvh;
+  --profile-sheet-keyboard-inset: 0px;
   --profile-sheet-browser-bar: 0px;
+}
+
+.profile-bottom-sheet--keyboard,
+.profile-bottom-sheet--keyboard .profile-bottom-sheet__scrim {
+  min-height: 0;
 }
 
 @media (display-mode: browser) {
   .profile-bottom-sheet {
-    /* запас под chrome Safari, если vv ещё не успел; основной фикс — vvBox */
+    /* запас под chrome Safari, пока visualViewport ещё не посчитал inset */
     --profile-sheet-browser-bar: max(12px, env(safe-area-inset-bottom, 0px));
   }
 }
@@ -589,7 +605,7 @@ defineExpose({ close: requestClose })
   width: 100%;
   max-width: 560px;
   margin: 0;
-  margin-bottom: 0;
+  margin-bottom: var(--profile-sheet-keyboard-inset, 0px);
   bottom: 0;
   box-sizing: border-box;
   display: flex;
@@ -767,7 +783,10 @@ defineExpose({ close: requestClose })
   .profile-bottom-sheet:not(.profile-bottom-sheet--desktop) .profile-bottom-sheet__panel {
     width: 100%;
     max-width: none;
-    margin: 0;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: var(--profile-sheet-keyboard-inset, 0px);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
