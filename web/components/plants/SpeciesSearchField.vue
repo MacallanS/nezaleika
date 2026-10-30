@@ -337,7 +337,8 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   font: inherit;
-  font-size: 15px;
+  /* ≥16px: иначе iOS Safari зумит страницу при фокусе */
+  font-size: 16px;
   color: var(--rr-labels-neutral-primary, #101012);
   outline: none;
   -webkit-appearance: none;

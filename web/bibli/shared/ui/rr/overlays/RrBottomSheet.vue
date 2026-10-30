@@ -175,10 +175,8 @@ const panelRef = ref(null)
 const dragY = ref(0)
 const dragging = ref(false)
 const isDesktop = ref(false)
-/** Visible viewport box (resize only — scroll is iOS keyboard pan). */
+/** Visible viewport box. On iOS this moves with the keyboard. */
 const vvBox = ref(null)
-/** Keyboard / browser chrome inset from bottom of layout viewport. */
-const keyboardInset = ref(0)
 
 /** overlay refcount + swipe state */
 let overlayHeld = false
@@ -187,6 +185,7 @@ let startDragY = 0
 let closeTimer = null
 let desktopMq = null
 let vvListening = false
+let pinningScroll = false
 
 const pct = computed(() => clamp(props.heightPercent, 20, 100))
 const forceSheet = computed(() => props.placement === 'sheet')
@@ -211,15 +210,13 @@ const rootStyle = computed(() => {
   if (resolvedContentPadding.value) {
     style['--profile-sheet-inset'] = resolvedContentPadding.value
   }
-  const inset = keyboardInset.value
-  style['--profile-sheet-keyboard-inset'] = `${inset}px`
   const box = vvBox.value
   if (box && !isDesktop.value) {
-    // Pin to layout origin; shrink height by keyboard instead of following vv.offsetTop pan.
-    style.top = '0px'
+    // Cover only the area above the keyboard. A second inset shrinks the sheet again in PWA.
+    style.top = `${box.top}px`
     style.left = `${box.left}px`
     style.width = `${box.width}px`
-    style.height = `${box.height + Math.max(0, box.top)}px`
+    style.height = `${box.height}px`
     style.right = 'auto'
     style.bottom = 'auto'
     style['--profile-sheet-vv-height'] = `${box.height}px`
@@ -229,8 +226,7 @@ const rootStyle = computed(() => {
 
 const panelMaxHeightCss = computed(() => {
   const p = pct.value
-  const kb = `var(--profile-sheet-keyboard-inset, 0px)`
-  return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100} - ${kb}))`
+  return `min(${p}dvh, ${p}vh, calc(var(--profile-sheet-vv-height, 100dvh) * ${p / 100}))`
 })
 
 const panelStyle = computed(() => {
@@ -241,7 +237,6 @@ const panelStyle = computed(() => {
     transition: transitioning
       ? 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)'
       : 'none',
-    marginBottom: `var(--profile-sheet-keyboard-inset, 0px)`,
   }
   if (isDesktop.value && resolvedMaxWidth.value) {
     base.maxWidth = resolvedMaxWidth.value
@@ -255,7 +250,7 @@ const panelStyle = computed(() => {
   }
   return {
     ...base,
-    height: `calc(var(--profile-sheet-vv-height, 100dvh) * ${pct.value / 100} - var(--profile-sheet-keyboard-inset, 0px))`,
+    height: `calc(var(--profile-sheet-vv-height, 100dvh) * ${pct.value / 100})`,
     maxHeight: panelMaxHeightCss.value,
   }
 })
@@ -279,7 +274,6 @@ function syncDesktopMq() {
 function syncVisualViewport() {
   if (typeof window === 'undefined' || isDesktop.value) {
     vvBox.value = null
-    keyboardInset.value = 0
     return
   }
   const vv = window.visualViewport
@@ -290,7 +284,6 @@ function syncVisualViewport() {
       width: window.innerWidth,
       height: window.innerHeight,
     }
-    keyboardInset.value = 0
     return
   }
   vvBox.value = {
@@ -299,8 +292,11 @@ function syncVisualViewport() {
     width: vv.width,
     height: vv.height,
   }
-  // Only resize: on iOS, vv.scroll is keyboard pan, not a layout change.
-  keyboardInset.value = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
+  // iOS PWA scrolls the page to reveal the focused field; the sheet stays on the visual viewport.
+  if (pinningScroll || (window.scrollX === 0 && window.scrollY === 0)) return
+  pinningScroll = true
+  window.scrollTo(0, 0)
+  pinningScroll = false
 }
 
 function startVisualViewportWatch() {
@@ -309,6 +305,7 @@ function startVisualViewportWatch() {
   const vv = window.visualViewport
   window.addEventListener('resize', syncVisualViewport)
   vv?.addEventListener('resize', syncVisualViewport)
+  vv?.addEventListener('scroll', syncVisualViewport)
   vvListening = true
 }
 
@@ -317,9 +314,9 @@ function stopVisualViewportWatch() {
   const vv = window.visualViewport
   window.removeEventListener('resize', syncVisualViewport)
   vv?.removeEventListener('resize', syncVisualViewport)
+  vv?.removeEventListener('scroll', syncVisualViewport)
   vvListening = false
   vvBox.value = null
-  keyboardInset.value = 0
 }
 
 function onKeydown(event) {
