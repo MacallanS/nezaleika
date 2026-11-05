@@ -56,8 +56,8 @@ export default defineNuxtConfig({
         { rel: 'icon', href: `${basePath}icons/leaf.svg`, type: 'image/svg+xml' },
         { rel: 'apple-touch-icon', href: `${basePath}icons/apple-touch.png` },
         { rel: 'manifest', href: `${basePath}manifest.webmanifest` },
-        { rel: 'dns-prefetch', href: 'https://nezaleika-api.onrender.com' },
-        { rel: 'preconnect', href: 'https://nezaleika-api.onrender.com', crossorigin: '' },
+        { rel: 'dns-prefetch', href: 'https://nezaleika.up.railway.app' },
+        { rel: 'preconnect', href: 'https://nezaleika.up.railway.app', crossorigin: '' },
       ],
     },
   },
@@ -173,7 +173,7 @@ export default defineNuxtConfig({
       runtimeCaching: [
         {
           // Content-addressed photo URLs never change.
-          urlPattern: /^https:\/\/nezaleika-api\.onrender\.com\/api\/photos\/.*/i,
+          urlPattern: /^https:\/\/nezaleika\.up\.railway\.app\/api\/photos\/.*/i,
           handler: 'CacheFirst',
           options: {
             cacheName: 'plant-photos',
@@ -182,11 +182,11 @@ export default defineNuxtConfig({
           },
         },
         {
-          urlPattern: /^https:\/\/nezaleika-api\.onrender\.com\/api\/.*/i,
+          urlPattern: /^https:\/\/nezaleika\.up\.railway\.app\/api\/.*/i,
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',
-            // Free Render cold start often exceeds 8s — wait longer before falling back.
+            // Cold start can exceed 8s — wait longer before falling back.
             networkTimeoutSeconds: 45,
             expiration: { maxEntries: 64, maxAgeSeconds: 300 },
           },
