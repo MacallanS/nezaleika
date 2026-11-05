@@ -1,8 +1,42 @@
 # Публикация «Незалейка» (MacallanS + GitHub Pages)
 
-GitHub Pages отдаёт **только статику** (PWA). API Django нужно поднять отдельно (ниже — Render). С телефона: иконка на экране «Домой» + виджет-карточка **внутри приложения** (нативный виджет iOS на Home Screen для PWA недоступен).
+GitHub Pages отдаёт **только статику** (PWA). API Django живёт отдельно. С телефона: иконка на экране «Домой» + виджет-карточка **внутри приложения** (нативный виджет iOS на Home Screen для PWA недоступен).
 
-## 1. API на Render
+## Переезд API на Railway
+
+Сайт (PWA) остаётся на GitHub Pages. На Railway переезжает только API и база. Фото растений лежат в базе, в поле `photo_data`.
+
+Дамп с текущего Render уже снят локально: `exports/household-live.json` (в git не коммитить, там фото).
+
+1. Запушь эту ветку в `MacallanS/nezaleika` аккаунтом MacallanS.
+2. Открой [Railway → New from GitHub](https://railway.com/new/github) и выбери репозиторий. Root Directory не меняй: в корне есть `Dockerfile`.
+3. В том же проекте: **New → Database → PostgreSQL**.
+4. У сервиса API в Variables:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (имя подставь своё, если база названа иначе)
+   - `SECRET_KEY` — длинная случайная строка
+   - `DEBUG` = `0`
+   - `CORS_ALLOWED_ORIGINS` = `https://macallans.github.io`
+   - `PUBLIC_BASE_URL` = `https://macallans.github.io/nezaleika`
+   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CLAIMS_EMAIL` — скопируй из Render, иначе пуши на телефоне отвалятся
+5. **Settings → Networking → Generate Domain**. Дождись зелёного деплоя и открой `https://<домен>/api/csrf/`.
+6. С компьютера, где лежит дамп, залей данные в Postgres Railway (публичный URL базы из вкладки Connect, в нём есть `sslmode=require`):
+
+```powershell
+cd api
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+$env:DATABASE_URL = "postgresql://...."
+.\.venv\Scripts\python manage.py migrate
+.\.venv\Scripts\python manage.py import_species_csv
+.\.venv\Scripts\python manage.py import_household_export ..\exports\household-live.json
+```
+
+Логин в приложении тот же, что сейчас. Повторный запуск импорта не плодит дубликаты.
+7. В GitHub: **Settings → Secrets and variables → Actions → Variables**: `NEZALEIKA_API_URL` = адрес Railway без слэша в конце. Потом заново запусти workflow **Deploy PWA to GitHub Pages**, чтобы приложение перестало ходить на Render.
+
+Напоминания о поливе: отдельный сервис в том же проекте Railway, Cron `*/15 * * * *`, команда `python manage.py send_scheduled_push`, те же Variables. Подписки пушей с телефона в дамп не входят — после смены ключей VAPID их нужно включить заново в профиле.
+
+## 1. API на Render (старый хост)
 
 1. Залейте репозиторий на GitHub (`MacallanS/nezaleika`).
 2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint** → подключите репо, примените `render.yaml`.
