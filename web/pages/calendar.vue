@@ -73,7 +73,8 @@
         <div v-if="loading && !plants.calendar" class="cal__placeholder">Загружаем…</div>
         <ScheduleAgenda
           v-else-if="plants.calendar"
-          :days="days"
+          :key="selected"
+          :days="agendaDays"
           :plants="plants.calendar.plants"
           :from="selected"
           :to="selected"
@@ -103,6 +104,7 @@ import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
 import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import WeekStrip from '~/components/planner/WeekStrip.vue'
+import type { CalendarDay } from '~/stores/plants'
 import {
   addDays,
   formatDayMonth,
@@ -120,6 +122,7 @@ const now = new Date()
 const todayIso = computed(() => plants.calendar?.today ?? isoDate(now))
 const mode = ref<'month' | 'week'>('month')
 const selected = ref(isoDate(now))
+const userPicked = ref(false)
 const month = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 const weekStart = ref(startOfWeek(now))
 const loading = ref(true)
@@ -137,7 +140,24 @@ const range = computed(() => {
   return { from: isoDate(start), to: isoDate(addDays(start, 41)) }
 })
 
+/** Full month data for the grid dots. */
 const days = computed(() => plants.calendar?.days ?? {})
+
+/**
+ * Agenda shows exactly one day:
+ * - today / future → that day's plan
+ * - past → watering history only
+ */
+const agendaDays = computed((): Record<string, CalendarDay> => {
+  const iso = selected.value
+  const empty: CalendarDay = { done: [], planned: [], overdue: [] }
+  const bucket = days.value[iso]
+  if (!bucket) return { [iso]: empty }
+  if (iso < todayIso.value) {
+    return { [iso]: { done: bucket.done, planned: [], overdue: [] } }
+  }
+  return { [iso]: bucket }
+})
 
 const periodLabel = computed(() => {
   const base = mode.value === 'week' ? addDays(weekStart.value, 3) : month.value
@@ -150,12 +170,21 @@ const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
 
 const dayTitle = computed(() => {
   if (selected.value === todayIso.value) return 'Сегодня'
+  if (selected.value > todayIso.value) {
+    const tomorrow = isoDate(addDays(parseIsoDate(todayIso.value), 1))
+    if (selected.value === tomorrow) return 'Завтра'
+    return `${formatDayMonth(selected.value)}, ${formatWeekday(selected.value).toLowerCase()}`
+  }
   const yesterday = isoDate(addDays(parseIsoDate(todayIso.value), -1))
-  if (selected.value === yesterday) return 'Вчера'
-  return `${formatDayMonth(selected.value)}, ${formatWeekday(selected.value).toLowerCase()}`
+  const dateLabel =
+    selected.value === yesterday
+      ? 'Вчера'
+      : `${formatDayMonth(selected.value)}, ${formatWeekday(selected.value).toLowerCase()}`
+  return `История · ${dateLabel}`
 })
 
 function select(iso: string) {
+  userPicked.value = true
   selected.value = iso
   const d = parseIsoDate(iso)
   if (mode.value === 'month' && d.getMonth() !== month.value.getMonth()) {
@@ -167,6 +196,7 @@ function select(iso: string) {
 function shift(delta: number) {
   if (mode.value === 'week') {
     weekStart.value = addDays(weekStart.value, 7 * delta)
+    userPicked.value = true
     selected.value = isoDate(addDays(parseIsoDate(selected.value), 7 * delta))
     return
   }
@@ -174,9 +204,11 @@ function shift(delta: number) {
 }
 
 function goToday() {
-  select(todayIso.value)
+  userPicked.value = false
+  selected.value = todayIso.value
   const d = parseIsoDate(todayIso.value)
   month.value = new Date(d.getFullYear(), d.getMonth(), 1)
+  weekStart.value = startOfWeek(d)
 }
 
 watch(mode, (m) => {
@@ -184,6 +216,14 @@ watch(mode, (m) => {
   if (m === 'week') weekStart.value = startOfWeek(d)
   else month.value = new Date(d.getFullYear(), d.getMonth(), 1)
 })
+
+watch(
+  todayIso,
+  (t) => {
+    if (!userPicked.value) selected.value = t
+  },
+  { immediate: true },
+)
 
 async function load() {
   try {
@@ -194,7 +234,10 @@ async function load() {
 }
 
 watch(range, load)
-onMounted(load)
+onMounted(() => {
+  if (!userPicked.value) selected.value = todayIso.value
+  void load()
+})
 
 function onCheck(id: number, iso: string, past: boolean) {
   if (iso > todayIso.value) return
