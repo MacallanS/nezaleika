@@ -13,12 +13,19 @@ jobs:
       - name: Wake API then send reminders
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_BASE: ${{ vars.NEZALEIKA_API_URL }}
         run: |
-          # Free Render: wake with a cheap GET, then run the cron POST.
+          set -euo pipefail
+          if [ -z "${API_BASE}" ]; then
+            echo "NEZALEIKA_API_URL is not set" >&2
+            exit 1
+          fi
+          API_BASE="${API_BASE%/}"
+          # Wake cold instance, then run the daily reminder cron.
           curl --fail-with-body --silent --show-error \
             --retry 3 --retry-delay 20 --retry-all-errors --max-time 120 \
-            "https://nezaleika-api.onrender.com/api/csrf/"
+            "${API_BASE}/api/csrf/"
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-delay 15 --retry-all-errors --max-time 120 \
-            -X POST -H "X-Cron-Secret: $CRON_SECRET" \
-            "https://nezaleika-api.onrender.com/api/push/cron"
+            -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
+            "${API_BASE}/api/push/cron"

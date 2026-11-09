@@ -35,14 +35,21 @@ class ScheduledPushTests(TestCase):
         self.assertEqual(send_scheduled_push(msk(22, 9, 5)), 1)
         self.assertEqual(send.call_count, 2)
 
-    def test_skipped_when_too_late(self, send, *_):
-        self.assertEqual(send_scheduled_push(msk(21, 16, 0)), 0)
-        send.assert_not_called()
+    def test_still_sent_when_scheduler_is_hours_late(self, send, *_):
+        # Free hosts often wake late — first run after remind_time still delivers.
+        self.assertEqual(send_scheduled_push(msk(21, 16, 0)), 1)
+        send.assert_called_once()
 
-    def test_nothing_urgent_with_only_urgent(self, send, urgent, _):
+    def test_nothing_urgent_with_only_urgent_does_not_burn_day(self, send, urgent, _):
         urgent.return_value = []
         self.assertEqual(send_scheduled_push(msk(21, 9, 5)), 0)
         send.assert_not_called()
+        prefs = NotificationPrefs.objects.get(user=self.user)
+        self.assertIsNone(prefs.last_sent_on)
+        # Later the same day, once something is urgent, push goes out.
+        urgent.return_value = ['plant']
+        self.assertEqual(send_scheduled_push(msk(21, 13, 0)), 1)
+        send.assert_called_once()
 
 
 @override_settings(CRON_SECRET='s3cret')

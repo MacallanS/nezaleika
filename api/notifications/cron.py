@@ -110,9 +110,9 @@ def send_scheduled_push(now: datetime | None = None) -> int:
         if urgent is None:
             urgent = urgent_plants()
         if prefs.only_urgent and not urgent:
-            # Still mark the day so we don't spam empty checks; user asked for urgent-only.
-            prefs.last_sent_on = local.date()
-            prefs.save(update_fields=['last_sent_on'])
+            # Do not burn the day: cron may run before plants flip to due_today,
+            # or the user may add watering later. Retry until something is urgent
+            # or the day ends.
             continue
         payload = today_payload(urgent)
         delivered = sum(1 for sub in subs if send_web_push(sub, payload))

@@ -43,8 +43,15 @@ export function useNotificationPrefs() {
   async function save() {
     await ensureAuth()
     prefs.value.timezone_name = deviceTimezone()
+    prefs.value.remind_time = String(prefs.value.remind_time || DEFAULTS.remind_time).slice(0, 5)
     try {
-      await getApi().patch('/api/me/notification-prefs', prefs.value)
+      const { data } = await getApi().patch<NotificationPrefs>('/api/me/notification-prefs', prefs.value)
+      prefs.value = {
+        ...DEFAULTS,
+        ...data,
+        remind_time: String(data.remind_time || prefs.value.remind_time).slice(0, 5),
+      }
+      notify(`Напоминание в ${prefs.value.remind_time}`)
     } catch {
       notify('Не удалось сохранить настройки', 'warn')
       throw new Error('save failed')
