@@ -1,25 +1,22 @@
-# Requires: gh auth login (account MacallanS)
-$ErrorActionPreference = "Stop"
+# One-shot: ensure public GitHub repo exists (free Pages).
+# PWA publish: use .\scripts\deploy-pages.ps1 (no Actions).
+# API: push main → Railway free/trial (or Render free).
+
+$ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
 gh auth status | Out-Null
 
-$repo = "MacallanS/nezaleika"
+$repo = 'MacallanS/nezaleika'
 if (-not (gh repo view $repo 2>$null)) {
   gh repo create $repo --public --source=. --remote=origin --push
 } else {
-  git push -u origin main
+  git push -u origin HEAD
 }
 
-Write-Host ""
-Write-Host "=== GitHub Pages ===" -ForegroundColor Green
-Write-Host "1. Repo -> Settings -> Pages -> Source: GitHub Actions"
-Write-Host "2. Settings -> Secrets and variables -> Actions -> Variables"
-Write-Host "   NEZALEIKA_API_URL = https://YOUR-SERVICE.onrender.com"
-Write-Host ""
-Write-Host "=== Render API ===" -ForegroundColor Green
-Write-Host "1. https://dashboard.render.com -> New -> Blueprint -> repo $repo"
-Write-Host "2. Env: CORS_ALLOWED_ORIGINS=https://macallans.github.io"
-Write-Host "3. After deploy, set NEZALEIKA_API_URL in GitHub and re-run Pages workflow"
-Write-Host ""
-Write-Host "Site: https://macallans.github.io/nezaleika/"
+Write-Host ''
+Write-Host '=== Free stack ===' -ForegroundColor Green
+Write-Host 'PWA:  .\scripts\deploy-pages.ps1  → https://macallans.github.io/nezaleika/'
+Write-Host 'API:  git push origin main → Railway (free/trial)'
+Write-Host 'Pages Settings: branch gh-pages / root (not GitHub Actions)'
+Write-Host 'Do not enable schedule Actions — they burn free minutes and can lock billing.'
