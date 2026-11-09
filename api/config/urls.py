@@ -11,6 +11,7 @@ from notifications.views import (
     PushStatusView,
     PushSubscribeView,
     PushTestView,
+    PushTickView,
     VapidPublicKeyView,
 )
 from plants.views import (
@@ -50,6 +51,7 @@ urlpatterns = [
     path('api/push/test', PushTestView.as_view()),
     path('api/push/notify-urgent', PushNotifyPlantsView.as_view()),
     path('api/push/cron', CronPushView.as_view()),
+    path('api/push/tick', PushTickView.as_view()),
     path('api/', include(router.urls)),
 ]
 
