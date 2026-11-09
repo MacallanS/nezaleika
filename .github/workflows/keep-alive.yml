@@ -2,7 +2,6 @@ name: Keep API warm
 
 on:
   schedule:
-    # Free Render sleeps ~15m without traffic — ping before that.
     - cron: '*/12 * * * *'
   workflow_dispatch:
 
@@ -11,8 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Wake Render free instance
+      - name: Wake API
+        env:
+          API_BASE: ${{ vars.NEZALEIKA_API_URL }}
         run: |
+          set -euo pipefail
+          if [ -z "${API_BASE}" ]; then
+            echo "NEZALEIKA_API_URL is not set" >&2
+            exit 1
+          fi
+          API_BASE="${API_BASE%/}"
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-delay 15 --retry-all-errors --max-time 90 \
-            "https://nezaleika-api.onrender.com/api/csrf/"
+            "${API_BASE}/api/csrf/"
