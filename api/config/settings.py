@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 from dotenv import load_dotenv
 
@@ -9,16 +10,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-insecure-nezaleika-change-me')
 
-_on_render = bool(os.environ.get('RENDER_EXTERNAL_HOSTNAME') or os.environ.get('RENDER'))
+_on_platform = bool(
+    os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+    or os.environ.get('RENDER')
+    or os.environ.get('RAILWAY_ENVIRONMENT')
+)
 _debug_raw = os.environ.get('DEBUG')
 if _debug_raw is None:
-    DEBUG = not _on_render
+    DEBUG = not _on_platform
 else:
     DEBUG = _debug_raw.strip().lower() in ('1', 'true', 'yes', 'on')
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
-_render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
-if _render_host and _render_host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(_render_host)
+for _host_env in ('RENDER_EXTERNAL_HOSTNAME', 'RAILWAY_PUBLIC_DOMAIN'):
+    _host = os.environ.get(_host_env, '').strip()
+    if _host and _host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    for _host in ('.railway.app', '.up.railway.app'):
+        if _host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_host)
 if not DEBUG:
     for _default_host in ('nezaleika-api.onrender.com',):
         if _default_host not in ALLOWED_HOSTS:
@@ -71,27 +81,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-_database_url = os.environ.get('DATABASE_URL', '')
-if _database_url.startswith('postgres'):
-    import re
+def _postgres_from_url(url: str) -> dict | None:
+    parsed = urlparse(url)
+    if parsed.scheme not in ('postgres', 'postgresql') or not parsed.hostname:
+        return None
+    name = unquote(parsed.path.lstrip('/'))
+    if not name:
+        return None
+    config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': name,
+        'USER': unquote(parsed.username or ''),
+        'PASSWORD': unquote(parsed.password or ''),
+        'HOST': parsed.hostname,
+        'PORT': str(parsed.port or 5432),
+    }
+    sslmode = parse_qs(parsed.query).get('sslmode', [None])[0]
+    if sslmode:
+        config['OPTIONS'] = {'sslmode': sslmode}
+    return config
 
-    m = re.match(
-        r'postgres(?:ql)?://(?P<user>[^:]+):(?P<password>[^@]+)@(?P<host>[^:]+)(?::(?P<port>\d+))?/(?P<name>\w+)',
-        _database_url,
-    )
-    if m:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': m.group('name'),
-                'USER': m.group('user'),
-                'PASSWORD': m.group('password'),
-                'HOST': m.group('host'),
-                'PORT': m.group('port') or '5432',
-            }
-        }
-    else:
-        DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+
+_database_url = os.environ.get('DATABASE_URL', '')
+_postgres = _postgres_from_url(_database_url) if _database_url.startswith('postgres') else None
+if _postgres:
+    DATABASES = {'default': _postgres}
 else:
     DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
 
@@ -145,6 +159,12 @@ else:
     else:
         CORS_ALLOWED_ORIGINS = ['https://macallans.github.io']
     CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
+
+_railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if _railway_domain:
+    _railway_origin = f'https://{_railway_domain}'
+    if _railway_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_railway_origin)
 
 # GitHub Pages + token auth (Authorization header on preflight)
 CORS_ALLOW_HEADERS = [

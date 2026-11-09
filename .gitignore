@@ -8,3 +8,4 @@ web/node_modules/
 web/.nuxt/
 web/.output/
 web/dist/
+exports/household-live.json
