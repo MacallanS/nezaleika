@@ -16,7 +16,7 @@
             due-label="просрочено"
             :checkable="row.checkable"
             :busy="pending[row.plantId]"
-            @check="$emit('check', row.plantId, today, false)"
+            @check="$emit('check', row.plantId, today, true)"
             @snooze="$emit('snooze', row.plantId)"
             @open="$emit('open', row.plantId)"
           />
@@ -46,10 +46,10 @@
             :tone="row.tone"
             :snoozable="row.snoozable"
             :checkable="row.checkable"
-            :undoable="row.done && canUndo(row.wateringId)"
+            :undoable="row.done && (row.wateringId ?? 0) > 0"
             :due-label="rowLabel(row)"
             :busy="pending[row.plantId]"
-            @check="$emit('check', row.plantId, group.iso, row.past)"
+            @check="$emit('check', row.plantId, group.iso, row.past || row.tone === 'overdue')"
             @uncheck="row.wateringId != null && $emit('uncheck', row.wateringId)"
             @snooze="$emit('snooze', row.plantId)"
             @open="$emit('open', row.plantId)"
@@ -89,20 +89,16 @@ defineEmits<{
   open: [plantId: number]
 }>()
 
-const { canUndo } = useWateringActions()
-const undo = useUndoState()
-
-const board = computed(() => {
-  void undo.value
-  return buildBoard({
+const board = computed(() =>
+  buildBoard({
     days: props.days,
     from: props.from,
     to: props.to,
     today: props.today,
     snoozed: props.snoozed,
     overdueBanner: props.overdueBanner,
-  })
-})
+  }),
+)
 const overdue = computed(() => board.value.overdue)
 const groups = computed(() => board.value.groups)
 

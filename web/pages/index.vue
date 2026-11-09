@@ -44,12 +44,21 @@
       @snooze="onSnooze"
       @open="open"
     />
+
+    <WaterDateSheet
+      v-model="dateSheetOpen"
+      :plant-name="dateSheetName"
+      :today="todayIso"
+      :initial-date="dateSheetInitial"
+      @confirm="onDateConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { AuthRRButton } from 'bibli/shared/ui/rr'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import { buildBoard } from '~/utils/scheduleBoard'
 import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
@@ -62,6 +71,10 @@ const { isSnoozed, snoozeUntilTomorrow } = useWateringSnooze()
 const loading = ref(true)
 const loaded = ref(false)
 const snoozeTick = ref(0)
+const dateSheetOpen = ref(false)
+const dateSheetPlantId = ref<number | null>(null)
+const dateSheetName = ref('')
+const dateSheetInitial = ref('')
 const { slow: slowApi } = useSlowApiHint(loading)
 
 const todayIso = computed(() => plants.calendar?.today ?? isoDate(new Date()))
@@ -128,8 +141,22 @@ function onSnooze(id: number) {
 
 function onCheck(id: number, iso: string, past: boolean) {
   if (iso > todayIso.value) return
-  if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
-  else void water(id)
+  if (past) {
+    dateSheetPlantId.value = id
+    dateSheetName.value = plants.calendar?.plants[String(id)]?.name ?? ''
+    dateSheetInitial.value = iso <= todayIso.value ? iso : todayIso.value
+    dateSheetOpen.value = true
+    return
+  }
+  void water(id)
+}
+
+function onDateConfirm(dayIso: string) {
+  const id = dateSheetPlantId.value
+  dateSheetPlantId.value = null
+  if (id == null) return
+  if (dayIso === todayIso.value) void water(id)
+  else void water(id, new Date(`${dayIso}T12:00:00`).toISOString())
 }
 
 function open(id: number) {

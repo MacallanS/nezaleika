@@ -66,7 +66,7 @@
 
       <div class="cal__agenda">
         <div class="cal__day-head">
-          <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
+          <h2 class="cal__day-title">{{ dayTitle }}</h2>
         </div>
 
         <ServerWakingHint :show="slowApi" />
@@ -75,8 +75,8 @@
           v-else-if="plants.calendar"
           :days="days"
           :plants="plants.calendar.plants"
-          :from="agendaFrom"
-          :to="agendaTo"
+          :from="selected"
+          :to="selected"
           :today="todayIso"
           :highlight="selected"
           :pending="plants.pending"
@@ -86,15 +86,32 @@
         />
       </div>
     </div>
+
+    <WaterDateSheet
+      v-model="dateSheetOpen"
+      :plant-name="dateSheetName"
+      :today="todayIso"
+      :initial-date="dateSheetInitial"
+      @confirm="onDateConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import MonthGrid from '~/components/planner/MonthGrid.vue'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import WeekStrip from '~/components/planner/WeekStrip.vue'
-import { addDays, formatMonthYear, isoDate, parseIsoDate, startOfWeek } from '~/utils/dates'
+import {
+  addDays,
+  formatDayMonth,
+  formatMonthYear,
+  formatWeekday,
+  isoDate,
+  parseIsoDate,
+  startOfWeek,
+} from '~/utils/dates'
 
 const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
@@ -106,6 +123,10 @@ const selected = ref(isoDate(now))
 const month = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 const weekStart = ref(startOfWeek(now))
 const loading = ref(true)
+const dateSheetOpen = ref(false)
+const dateSheetPlantId = ref<number | null>(null)
+const dateSheetName = ref('')
+const dateSheetInitial = ref('')
 const { slow: slowApi } = useSlowApiHint(loading)
 
 const range = computed(() => {
@@ -127,11 +148,11 @@ const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
   title: 'Календарь',
 }))
 
-const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))
-const agendaTo = computed(() => {
-  if (mode.value === 'week') return range.value.to
-  const m = month.value
-  return isoDate(new Date(m.getFullYear(), m.getMonth() + 1, 0))
+const dayTitle = computed(() => {
+  if (selected.value === todayIso.value) return 'Сегодня'
+  const yesterday = isoDate(addDays(parseIsoDate(todayIso.value), -1))
+  if (selected.value === yesterday) return 'Вчера'
+  return `${formatDayMonth(selected.value)}, ${formatWeekday(selected.value).toLowerCase()}`
 })
 
 function select(iso: string) {
@@ -141,9 +162,6 @@ function select(iso: string) {
     month.value = new Date(d.getFullYear(), d.getMonth(), 1)
   }
   weekStart.value = startOfWeek(d)
-  void nextTick(() => {
-    document.getElementById(`day-${iso}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
 }
 
 function shift(delta: number) {
@@ -180,8 +198,22 @@ onMounted(load)
 
 function onCheck(id: number, iso: string, past: boolean) {
   if (iso > todayIso.value) return
-  if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
-  else void water(id)
+  if (past) {
+    dateSheetPlantId.value = id
+    dateSheetName.value = plants.calendar?.plants[String(id)]?.name ?? ''
+    dateSheetInitial.value = iso <= todayIso.value ? iso : todayIso.value
+    dateSheetOpen.value = true
+    return
+  }
+  void water(id)
+}
+
+function onDateConfirm(dayIso: string) {
+  const id = dateSheetPlantId.value
+  dateSheetPlantId.value = null
+  if (id == null) return
+  if (dayIso === todayIso.value) void water(id)
+  else void water(id, new Date(`${dayIso}T12:00:00`).toISOString())
 }
 
 function open(id: number) {
