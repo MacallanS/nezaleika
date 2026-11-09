@@ -48,6 +48,13 @@ class CsrfView(APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
+        # Opportunistic reminder tick when Actions/cron is unavailable.
+        try:
+            from notifications.views import maybe_tick_push
+
+            maybe_tick_push()
+        except Exception:
+            pass
         return Response({'csrfToken': get_token(request)})
 
 
