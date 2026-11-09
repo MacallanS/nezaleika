@@ -3,11 +3,13 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'bibli/shared/ui'
 import { useRoles } from '@/shared/composables'
 import {
+  BlockStaff,
   ExtendAgentTest,
   GetAgentTest,
   GetSuggestAttachment,
   GrantAgentTest,
   RevokeAgentTest,
+  UnblockStaff,
   type TraineeInfo,
 } from '@/pages/agents/api'
 import { useStaffHire } from './useStaffHire'
@@ -174,6 +176,8 @@ export function useStaffProfileMoreActions(options: {
     const id = userId.value
     if (!id) return
     const blocked = isBlocked.value
+    // Registration API: только REGISTERED / trainee. Нанятый агент — staff off/on.
+    const useStaffLifecycleApi = isHiredAgent.value
     openConfirm(
       blocked
         ? 'Вы уверены, что хотите разблокировать этого сотрудника?'
@@ -181,9 +185,11 @@ export function useStaffProfileMoreActions(options: {
       async () => {
         try {
           if (blocked) {
-            await unblockStaffRegistration(id)
+            if (useStaffLifecycleApi) await UnblockStaff(id)
+            else await unblockStaffRegistration(id)
           } else {
-            await deleteStaffRegistration(id)
+            if (useStaffLifecycleApi) await BlockStaff(id)
+            else await deleteStaffRegistration(id)
           }
           toast.add({
             severity: 'success',
