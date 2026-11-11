@@ -194,6 +194,12 @@ html.app-rr-immersive-no-tabbar.app-rr-shell .page-wrapper {
 }
 
 @media (min-width: 1025px) {
+  /* Таббар скрыт — не оставляем 68px «дырку» в page-content / cards padding. */
+  :root {
+    --app-mobile-tabbar-inset: 0px;
+    --app-mobile-tabbar-content-inset: 0px;
+  }
+
   .app-mobile-tab-bar-rr {
     display: none;
   }
