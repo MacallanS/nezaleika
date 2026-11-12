@@ -10,6 +10,7 @@ import {
   buildStaffOverviewSummary,
   canMoveStaffToSigning,
   canHireStaffPermanent,
+  resolveDocumentsJoinedMetric,
   resolveOnecMetric,
   resolveStaffOverviewDisplayName,
   resolveTraineeMetric,
@@ -121,6 +122,51 @@ describe('staffProfileOverview', () => {
     })
     accepted.onSigning = true
     expect(buildStaffOverviewSummary(accepted)[0].value).toBe('Все приняты')
+  })
+
+  it('adds joined date metric on documents card from registered_at', () => {
+    const profile = makeProfile({
+      ...EMPTY_ACTIVATION_STATUSES,
+      personal: 'empty',
+      passport: 'empty',
+      inn: 'empty',
+      snils: 'empty',
+      bank: 'empty',
+    })
+    profile.rawRegistration = {
+      registered_at: '2026-08-17T10:30:00+03:00',
+    }
+    expect(resolveDocumentsJoinedMetric(profile)).toMatchObject({
+      label: 'Присоединился',
+      value: '17.08.2026',
+      tone: 'muted',
+    })
+    const docs = buildStaffOverviewSummary(profile)[0]
+    expect(docs.metrics).toEqual([
+      { label: 'Не загружено', value: '5', tone: 'warning' },
+      { label: 'Требуют проверки', value: '0', tone: 'muted' },
+      { label: 'Отклонено', value: '0', tone: 'muted' },
+      { label: 'Присоединился', value: '17.08.2026', tone: 'muted' },
+    ])
+  })
+
+  it('keeps joined date when all documents are accepted', () => {
+    const profile = makeProfile({
+      ...EMPTY_ACTIVATION_STATUSES,
+      personal: 'done',
+      passport: 'done',
+      inn: 'done',
+      snils: 'done',
+      bank: 'done',
+    })
+    profile.rawRegistration = {
+      registered_at: '2026-11-01T09:00:00+03:00',
+    }
+    const docs = buildStaffOverviewSummary(profile)[0]
+    expect(docs.value).toBe('Все приняты')
+    expect(docs.metrics).toEqual([
+      { label: 'Присоединился', value: '01.11.2026', tone: 'muted' },
+    ])
   })
   it('maps trainee and 1C statuses for projects card', () => {
     const base = makeProfile({ ...EMPTY_ACTIVATION_STATUSES })

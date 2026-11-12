@@ -272,6 +272,55 @@ function overviewDocStatusMetrics(counts: OverviewStepCounts): StaffOverviewMetr
   ]
 }
 
+function formatOverviewJoinedDate(iso: string): string | null {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}.${month}.${year}`
+}
+
+/**
+ * Дата появления в системе (та же, что «Присоединился» в Проекте / Заметках).
+ * Для нанятых агентов — ориентир «когда попал из оформления в сотрудники».
+ */
+export function resolveDocumentsJoinedMetric(
+  profile: StaffProfileModel,
+): StaffOverviewMetric | null {
+  const raw = profile.rawRegistration as Record<string, unknown> | null
+  const staffData = profile.rawStaffDetails?.data as Record<string, unknown> | undefined
+  const candidates = [
+    raw?.registered_at,
+    raw?.created_at,
+    staffData?.created_at,
+  ]
+  for (const value of candidates) {
+    if (typeof value !== 'string') continue
+    const iso = value.trim()
+    if (!iso) continue
+    const formatted = formatOverviewJoinedDate(iso)
+    if (!formatted) continue
+    return { label: 'Присоединился', value: formatted, tone: 'muted' }
+  }
+  return null
+}
+
+function buildDocumentsCardMetrics(
+  profile: StaffProfileModel,
+  counts: OverviewStepCounts,
+): StaffOverviewMetric[] {
+  const allAccepted =
+    counts.done === OVERVIEW_DOC_STEPS.length &&
+    counts.empty === 0 &&
+    counts.review === 0 &&
+    counts.error === 0
+  const metrics = allAccepted ? [] : overviewDocStatusMetrics(counts)
+  const joined = resolveDocumentsJoinedMetric(profile)
+  if (joined) metrics.push(joined)
+  return metrics
+}
+
 export function buildStaffOverviewSummary(
   profile: StaffProfileModel,
 ): StaffOverviewSummaryCard[] {
@@ -284,7 +333,7 @@ export function buildStaffOverviewSummary(
       id: 'documents',
       title: 'Документы',
       value: resolveDocumentsCardValue(docs),
-      metrics: overviewDocStatusMetrics(docs),
+      metrics: buildDocumentsCardMetrics(profile, docs),
     },
     {
       id: 'projects',

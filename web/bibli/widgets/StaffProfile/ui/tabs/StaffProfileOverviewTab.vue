@@ -25,7 +25,7 @@
             </span>
           </div>
           <div
-            v-if="card.metrics.length && !(card.id === 'documents' && card.value === 'Все приняты')"
+            v-if="card.metrics.length"
             class="staff-overview-card__metrics"
           >
             <div
