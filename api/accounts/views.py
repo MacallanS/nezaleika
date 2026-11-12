@@ -59,6 +59,9 @@ class CsrfView(APIView):
 
 
 class LoginView(APIView):
+    # Ignore Authorization / session auth here: a stale Token header would
+    # otherwise 401 before we can check username/password.
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):

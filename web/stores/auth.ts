@@ -99,6 +99,9 @@ export const useAuthStore = defineStore('auth', {
       return this.user
     },
     async login(username: string, password: string) {
+      // Stale Token in localStorage makes DRF return 401 on /login before
+      // credentials are checked — UI then shows «неверный пароль».
+      resetApiSession()
       await ensureAuth()
       const { data } = await getApi().post<AuthUser>('/api/auth/login', { username, password })
       if (data.token) setAuthToken(data.token)

@@ -36,10 +36,17 @@ async function onSubmit() {
     await navigateTo('/')
   } catch (e: unknown) {
     const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : ''
-    error.value =
-      msg.includes('Network') || msg.includes('CORS')
-        ? 'Не удалось связаться с сервером. Подождите и попробуйте снова.'
-        : 'Неверный логин или пароль'
+    const status =
+      e && typeof e === 'object' && 'response' in e
+        ? Number((e as { response?: { status?: number } }).response?.status || 0)
+        : 0
+    if (msg.includes('Network') || msg.includes('CORS')) {
+      error.value = 'Не удалось связаться с сервером. Подождите и попробуйте снова.'
+    } else if (status === 400) {
+      error.value = 'Неверный логин или пароль'
+    } else {
+      error.value = 'Не удалось войти. Обновите страницу и попробуйте снова.'
+    }
   } finally {
     loading.value = false
   }
