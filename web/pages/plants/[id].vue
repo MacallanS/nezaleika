@@ -63,6 +63,13 @@
         :src="plant.photo_url"
         :alt="plant.name"
       />
+      <WaterDateSheet
+        v-if="datePrompt"
+        :date="datePrompt"
+        :max="todayIso"
+        @close="datePrompt = ''"
+        @confirm="confirmOverdue"
+      />
 
       <section class="card">
         <h1 class="detail__name">{{ plant.name }}</h1>
@@ -131,6 +138,22 @@
           />
           <AuthRRInputText v-model="form.room" label="Где стоит" placeholder="Кухня, спальня…" />
           <AuthRRInputText v-model="form.note" label="Заметка" />
+          <div class="seasons">
+            <p class="seasons__title">Полив по сезонам</p>
+            <p class="seasons__hint">Пустое поле — как у вида.</p>
+            <label v-for="season in seasonFields" :key="season.key" class="seasons__field">
+              <span>{{ season.label }} <em>у вида {{ speciesInterval(season.key) }}</em></span>
+              <input
+                v-model="form[season.key]"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                max="90"
+                :placeholder="String(speciesInterval(season.key))"
+                :aria-label="season.label"
+              />
+            </label>
+          </div>
           <AuthRRButton type="submit" class="edit__save" :disabled="saving">
             {{ saving ? 'Сохраняем…' : 'Сохранить' }}
           </AuthRRButton>
@@ -145,6 +168,7 @@
 <script setup lang="ts">
 import { AuthRRButton, AuthRRInputText } from 'bibli/shared/ui/rr'
 import HabitHeatmap from '~/components/planner/HabitHeatmap.vue'
+import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import SpeciesPhotoPreview from '~/components/plants/SpeciesPhotoPreview.vue'
 import type { PlantDetail, PlantStats, WateringRecord } from '~/stores/plants'
 import { ensureAuth, getApi } from '~/utils/api'
@@ -176,8 +200,24 @@ const waterings = ref<WateringRecord[]>([])
 const busy = ref(false)
 const saving = ref(false)
 const pastDate = ref('')
+const datePrompt = ref('')
 const todayIso = isoDate(new Date())
-const form = reactive({ name: '', room: '', note: '' })
+type SeasonKey = 'spring_days' | 'summer_days' | 'autumn_days' | 'winter_days'
+const seasonFields: { key: SeasonKey; label: string }[] = [
+  { key: 'spring_days', label: 'Весна' },
+  { key: 'summer_days', label: 'Лето' },
+  { key: 'autumn_days', label: 'Осень' },
+  { key: 'winter_days', label: 'Зима' },
+]
+const form = reactive({
+  name: '',
+  room: '',
+  note: '',
+  spring_days: '',
+  summer_days: '',
+  autumn_days: '',
+  winter_days: '',
+})
 
 const wateredToday = computed(() => waterings.value.some((w) => isoDate(new Date(w.watered_at)) === todayIso))
 
@@ -214,6 +254,34 @@ async function load() {
   form.name = p.name
   form.room = p.room
   form.note = p.note
+  for (const season of seasonFields) {
+    const own = p[season.key]
+    form[season.key] = own == null ? '' : String(own)
+  }
+}
+
+function speciesInterval(key: SeasonKey): number {
+  const species = plant.value?.species_detail
+  if (!species) return 7
+  if (key === 'autumn_days') return species.autumn_days || species.spring_days
+  return species[key]
+}
+
+function seasonPayload(): Record<SeasonKey, number | null> {
+  const payload = {} as Record<SeasonKey, number | null>
+  for (const season of seasonFields) {
+    const raw = String(form[season.key] ?? '').trim()
+    if (!raw) {
+      payload[season.key] = null
+      continue
+    }
+    const n = Number(raw)
+    if (!Number.isInteger(n) || n < 1 || n > 90) {
+      throw new Error(`${season.label}: интервал от 1 до 90 дней`)
+    }
+    payload[season.key] = n === speciesInterval(season.key) ? null : n
+  }
+  return payload
 }
 
 onMounted(() => {
@@ -247,7 +315,16 @@ async function run(fn: () => Promise<unknown>) {
 }
 
 function waterNow() {
+  if (plant.value?.status === 'overdue') {
+    datePrompt.value = todayIso
+    return
+  }
   void run(() => water(id.value))
+}
+
+function confirmOverdue(iso: string) {
+  datePrompt.value = ''
+  void run(() => water(id.value, new Date(`${iso}T12:00:00`).toISOString()))
 }
 
 function waterPast() {
@@ -292,13 +369,15 @@ async function save() {
       name: nickname || plant.value?.species_detail?.name_ru || form.name,
       room: form.room.trim(),
       note: form.note.trim(),
+      ...seasonPayload(),
     })
     plant.value = data
     form.name = data.name
     void plants.refreshAll()
     notify('Сохранено')
-  } catch {
-    notify('Не удалось сохранить', 'error')
+  } catch (e: unknown) {
+    const message = e instanceof Error && e.message.includes('интервал') ? e.message : 'Не удалось сохранить'
+    notify(message, 'error')
   } finally {
     saving.value = false
   }
@@ -570,6 +649,45 @@ function goBack() {
 }
 .edit__save {
   width: 100%;
+}
+.seasons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.seasons__title,
+.seasons__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.seasons__title {
+  font-size: 14px;
+  font-weight: 800;
+}
+.seasons__hint {
+  font-size: 12.5px;
+  color: #7b868c;
+}
+.seasons__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.seasons__field em {
+  font-style: normal;
+  font-weight: 500;
+  color: #7b868c;
+}
+.seasons__field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dfe4e1;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 500;
+  background: #fff;
 }
 .detail__care {
   margin: 14px 0 0;

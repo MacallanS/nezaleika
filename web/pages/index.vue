@@ -44,12 +44,20 @@
       @snooze="onSnooze"
       @open="open"
     />
+    <WaterDateSheet
+      v-if="datePrompt"
+      :date="datePrompt.date"
+      :max="todayIso"
+      @close="datePrompt = null"
+      @confirm="confirmDate"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { AuthRRButton } from 'bibli/shared/ui/rr'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import { buildBoard } from '~/utils/scheduleBoard'
 import { addDays, formatDayMonth, formatWeekday, isoDate, parseIsoDate } from '~/utils/dates'
@@ -59,6 +67,7 @@ const RING = 2 * Math.PI * 18
 const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
 const { isSnoozed, snoozeUntilTomorrow } = useWateringSnooze()
+const datePrompt = ref<{ id: number; date: string } | null>(null)
 const loading = ref(true)
 const loaded = ref(false)
 const snoozeTick = ref(0)
@@ -126,10 +135,21 @@ function onSnooze(id: number) {
   snoozeTick.value++
 }
 
-function onCheck(id: number, iso: string, past: boolean) {
+function onCheck(id: number, iso: string, past: boolean, askDate = false) {
   if (iso > todayIso.value) return
+  if (askDate) {
+    datePrompt.value = { id, date: past && iso <= todayIso.value ? iso : todayIso.value }
+    return
+  }
   if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
   else void water(id)
+}
+
+function confirmDate(iso: string) {
+  const id = datePrompt.value?.id
+  datePrompt.value = null
+  if (id == null) return
+  void water(id, new Date(`${iso}T12:00:00`).toISOString())
 }
 
 function open(id: number) {

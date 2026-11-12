@@ -101,6 +101,10 @@ class UserPlantSerializer(serializers.ModelSerializer):
             'photo_url',
             'room',
             'note',
+            'spring_days',
+            'summer_days',
+            'autumn_days',
+            'winter_days',
             'added_at',
             'status',
             'next_due',
@@ -115,6 +119,13 @@ class UserPlantSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at', 'photo_url', 'category')
         extra_kwargs = {'added_at': {'required': False}}
 
+    def validate(self, attrs):
+        for key in ('spring_days', 'summer_days', 'autumn_days', 'winter_days'):
+            value = attrs.get(key)
+            if value is not None and not 1 <= value <= 90:
+                raise serializers.ValidationError({key: 'Интервал — от 1 до 90 дней.'})
+        return attrs
+
     def get_photo_url(self, obj):
         return plant_photo_url(obj, self.context.get('request'))
 
@@ -128,7 +139,7 @@ class UserPlantSerializer(serializers.ModelSerializer):
         return days_until_due(obj)
 
     def get_season_hint(self, obj):
-        return season_hint(obj.species)
+        return season_hint(obj)
 
     def get_interval_days(self, obj):
         return plant_interval_days(obj)

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from django.utils import timezone
 
 if TYPE_CHECKING:
-    from plants.models import PlantSpecies, UserPlant, WateringEvent
+    from plants.models import UserPlant, WateringEvent
 
 Season = Literal['winter', 'spring', 'summer', 'autumn']
 Status = Literal['ok', 'due_soon', 'due_today', 'overdue']
@@ -53,19 +53,29 @@ def last_watering_at(plant: UserPlant) -> datetime:
     return plant.added_at
 
 
-def interval_days(species: PlantSpecies, on_date: date | None = None) -> int:
+def effective_interval(plant: UserPlant, on_date: date | None = None) -> int:
+    """Plant override for the season, otherwise the species interval."""
     d = on_date or timezone.localdate()
-    return species.interval_for_season(season_for_date(d))
+    season = season_for_date(d)
+    override = {
+        'spring': plant.spring_days,
+        'summer': plant.summer_days,
+        'autumn': plant.autumn_days,
+        'winter': plant.winter_days,
+    }[season]
+    if override:
+        return int(override)
+    return plant.species.interval_for_season(season)
 
 
 def plant_interval_days(plant: UserPlant) -> int:
     """Interval used for next_due — season of the last watering day (same as next_due_at)."""
-    return interval_days(plant.species, local_date(last_watering_at(plant)))
+    return effective_interval(plant, local_date(last_watering_at(plant)))
 
 
 def next_due_at(plant: UserPlant, on_date: date | None = None) -> date:
     last_local_date = local_date(last_watering_at(plant))
-    days = interval_days(plant.species, last_local_date)
+    days = effective_interval(plant, last_local_date)
     return last_local_date + timedelta(days=days)
 
 
@@ -85,10 +95,10 @@ def watering_status(plant: UserPlant, on_date: date | None = None) -> Status:
     return 'ok'
 
 
-def season_hint(species: PlantSpecies, on_date: date | None = None) -> str:
+def season_hint(plant: UserPlant, on_date: date | None = None) -> str:
     d = on_date or timezone.localdate()
     season = season_for_date(d)
-    n = species.interval_for_season(season)
+    n = effective_interval(plant, d)
     return f'{SEASON_LABELS[season]} режим: раз в {n} дн.'
 
 
@@ -105,13 +115,13 @@ def planned_dates(plant: UserPlant, start: date, end: date, today: date | None =
     due = next_due_at(plant)
     cursor = due if due >= today else today
     if due < today:
-        cursor = today + timedelta(days=interval_days(plant.species, today))
+        cursor = today + timedelta(days=effective_interval(plant, today))
     out: list[date] = []
     guard = 0
     while cursor <= end and guard < 400:
         if cursor >= start:
             out.append(cursor)
-        cursor = cursor + timedelta(days=interval_days(plant.species, cursor))
+        cursor = cursor + timedelta(days=effective_interval(plant, cursor))
         guard += 1
     return out
 
@@ -140,7 +150,7 @@ def plant_stats(plant: UserPlant, days: int = 84, today: date | None = None) -> 
     prev = local_date(plant.added_at)
     for w in events:
         d = local_date(w.watered_at)
-        due = prev + timedelta(days=interval_days(plant.species, prev))
+        due = prev + timedelta(days=effective_interval(plant, prev))
         on_time_flags.append(d <= due)
         prev = d
 
@@ -158,5 +168,5 @@ def plant_stats(plant: UserPlant, days: int = 84, today: date | None = None) -> 
         'streak': streak,
         'on_time_rate': rate,
         'total': len(events),
-        'interval_days': interval_days(plant.species, today),
+        'interval_days': effective_interval(plant, today),
     }

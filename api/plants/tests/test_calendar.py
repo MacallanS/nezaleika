@@ -164,6 +164,20 @@ class CalendarApiTests(ApiTestBase):
         plants = self.client.get('/api/agenda').data['plants']
         self.assertEqual(plants[str(p.id)]['category'], 'other')
 
+    def test_plant_season_override_reschedules(self):
+        p = self.plant(TODAY - timedelta(days=7))
+        before = self.client.get('/api/agenda').data
+        self.assertEqual(before['sections']['today'][0]['plant_id'], p.id)
+        res = self.client.patch(f'/api/plants/{p.id}/', {'autumn_days': 3}, format='json')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['autumn_days'], 3)
+        self.assertEqual(res.data['interval_days'], 3)
+        self.assertIn('раз в 3', res.data['season_hint'])
+        agenda = self.client.get('/api/agenda').data
+        self.assertEqual(agenda['plants'][str(p.id)]['interval_days'], 3)
+        self.assertEqual([i['plant_id'] for i in agenda['sections']['overdue']], [p.id])
+        self.assertEqual(agenda['sections']['today'], [])
+
     def test_interval_days_matches_last_watering_season(self):
         # Summer interval 5, autumn 7. Last watered in summer → interval_days=5 even if today is autumn.
         summer_day = date(2026, 8, 20)

@@ -58,6 +58,18 @@ class UserPlant(models.Model):
     photo_data = models.TextField(blank=True, help_text='Сжатое фото как data URL; диск Render не постоянный')
     room = models.CharField(max_length=120, blank=True)
     note = models.TextField(blank=True)
+    spring_days = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Свой интервал весной; пусто — как у вида'
+    )
+    summer_days = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Свой интервал летом; пусто — как у вида'
+    )
+    autumn_days = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Свой интервал осенью; пусто — как у вида'
+    )
+    winter_days = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Свой интервал зимой; пусто — как у вида'
+    )
     added_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

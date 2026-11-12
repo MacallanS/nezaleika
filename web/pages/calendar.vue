@@ -66,7 +66,7 @@
 
       <div class="cal__agenda">
         <div class="cal__day-head">
-          <h2 class="cal__day-title">{{ mode === 'week' ? 'Эта неделя' : 'Поливы месяца' }}</h2>
+          <h2 class="cal__day-title">{{ selectedTitle }}</h2>
         </div>
 
         <ServerWakingHint :show="slowApi" />
@@ -75,14 +75,21 @@
           v-else-if="plants.calendar"
           :days="days"
           :plants="plants.calendar.plants"
-          :from="agendaFrom"
-          :to="agendaTo"
+          :from="selected"
+          :to="selected"
           :today="todayIso"
           :highlight="selected"
           :pending="plants.pending"
           @check="onCheck"
           @uncheck="unwater"
           @open="open"
+        />
+        <WaterDateSheet
+          v-if="datePrompt"
+          :date="datePrompt.date"
+          :max="todayIso"
+          @close="datePrompt = null"
+          @confirm="confirmDate"
         />
       </div>
     </div>
@@ -92,9 +99,10 @@
 <script setup lang="ts">
 import MonthGrid from '~/components/planner/MonthGrid.vue'
 import ScheduleAgenda from '~/components/planner/ScheduleAgenda.vue'
+import WaterDateSheet from '~/components/planner/WaterDateSheet.vue'
 import ServerWakingHint from '~/components/shell/ServerWakingHint.vue'
 import WeekStrip from '~/components/planner/WeekStrip.vue'
-import { addDays, formatMonthYear, isoDate, parseIsoDate, startOfWeek } from '~/utils/dates'
+import { addDays, formatDayMonth, formatMonthYear, formatWeekday, isoDate, parseIsoDate, relativeDayLabel, startOfWeek } from '~/utils/dates'
 
 const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
@@ -105,6 +113,7 @@ const mode = ref<'month' | 'week'>('month')
 const selected = ref(isoDate(now))
 const month = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 const weekStart = ref(startOfWeek(now))
+const datePrompt = ref<{ id: number; date: string } | null>(null)
 const loading = ref(true)
 const { slow: slowApi } = useSlowApiHint(loading)
 
@@ -127,11 +136,10 @@ const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
   title: 'Календарь',
 }))
 
-const agendaFrom = computed(() => (mode.value === 'week' ? range.value.from : isoDate(month.value)))
-const agendaTo = computed(() => {
-  if (mode.value === 'week') return range.value.to
-  const m = month.value
-  return isoDate(new Date(m.getFullYear(), m.getMonth() + 1, 0))
+const selectedTitle = computed(() => {
+  const rel = relativeDayLabel(selected.value, todayIso.value)
+  if (rel === 'Сегодня' || rel === 'Завтра' || rel === 'Вчера') return rel
+  return `${formatDayMonth(selected.value)}, ${formatWeekday(selected.value).toLowerCase()}`
 })
 
 function select(iso: string) {
@@ -153,6 +161,10 @@ function shift(delta: number) {
     return
   }
   month.value = new Date(month.value.getFullYear(), month.value.getMonth() + delta, 1)
+  const sel = parseIsoDate(selected.value)
+  if (sel.getFullYear() !== month.value.getFullYear() || sel.getMonth() !== month.value.getMonth()) {
+    selected.value = isoDate(month.value)
+  }
 }
 
 function goToday() {
@@ -178,10 +190,21 @@ async function load() {
 watch(range, load)
 onMounted(load)
 
-function onCheck(id: number, iso: string, past: boolean) {
+function onCheck(id: number, iso: string, past: boolean, askDate = false) {
   if (iso > todayIso.value) return
+  if (askDate) {
+    datePrompt.value = { id, date: past && iso <= todayIso.value ? iso : todayIso.value }
+    return
+  }
   if (past) void water(id, new Date(`${iso}T12:00:00`).toISOString())
   else void water(id)
+}
+
+function confirmDate(iso: string) {
+  const id = datePrompt.value?.id
+  datePrompt.value = null
+  if (id == null) return
+  void water(id, new Date(`${iso}T12:00:00`).toISOString())
 }
 
 function open(id: number) {

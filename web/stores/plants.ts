@@ -63,6 +63,10 @@ export interface PlantDetail {
   days_until: number
   season_hint: string
   interval_days: number
+  spring_days: number | null
+  summer_days: number | null
+  autumn_days: number | null
+  winter_days: number | null
   added_at: string
   last_watered_at: string
   last_watered_by: string
@@ -72,6 +76,10 @@ export interface PlantDetail {
     name_lat: string
     category: string
     care_hint: string
+    spring_days: number
+    summer_days: number
+    autumn_days: number | null
+    winter_days: number
   }
 }
 
