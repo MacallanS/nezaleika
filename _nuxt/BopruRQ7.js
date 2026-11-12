@@ -1,0 +1,1 @@
+import{ai as s,aj as e,ak as t}from"./D_eT0DjN.js";function u(){return{add(o){t(o)},removeGroup(o){e(o)},removeAllGroups(){s()}}}function d(o,a="success",r){u().add({severity:a,summary:o,detail:r,life:a==="error"?5e3:3200})}export{d as n};
