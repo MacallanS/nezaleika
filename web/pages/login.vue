@@ -1,6 +1,7 @@
 <template>
   <div class="login-page">
     <div class="login-card">
+      <img class="login-logo" :src="logoUrl" width="72" height="72" alt="" />
       <h1>Незалейка</h1>
       <p class="sub">Поливай вовремя — не залей</p>
       <form @submit.prevent="onSubmit">
@@ -20,6 +21,7 @@ import { AuthRRButton, AuthRRInputPassword, AuthRRInputText } from 'bibli/shared
 
 definePageMeta({ layout: false, middleware: [] })
 
+const logoUrl = useNezaleikaLogoUrl()
 const auth = useAuthStore()
 const username = ref('')
 const password = ref('')
@@ -67,13 +69,22 @@ async function onSubmit() {
   background: #fff;
   box-shadow: 0 12px 40px rgba(46, 125, 50, 0.12);
 }
+.login-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 18px;
+}
 h1 {
   margin: 0;
   color: #2e7d32;
+  text-align: center;
 }
 .sub {
   margin: 8px 0 24px;
   color: #666;
+  text-align: center;
 }
 form {
   display: flex;

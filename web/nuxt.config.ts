@@ -53,7 +53,7 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-title', content: 'Незалейка' },
       ],
       link: [
-        { rel: 'icon', href: `${basePath}icons/leaf.svg`, type: 'image/svg+xml' },
+        { rel: 'icon', href: `${basePath}icons/icon-192.png`, type: 'image/png', sizes: '192x192' },
         { rel: 'apple-touch-icon', href: `${basePath}icons/apple-touch.png` },
         { rel: 'manifest', href: `${basePath}manifest.webmanifest` },
         { rel: 'dns-prefetch', href: 'https://nezaleika.up.railway.app' },
