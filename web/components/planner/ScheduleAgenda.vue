@@ -31,7 +31,11 @@
       class="day"
       :class="{ 'day--on': group.iso === highlight }"
     >
-      <header class="day__head" :class="{ 'day__head--today': group.iso === today }">
+      <header
+        v-if="!singleDay"
+        class="day__head"
+        :class="{ 'day__head--today': group.iso === today }"
+      >
         <h2>{{ group.title }}</h2>
         <span v-if="group.aside" class="day__count">{{ group.aside }}</span>
       </header>
@@ -90,6 +94,7 @@ defineEmits<{
 }>()
 
 const undo = useUndoState()
+const singleDay = computed(() => props.from === props.to)
 
 const board = computed(() => {
   void undo.value
