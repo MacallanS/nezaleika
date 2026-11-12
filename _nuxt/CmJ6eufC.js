@@ -1,1 +1,0 @@
-import{aj as s,ak as e,al as t}from"./DZ_lCFdD.js";function u(){return{add(o){t(o)},removeGroup(o){e(o)},removeAllGroups(){s()}}}function n(o,a="success",r){u().add({severity:a,summary:o,detail:r,life:a==="error"?5e3:3200})}export{n};
