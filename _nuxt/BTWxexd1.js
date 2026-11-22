@@ -1,0 +1,1 @@
+import{ak as s,al as e,am as t}from"./DURgT0m7.js";function u(){return{add(o){t(o)},removeGroup(o){e(o)},removeAllGroups(){s()}}}function n(o,a="success",r){u().add({severity:a,summary:o,detail:r,life:a==="error"?5e3:3200})}export{n};
