@@ -1,0 +1,1 @@
+import{b as u}from"./Ci7DQqZM.js";function i(){const e=u("nz-notif-panel-open",()=>!1);function n(){e.value=!0}function o(){e.value=!1}function t(){e.value=!e.value}return{open:e,show:n,hide:o,toggle:t}}export{i as u};
