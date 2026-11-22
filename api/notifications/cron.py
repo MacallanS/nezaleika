@@ -49,22 +49,21 @@ def urgent_plants(*, on_date: date | None = None, exclude_plant_ids: set[int] | 
 def today_payload(plants, *, on_date: date | None = None) -> dict:
     if not plants:
         return {
-            'title': 'Незалейка',
-            'body': 'Сегодня всё полито. Загляните в календарь.',
+            'title': 'Сегодня всё полито',
+            'body': 'Можно заглянуть в календарь на завтра.',
             'url': '/',
             'tag': 'nezaleika-today',
         }
     names = ', '.join(p.name for p in plants[:MAX_NAMES])
     extra = len(plants) - MAX_NAMES
     if extra > 0:
-        names += f' +{extra}'
+        names += f' и ещё {extra}'
     overdue = sum(1 for p in plants if watering_status(p, on_date) == 'overdue')
-    title = f'Сегодня полить: {len(plants)}'
-    if overdue:
-        title += f' (просрочено {overdue})'
+    title = f'Сегодня надо полить {names}'
+    body = f'Просрочено: {overdue}' if overdue else 'Откройте, чтобы отметить полив.'
     return {
         'title': title,
-        'body': names,
+        'body': body,
         'url': '/',
         'tag': 'nezaleika-today',
         'plant_ids': [p.id for p in plants[:10]],

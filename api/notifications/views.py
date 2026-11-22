@@ -141,8 +141,8 @@ class PushTestView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             payload = {
-                'title': 'Незалейка',
-                'body': 'Тестовое уведомление — всё работает!',
+                'title': 'Сегодня надо полить тестовое растение',
+                'body': 'Если видите это — push работает.',
                 'url': '/',
                 'tag': 'nezaleika-test',
             }
