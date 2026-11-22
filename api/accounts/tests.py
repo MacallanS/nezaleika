@@ -1,3 +1,4 @@
+from datetime import date, time
 from io import BytesIO
 from unittest import mock
 
@@ -7,6 +8,8 @@ from django.test import TestCase
 from PIL import Image
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
+
+from notifications.models import NotificationPrefs
 
 
 def jpeg_bytes(color='green') -> bytes:
@@ -44,3 +47,18 @@ class ProfileApiTests(TestCase):
         img = anon.get(res.data['avatar_url'])
         self.assertEqual(img.status_code, 200)
         self.assertEqual(img['Content-Type'], 'image/jpeg')
+
+    def test_changing_remind_time_clears_last_sent_on(self):
+        prefs, _ = NotificationPrefs.objects.get_or_create(user=self.user)
+        prefs.remind_time = time(9, 0)
+        prefs.last_sent_on = date(2026, 11, 22)
+        prefs.save(update_fields=['remind_time', 'last_sent_on'])
+        res = self.client.patch(
+            '/api/me/notification-prefs',
+            {'remind_time': '17:02'},
+            format='json',
+        )
+        self.assertEqual(res.status_code, 200)
+        prefs.refresh_from_db()
+        self.assertEqual(prefs.remind_time, time(17, 2))
+        self.assertIsNone(prefs.last_sent_on)

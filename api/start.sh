@@ -6,11 +6,11 @@ python manage.py collectstatic --noinput
 
 # GitHub Actions cron is unreliable (billing / old host). Run reminders in-process.
 (
-  # Give gunicorn a moment to bind, then tick every 15 minutes.
+  # Give gunicorn a moment to bind, then tick every minute (exact remind_time).
   sleep 30
   while true; do
     python manage.py send_scheduled_push || true
-    sleep 900
+    sleep 60
   done
 ) &
 

@@ -148,7 +148,14 @@ class NotificationPrefsView(APIView):
 
     def patch(self, request):
         prefs, _ = NotificationPrefs.objects.get_or_create(user=request.user)
+        old_remind = prefs.remind_time
         ser = NotificationPrefsSerializer(prefs, data=request.data, partial=True)
         ser.is_valid(raise_exception=True)
         ser.save()
-        return Response(ser.data)
+        # Changing the clock should allow another send today (otherwise the day
+        # is already burned by an earlier tick after the previous remind_time).
+        prefs.refresh_from_db()
+        if prefs.remind_time != old_remind and prefs.last_sent_on is not None:
+            prefs.last_sent_on = None
+            prefs.save(update_fields=['last_sent_on'])
+        return Response(NotificationPrefsSerializer(prefs).data)

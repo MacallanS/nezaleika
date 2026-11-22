@@ -29,7 +29,7 @@ from plants.queries import household_plants_queryset
 logger = logging.getLogger(__name__)
 
 _TICK_CACHE_KEY = 'nz_push_tick_at'
-_TICK_MIN_INTERVAL_SEC = 2 * 60
+_TICK_MIN_INTERVAL_SEC = 55  # align with start.sh ~1m loop
 _tick_lock = threading.Lock()
 
 

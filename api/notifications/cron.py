@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -8,6 +9,8 @@ from notifications.models import NotificationPrefs, PlantSnooze, PushSubscriptio
 from notifications.push import send_web_push
 from plants.queries import household_plants_queryset
 from plants.services.schedule import SEASON_LABELS, feed_sort_key, watering_status
+
+logger = logging.getLogger(__name__)
 
 MAX_NAMES = 3
 
@@ -158,12 +161,14 @@ def send_scheduled_push(now: datetime | None = None) -> int:
             local = now_utc.astimezone(tz)
             local_day = local.date()
             if prefs.last_sent_on == local_day:
+                logger.info('push skip user=%s reason=already_sent day=%s', prefs.user_id, local_day)
                 continue
             remind_at = datetime.combine(local_day, prefs.remind_time, tzinfo=tz)
             if local < remind_at:
                 continue
             subs = list(PushSubscription.objects.filter(user=prefs.user))
             if not subs:
+                logger.info('push skip user=%s reason=no_subscription', prefs.user_id)
                 continue
 
             snoozed = active_snooze_plant_ids(prefs.user_id, now_utc)
@@ -178,6 +183,7 @@ def send_scheduled_push(now: datetime | None = None) -> int:
 
             if prefs.only_urgent and not urgent:
                 # Do not burn the day: retry until something is urgent or the day ends.
+                logger.info('push skip user=%s reason=only_urgent_empty', prefs.user_id)
                 continue
 
             previous = prefs.last_sent_on

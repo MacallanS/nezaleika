@@ -25,6 +25,8 @@ self.addEventListener('push', (event) => {
       badge: scopedUrl('icons/icon-192.png'),
       tag: payload.tag || 'nezaleika-today',
       renotify: true,
+      silent: false,
+      vibrate: [200, 100, 200],
       image: payload.image || undefined,
       actions,
       data: {
