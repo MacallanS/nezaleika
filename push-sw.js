@@ -3,7 +3,7 @@ function scopedUrl(path) {
 }
 
 self.addEventListener('push', (event) => {
-  let payload = { title: 'Незалейка', body: '', url: '/', image: null, tag: 'nezaleika-today' }
+  let payload = { title: 'Сегодня надо полить', body: '', url: '/', image: null, tag: 'nezaleika-today' }
   try {
     if (event.data) {
       payload = { ...payload, ...event.data.json() }
