@@ -68,14 +68,17 @@ class PushSubscribeView(APIView):
         ser = PushSubscribeSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         data = ser.validated_data
+        endpoint = data['endpoint']
         PushSubscription.objects.update_or_create(
-            endpoint=data['endpoint'],
+            endpoint=endpoint,
             defaults={
                 'user': request.user,
                 'p256dh': data['keys']['p256dh'],
                 'auth': data['keys']['auth'],
             },
         )
+        # Drop stale endpoints for this user so reconnect does not pile up dead subs.
+        PushSubscription.objects.filter(user=request.user).exclude(endpoint=endpoint).delete()
         return Response({'ok': True})
 
     def delete(self, request):
@@ -114,6 +117,10 @@ def _push_test_failure_detail(results) -> str:
         return 'Подписка устарела. Нажмите «Подключить push» ещё раз — сносить PWA не нужно.'
     if statuses:
         return f'Не удалось доставить (HTTP {statuses[0]}). Нажмите «Подключить push» и повторите тест.'
+    unexpected = next((e for e in errors if e.startswith('unexpected:')), '')
+    if unexpected:
+        short = unexpected.split(':', 2)[-1][:120]
+        return f'Ошибка отправки push: {short}. Нажмите «Переподключить push».'
     return 'Не удалось доставить. Нажмите «Подключить push» ещё раз и повторите тест.'
 
 

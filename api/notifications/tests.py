@@ -135,6 +135,19 @@ class VapidEnvTests(TestCase):
         self.assertTrue(pem.startswith('-----BEGIN'))
         self.assertEqual(normalize_vapid_public_key("'BKpublic\\n'"), 'BKpublic')
 
+    def test_pywebpush_loads_pem_via_from_pem_not_from_string(self):
+        from config.vapid_env import normalize_vapid_private_key
+        from notifications.push import _vapid_instance
+        from py_vapid import Vapid
+
+        generated = Vapid()
+        generated.generate_keys()
+        # Simulate Railway Raw Editor: literal \n inside one-line env value.
+        raw = generated.private_pem().decode().replace('\n', '\\n')
+        pem = normalize_vapid_private_key(f'"{raw}"')
+        with self.settings(VAPID_PRIVATE_KEY=pem, VAPID_PUBLIC_KEY='x'):
+            self.assertIsNotNone(_vapid_instance())
+
 
 @mock.patch('notifications.cron.send_web_push', return_value=True)
 class SeasonPushTests(TestCase):

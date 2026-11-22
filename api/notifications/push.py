@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 
 from django.conf import settings
+from py_vapid import Vapid
 from pywebpush import WebPushException, webpush
 
 from config.vapid_env import vapid_private_key_loads
@@ -20,11 +21,26 @@ class PushSendResult:
         return self.ok
 
 
+def _vapid_instance() -> Vapid | None:
+    """pywebpush's Vapid.from_string does NOT accept PEM; use from_pem for PEM keys."""
+    pem = settings.VAPID_PRIVATE_KEY
+    if not pem:
+        return None
+    try:
+        if 'BEGIN' in pem:
+            return Vapid.from_pem(pem.encode('utf-8'))
+        return Vapid.from_string(pem)
+    except Exception:
+        logger.exception('failed to load VAPID private key for pywebpush')
+        return None
+
+
 def push_configured() -> bool:
     return bool(
         settings.VAPID_PUBLIC_KEY
         and settings.VAPID_PRIVATE_KEY
         and vapid_private_key_loads(settings.VAPID_PRIVATE_KEY)
+        and _vapid_instance() is not None
     )
 
 
@@ -41,8 +57,9 @@ def send_web_push(subscription, payload: dict) -> PushSendResult:
     if not settings.VAPID_PRIVATE_KEY or not settings.VAPID_PUBLIC_KEY:
         logger.warning('VAPID keys not configured, skip push')
         return PushSendResult(ok=False, error='vapid_missing')
-    if not vapid_private_key_loads(settings.VAPID_PRIVATE_KEY):
-        logger.warning('VAPID private key is present but invalid PEM')
+    vapid = _vapid_instance()
+    if vapid is None:
+        logger.warning('VAPID private key is present but not usable by pywebpush')
         return PushSendResult(ok=False, error='vapid_invalid')
 
     sub_info = {
@@ -54,7 +71,7 @@ def send_web_push(subscription, payload: dict) -> PushSendResult:
         webpush(
             subscription_info=sub_info,
             data=data,
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_private_key=vapid,
             vapid_claims=vapid_claims(),
         )
         return PushSendResult(ok=True)
@@ -78,4 +95,4 @@ def send_web_push(subscription, payload: dict) -> PushSendResult:
         return PushSendResult(ok=False, status=status_code, error='delivery_failed')
     except Exception as ex:
         logger.exception('Web push unexpected failure')
-        return PushSendResult(ok=False, error=f'unexpected:{type(ex).__name__}')
+        return PushSendResult(ok=False, error=f'unexpected:{type(ex).__name__}:{ex}')
