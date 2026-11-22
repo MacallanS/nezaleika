@@ -1,0 +1,24 @@
+from django.conf import settings
+from django.core.management.base import BaseCommand
+
+from notifications.push import push_configured
+from config.vapid_env import vapid_private_key_loads
+
+
+class Command(BaseCommand):
+    help = 'Validate VAPID env keys (no push sent).'
+
+    def handle(self, *args, **options):
+        pub = bool(settings.VAPID_PUBLIC_KEY)
+        priv_raw = bool(settings.VAPID_PRIVATE_KEY)
+        pem_ok = vapid_private_key_loads(settings.VAPID_PRIVATE_KEY)
+        configured = push_configured()
+        self.stdout.write(f'public_key_set={pub}')
+        self.stdout.write(f'private_key_set={priv_raw}')
+        self.stdout.write(f'private_pem_loads={pem_ok}')
+        self.stdout.write(f'push_configured={configured}')
+        if configured:
+            self.stdout.write(self.style.SUCCESS('VAPID ok'))
+        else:
+            self.stdout.write(self.style.ERROR('VAPID not ready'))
+            raise SystemExit(1)

@@ -103,21 +103,35 @@ class PushStatusView(APIView):
         )
 
 
+def _push_test_failure_detail(results) -> str:
+    errors = [r.error for r in results if not r.ok]
+    statuses = [r.status for r in results if not r.ok and r.status]
+    if any(e == 'vapid_missing' for e in errors) or any(e == 'vapid_invalid' for e in errors):
+        return 'Ошибка VAPID на сервере. Ключ не читается — проверьте Variables на Railway.'
+    if any(e == 'vapid_rejected' for e in errors) or any(s in (401, 403) for s in statuses):
+        return 'Push-сервис отклонил VAPID. Нажмите «Подключить push» ещё раз (новая подписка).'
+    if any(e == 'subscription_gone' for e in errors) or any(s in (404, 410) for s in statuses):
+        return 'Подписка устарела. Нажмите «Подключить push» ещё раз — сносить PWA не нужно.'
+    if statuses:
+        return f'Не удалось доставить (HTTP {statuses[0]}). Нажмите «Подключить push» и повторите тест.'
+    return 'Не удалось доставить. Нажмите «Подключить push» ещё раз и повторите тест.'
+
+
 class PushTestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
+            if not push_configured():
+                return Response(
+                    {'detail': 'Push не настроен на сервере (VAPID).'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             subs = list(PushSubscription.objects.filter(user=request.user))
             if not subs:
                 return Response(
                     {'detail': 'Нет push-подписки. Нажмите «Подключить на этом телефоне».'},
                     status=status.HTTP_400_BAD_REQUEST,
-                )
-            if not push_configured():
-                return Response(
-                    {'detail': 'Push не настроен на сервере (VAPID).'},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
             payload = {
                 'title': 'Незалейка',
@@ -125,13 +139,11 @@ class PushTestView(APIView):
                 'url': '/',
                 'tag': 'nezaleika-test',
             }
-            sent = sum(1 for sub in subs if send_web_push(sub, payload))
+            results = [send_web_push(sub, payload) for sub in subs]
+            sent = sum(1 for r in results if r.ok)
             if not sent:
                 return Response(
-                    {
-                        'detail': 'Не удалось доставить. Удалите приложение с экрана «Домой», '
-                        'добавьте снова и подключите push.'
-                    },
+                    {'detail': _push_test_failure_detail(results)},
                     status=status.HTTP_502_BAD_GATEWAY,
                 )
             return Response({'ok': True, 'sent': sent})

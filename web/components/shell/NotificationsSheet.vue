@@ -89,10 +89,18 @@
           <span class="nz-notif__dot" aria-hidden="true" />
           <span>{{ pushStatusText }}</span>
         </div>
-        <AuthRRButton v-if="pushSupported && !pushReady" @click="onEnable">
-          Подключить на этом телефоне
+        <AuthRRButton v-if="pushSupported" :disabled="pushBusy" @click="onEnable">
+          {{
+            pushBusy
+              ? 'Подключаем…'
+              : pushReady
+                ? 'Переподключить push'
+                : 'Подключить на этом телефоне'
+          }}
         </AuthRRButton>
-        <AuthRRButton variant="neutral-secondary" @click="onTest">Проверить уведомление</AuthRRButton>
+        <AuthRRButton variant="neutral-secondary" :disabled="pushBusy" @click="onTest">
+          Проверить уведомление
+        </AuthRRButton>
         <p class="nz-hint">{{ pushHint }}</p>
       </section>
     </div>
@@ -117,12 +125,15 @@ const {
 } = useWebPush()
 const pushReady = ref(false)
 const pushBlocked = ref(false)
+const pushBusy = ref(false)
 const pushStatusText = ref('Проверяем push…')
 const pushHint = ref('На iPhone сначала добавьте приложение на экран «Домой».')
 
 function applyPushStatus(st: Awaited<ReturnType<typeof refreshStatus>>) {
-  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
+  const serverN = st.serverSubscriptions
+  pushReady.value = st.subscribed && (serverN == null || serverN > 0)
   pushBlocked.value = Boolean(isIosSafari() && !st.standalone)
+  const serverLabel = serverN == null ? '' : ` · на сервере: ${serverN}`
   if (!st.supported) {
     pushStatusText.value = 'Браузер не поддерживает push'
     pushHint.value = 'Откройте Незалейку в Safari и добавьте на экран «Домой».'
@@ -133,12 +144,14 @@ function applyPushStatus(st: Awaited<ReturnType<typeof refreshStatus>>) {
     pushStatusText.value = 'Сервер push не настроен'
     pushHint.value = 'На сервере нет VAPID-ключей.'
   } else if (pushReady.value) {
-    pushStatusText.value = 'Push на этом телефоне включён'
-    pushHint.value = `Напоминание около ${prefs.value.remind_time}. Тест уйдёт в шторку сразу.`
+    pushStatusText.value = `Push включён${serverLabel}`
+    pushHint.value = `Напоминание около ${prefs.value.remind_time}. «Проверить» сначала обновит подписку.`
   } else if (st.permission === 'denied') {
     pushStatusText.value = 'Уведомления запрещены в системе'
-    pushHint.value = 'Разрешите уведомления для Незалейки в настройках телефона.'
-  } else if (st.subscribed && st.serverSubscriptions === 0) {
+    pushHint.value = isIosSafari()
+      ? 'Разрешите уведомления. Если диалог не появляется — удалите иконку с «Домой» и добавьте снова.'
+      : 'Разрешите уведомления для Незалейки в настройках телефона.'
+  } else if (st.subscribed && serverN === 0) {
     pushStatusText.value = 'Подписка на телефоне есть, на сервере нет'
     pushHint.value = 'Нажмите «Подключить» ещё раз — восстановим связь с сервером.'
   } else {
@@ -190,22 +203,43 @@ async function onToggleEnabled() {
 }
 
 async function onEnable() {
-  const result = await subscribe()
-  if (result.ok) {
+  if (pushBusy.value) return
+  pushBusy.value = true
+  try {
+    const result = await subscribe()
+    if (!result.ok) {
+      notify(result.detail, 'warn')
+      return
+    }
     prefs.value.enabled = true
     await onSave()
-    notify('Напоминания подключены')
-  } else {
-    notify(result.detail, 'warn')
+    const test = await sendTest()
+    if (test.ok) notify('Подключено — тестовое уведомление отправлено')
+    else notify(test.detail || 'Подписка есть, но тест не дошёл', 'warn')
+  } finally {
+    pushBusy.value = false
+    applyPushStatus(await refreshStatus())
   }
-  applyPushStatus(await refreshStatus())
 }
 
 async function onTest() {
-  const result = await sendTest()
-  if (result.ok) notify('Проверочное уведомление отправлено — смотрите шторку')
-  else notify(result.detail || 'Сначала подключите push', 'warn')
-  applyPushStatus(await refreshStatus())
+  if (pushBusy.value) return
+  pushBusy.value = true
+  try {
+    const connected = await subscribe()
+    if (!connected.ok) {
+      notify(connected.detail, 'warn')
+      return
+    }
+    prefs.value.enabled = true
+    await onSave()
+    const result = await sendTest()
+    if (result.ok) notify('Проверочное уведомление отправлено — смотрите шторку')
+    else notify(result.detail || 'Сначала подключите push', 'warn')
+  } finally {
+    pushBusy.value = false
+    applyPushStatus(await refreshStatus())
+  }
 }
 
 function openPlant(id: number) {

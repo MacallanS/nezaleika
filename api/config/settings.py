@@ -188,9 +188,15 @@ if not DEBUG:
 
 PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', 'http://127.0.0.1:3000').rstrip('/')
 
-VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
-VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
-VAPID_CLAIMS_EMAIL = os.environ.get('VAPID_CLAIMS_EMAIL', 'mailto:admin@nezaleika.local')
+from config.vapid_env import (  # noqa: E402
+    normalize_vapid_private_key,
+    normalize_vapid_public_key,
+    strip_env_quotes,
+)
+
+VAPID_PRIVATE_KEY = normalize_vapid_private_key(os.environ.get('VAPID_PRIVATE_KEY', ''))
+VAPID_PUBLIC_KEY = normalize_vapid_public_key(os.environ.get('VAPID_PUBLIC_KEY', ''))
+VAPID_CLAIMS_EMAIL = strip_env_quotes(os.environ.get('VAPID_CLAIMS_EMAIL', 'mailto:admin@nezaleika.local'))
 CRON_SECRET = os.environ.get('CRON_SECRET', '')
 
 CRONJOBS = [

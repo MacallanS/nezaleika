@@ -97,10 +97,17 @@ export function useWebPush() {
     }
   }
 
+  /**
+   * Always drop the local subscription and create a fresh one with the current
+   * server VAPID public key, then POST it to the API.
+   */
   async function subscribe(): Promise<PushSubscribeResult> {
     if (!supported) {
       if (isIosSafari() && !isStandalone()) {
-        return { ok: false, detail: 'На iPhone: Поделиться → На экран «Домой», откройте иконку, затем подключите push.' }
+        return {
+          ok: false,
+          detail: 'На iPhone: Поделиться → На экран «Домой», откройте иконку, затем подключите push.',
+        }
       }
       return { ok: false, detail: 'Этот браузер не поддерживает push-уведомления.' }
     }
@@ -114,21 +121,29 @@ export function useWebPush() {
     }
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
+      if (permission === 'denied' && isIosSafari()) {
+        return {
+          ok: false,
+          detail:
+            'Уведомления запрещены. На iPhone: удалите иконку с «Домой», добавьте снова и разрешите уведомления.',
+        }
+      }
       return { ok: false, detail: 'Разрешите уведомления в настройках телефона для Незалейки.' }
     }
     try {
       const reg = await navigator.serviceWorker.ready
-      const options = {
+      const existing = await reg.pushManager.getSubscription()
+      if (existing) {
+        try {
+          await existing.unsubscribe()
+        } catch {
+          /* continue to fresh subscribe */
+        }
+      }
+      const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(data.publicKey),
-      }
-      let sub: PushSubscription
-      try {
-        sub = await reg.pushManager.subscribe(options)
-      } catch {
-        await (await reg.pushManager.getSubscription())?.unsubscribe()
-        sub = await reg.pushManager.subscribe(options)
-      }
+      })
       await postSubscription(sub)
       return { ok: true }
     } catch (e) {
@@ -173,6 +188,13 @@ export function useWebPush() {
     }
   }
 
+  /** Fresh subscribe with current VAPID, then POST /api/push/test. */
+  async function ensureFreshAndTest(): Promise<PushSubscribeResult | { ok: true } | { ok: false; detail: string }> {
+    const connected = await subscribe()
+    if (!connected.ok) return connected
+    return sendTest()
+  }
+
   return {
     supported,
     isIosSafari,
@@ -181,6 +203,7 @@ export function useWebPush() {
     unsubscribe,
     healSubscription,
     sendTest,
+    ensureFreshAndTest,
     refreshStatus,
     getLocalSubscription,
   }

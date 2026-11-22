@@ -93,11 +93,47 @@ class CronEndpointTests(TestCase):
 class PushTestViewTests(TestCase):
     @override_settings(VAPID_PRIVATE_KEY='', VAPID_PUBLIC_KEY='')
     def test_reports_missing_server_keys(self):
-        user = get_user_model().objects.create_user('Yana', password='x')
+        user = get_user_model().objects.create_user('YanaPushKeys', password='x')
         PushSubscription.objects.create(user=user, endpoint='https://push/1', p256dh='k', auth='a')
         client = APIClient()
         client.force_authenticate(user)
         self.assertEqual(client.post('/api/push/test').status_code, 503)
+
+    @override_settings(VAPID_PRIVATE_KEY='x', VAPID_PUBLIC_KEY='y')
+    @mock.patch('notifications.views.push_configured', return_value=True)
+    def test_asks_to_connect_when_no_subscription(self, *_):
+        user = get_user_model().objects.create_user('YanaPushNone', password='x')
+        client = APIClient()
+        client.force_authenticate(user)
+        res = client.post('/api/push/test')
+        self.assertEqual(res.status_code, 400)
+        self.assertIn('Подключить', res.data['detail'])
+
+    @override_settings(VAPID_PRIVATE_KEY='x', VAPID_PUBLIC_KEY='y')
+    @mock.patch('notifications.views.push_configured', return_value=True)
+    @mock.patch('notifications.views.send_web_push')
+    def test_surfaces_subscription_gone(self, send, *_):
+        from notifications.push import PushSendResult
+
+        send.return_value = PushSendResult(ok=False, status=410, error='subscription_gone')
+        user = get_user_model().objects.create_user('YanaPushGone', password='x')
+        PushSubscription.objects.create(user=user, endpoint='https://push/gone', p256dh='k', auth='a')
+        client = APIClient()
+        client.force_authenticate(user)
+        res = client.post('/api/push/test')
+        self.assertEqual(res.status_code, 502)
+        self.assertIn('устарела', res.data['detail'])
+        self.assertNotIn('Домой', res.data['detail'])
+
+
+class VapidEnvTests(TestCase):
+    def test_normalize_literal_newlines_and_quotes(self):
+        from config.vapid_env import normalize_vapid_private_key, normalize_vapid_public_key
+
+        pem = normalize_vapid_private_key('"-----BEGIN PRIVATE KEY-----\\nABC\\n-----END PRIVATE KEY-----\\n"')
+        self.assertIn('\nABC\n', pem)
+        self.assertTrue(pem.startswith('-----BEGIN'))
+        self.assertEqual(normalize_vapid_public_key("'BKpublic\\n'"), 'BKpublic')
 
 
 @mock.patch('notifications.cron.send_web_push', return_value=True)

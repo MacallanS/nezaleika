@@ -41,8 +41,14 @@
     </section>
 
     <section class="nz-card nz-card--pad profile__actions">
-      <AuthRRButton v-if="!pushReady" :disabled="pushBusy" @click="enablePush">
-        {{ pushBusy ? 'Подключаем…' : 'Подключить push на этом телефоне' }}
+      <AuthRRButton :disabled="pushBusy" @click="enablePush">
+        {{
+          pushBusy
+            ? 'Подключаем…'
+            : pushReady
+              ? 'Переподключить push'
+              : 'Подключить push на этом телефоне'
+        }}
       </AuthRRButton>
       <AuthRRButton variant="neutral-secondary" :disabled="pushBusy" @click="testPush">
         Проверить уведомление
@@ -128,8 +134,11 @@ watch(
 
 async function refreshPushUi() {
   const st = await refreshStatus()
-  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
+  const serverN = st.serverSubscriptions
+  pushReady.value = st.subscribed && (serverN == null || serverN > 0)
   pushBlocked.value = Boolean(isIosSafari() && !st.standalone)
+  const serverLabel =
+    serverN == null ? '' : ` · на сервере: ${serverN}`
   if (!st.supported) {
     pushStatusText.value = 'Браузер не поддерживает push'
     pushHint.value = 'Откройте Незалейку в Safari и добавьте на экран «Домой».'
@@ -140,12 +149,14 @@ async function refreshPushUi() {
     pushStatusText.value = 'Сервер push не настроен'
     pushHint.value = 'Напишите нам — на сервере нет VAPID-ключей.'
   } else if (pushReady.value) {
-    pushStatusText.value = 'Push на этом телефоне включён'
-    pushHint.value = `Ежедневное напоминание около ${prefs.value.remind_time}. Кнопка ниже отправит тест сразу.`
+    pushStatusText.value = `Push включён${serverLabel}`
+    pushHint.value = `Ежедневное напоминание около ${prefs.value.remind_time}. «Проверить» сначала обновит подписку.`
   } else if (st.permission === 'denied') {
     pushStatusText.value = 'Уведомления запрещены в системе'
-    pushHint.value = 'Разрешите уведомления для Незалейки в настройках телефона.'
-  } else if (st.subscribed && st.serverSubscriptions === 0) {
+    pushHint.value = isIosSafari()
+      ? 'Разрешите уведомления. Если диалог больше не появляется — удалите иконку с «Домой» и добавьте снова.'
+      : 'Разрешите уведомления для Незалейки в настройках телефона.'
+  } else if (st.subscribed && serverN === 0) {
     pushStatusText.value = 'Подписка на телефоне есть, на сервере нет'
     pushHint.value = 'Нажмите «Подключить push» ещё раз — восстановим связь с сервером.'
   } else {
@@ -236,13 +247,15 @@ async function enablePush() {
   pushBusy.value = true
   try {
     const result = await subscribe()
-    if (result.ok) {
-      prefs.value.enabled = true
-      await onSave()
-      notify('Напоминания подключены')
-    } else {
+    if (!result.ok) {
       notify(result.detail, 'warn')
+      return
     }
+    prefs.value.enabled = true
+    await onSave()
+    const test = await sendTest()
+    if (test.ok) notify('Подключено — тестовое уведомление отправлено')
+    else notify(test.detail || 'Подписка есть, но тест не дошёл', 'warn')
   } finally {
     pushBusy.value = false
     await refreshPushUi()
@@ -253,15 +266,13 @@ async function testPush() {
   if (pushBusy.value) return
   pushBusy.value = true
   try {
-    if (!pushReady.value) {
-      const connected = await subscribe()
-      if (!connected.ok) {
-        notify(connected.detail, 'warn')
-        return
-      }
-      prefs.value.enabled = true
-      await onSave()
+    const connected = await subscribe()
+    if (!connected.ok) {
+      notify(connected.detail, 'warn')
+      return
     }
+    prefs.value.enabled = true
+    await onSave()
     const result = await sendTest()
     if (result.ok) notify('Проверочное уведомление отправлено — смотрите шторку')
     else notify(result.detail || 'Уведомление не отправилось', 'warn')
