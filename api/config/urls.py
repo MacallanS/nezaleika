@@ -7,11 +7,13 @@ from rest_framework.routers import DefaultRouter
 from accounts.views import AvatarPhotoView, CsrfView, LoginView, LogoutView, MeView, NotificationPrefsView
 from notifications.views import (
     CronPushView,
+    PlantSnoozeView,
     PushNotifyPlantsView,
     PushStatusView,
     PushSubscribeView,
     PushTestView,
     PushTickView,
+    SnoozeListView,
     VapidPublicKeyView,
 )
 from plants.views import (
@@ -52,6 +54,8 @@ urlpatterns = [
     path('api/push/notify-urgent', PushNotifyPlantsView.as_view()),
     path('api/push/cron', CronPushView.as_view()),
     path('api/push/tick', PushTickView.as_view()),
+    path('api/snoozes', SnoozeListView.as_view()),
+    path('api/plants/<int:pk>/snooze', PlantSnoozeView.as_view()),
     path('api/', include(router.urls)),
 ]
 

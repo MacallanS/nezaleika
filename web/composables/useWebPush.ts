@@ -74,6 +74,29 @@ export function useWebPush() {
     return status
   }
 
+  async function postSubscription(sub: PushSubscription) {
+    const json = sub.toJSON()
+    await getApi().post('/api/push/subscribe', {
+      endpoint: json.endpoint,
+      keys: json.keys,
+    })
+  }
+
+  /** Re-register an existing local subscription with the API (SW update / user switch). */
+  async function healSubscription(): Promise<boolean> {
+    if (!supported || !import.meta.client) return false
+    if (!('Notification' in window) || Notification.permission !== 'granted') return false
+    try {
+      const sub = await getLocalSubscription()
+      if (!sub) return false
+      await ensureAuth()
+      await postSubscription(sub)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async function subscribe(): Promise<PushSubscribeResult> {
     if (!supported) {
       if (isIosSafari() && !isStandalone()) {
@@ -106,11 +129,7 @@ export function useWebPush() {
         await (await reg.pushManager.getSubscription())?.unsubscribe()
         sub = await reg.pushManager.subscribe(options)
       }
-      const json = sub.toJSON()
-      await getApi().post('/api/push/subscribe', {
-        endpoint: json.endpoint,
-        keys: json.keys,
-      })
+      await postSubscription(sub)
       return { ok: true }
     } catch (e) {
       console.warn('[push] subscribe failed', e)
@@ -118,6 +137,25 @@ export function useWebPush() {
         return { ok: false, detail: 'На iPhone сначала добавьте приложение на экран «Домой».' }
       }
       return { ok: false, detail: 'Не удалось подключить push на этом устройстве.' }
+    }
+  }
+
+  async function unsubscribe(): Promise<void> {
+    if (!import.meta.client) return
+    let endpoint: string | undefined
+    try {
+      const sub = await getLocalSubscription()
+      endpoint = sub?.endpoint
+      await sub?.unsubscribe()
+    } catch {
+      /* ignore */
+    }
+    try {
+      await getApi().delete('/api/push/subscribe', {
+        data: endpoint ? { endpoint } : {},
+      })
+    } catch {
+      /* session may already be clearing */
     }
   }
 
@@ -140,6 +178,8 @@ export function useWebPush() {
     isIosSafari,
     isStandalone,
     subscribe,
+    unsubscribe,
+    healSubscription,
     sendTest,
     refreshStatus,
     getLocalSubscription,

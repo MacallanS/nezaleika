@@ -111,12 +111,23 @@ export const useAuthStore = defineStore('auth', {
     },
     async logout() {
       try {
+        const { unsubscribe } = useWebPush()
+        await unsubscribe()
+      } catch {
+        /* best-effort push cleanup */
+      }
+      try {
         await getApi().post('/api/auth/logout')
       } finally {
         this.user = null
         this.loaded = true
         resetApiSession()
         writeCachedUser(null)
+        try {
+          useAppBadge().clearBadge()
+        } catch {
+          /* ignore */
+        }
       }
     },
   },

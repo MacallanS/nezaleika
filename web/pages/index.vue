@@ -66,7 +66,9 @@ const RING = 2 * Math.PI * 18
 
 const plants = usePlantsStore()
 const { water, unwater } = useWateringActions()
-const { isSnoozed, snoozeUntilTomorrow } = useWateringSnooze()
+const { isSnoozed, snoozeUntilTomorrow, syncFromServer } = useWateringSnooze()
+const route = useRoute()
+const { show: openNotif } = useNotificationsPanel()
 const datePrompt = ref<{ id: number; date: string } | null>(null)
 const loading = ref(true)
 const loaded = ref(false)
@@ -130,8 +132,8 @@ const { headerActionsId, headerActionsActive } = usePageChrome(() => ({
   description: subtitle.value,
 }))
 
-function onSnooze(id: number) {
-  snoozeUntilTomorrow(id)
+async function onSnooze(id: number) {
+  await snoozeUntilTomorrow(id)
   snoozeTick.value++
 }
 
@@ -170,7 +172,11 @@ function onVisible() {
 }
 
 onMounted(() => {
+  void syncFromServer().then(() => {
+    snoozeTick.value++
+  })
   void load()
+  if (route.query.focus === 'water') openNotif()
   document.addEventListener('visibilitychange', onVisible)
 })
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible))

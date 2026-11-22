@@ -20,7 +20,7 @@ class NotificationPrefs(models.Model):
         max_length=16,
         blank=True,
         default='',
-        help_text='Последний сезон, о котором уже слали пуш (spring/summer/autumn/winter)',
+        help_text='Последний сезон, о котором уже слали пуш (year-season)',
     )
 
     class Meta:
@@ -41,3 +41,22 @@ class PushSubscription(models.Model):
     class Meta:
         verbose_name = 'Push-подписка'
         verbose_name_plural = 'Push-подписки'
+
+
+class PlantSnooze(models.Model):
+    """Hide a plant from watering reminders until `until` (server-side; push respects this)."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='plant_snoozes')
+    plant = models.ForeignKey('plants.UserPlant', on_delete=models.CASCADE, related_name='snoozes')
+    until = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Отложенный полив'
+        verbose_name_plural = 'Отложенные поливы'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'plant'], name='uniq_plant_snooze_per_user'),
+        ]
+
+    def __str__(self) -> str:
+        return f'Snooze plant={self.plant_id} user={self.user_id} until={self.until}'

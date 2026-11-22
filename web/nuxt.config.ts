@@ -157,6 +157,22 @@ export default defineNuxtConfig({
           purpose: 'maskable',
         },
       ],
+      shortcuts: [
+        {
+          name: 'Что полить',
+          short_name: 'Полив',
+          description: 'Открыть список на сегодня',
+          url: basePath,
+          icons: [{ src: `${basePath}icons/icon-192.png`, sizes: '192x192', type: 'image/png' }],
+        },
+        {
+          name: 'Добавить растение',
+          short_name: 'Добавить',
+          description: 'Добавить новое растение',
+          url: `${basePath}plants/add`,
+          icons: [{ src: `${basePath}icons/icon-192.png`, sizes: '192x192', type: 'image/png' }],
+        },
+      ],
     },
     workbox: {
       importScripts: [`${basePath}push-sw.js`],

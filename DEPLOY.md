@@ -75,8 +75,10 @@ cd d:\RussM\nezaleika
 
 1. Профиль → время (например 13:00) → сохранить.
 2. Подключить push + «Проверить уведомление».
-3. Loop на Railway шлёт после `remind_time`.
-4. Ручной пинок: https://nezaleika.up.railway.app/api/push/tick
+3. Loop на Railway (`start.sh`, каждые 15 мин) шлёт **один** пуш после `remind_time` (атомарный claim, без дублей).
+4. Snooze «на завтра» пишется на сервер — пуш его уважает.
+5. Ручной пинок: https://nezaleika.up.railway.app/api/push/tick
+6. GitHub Actions cron/keep-alive **выключены по расписанию** (только `workflow_dispatch` → Railway).
 
 ## 4. iPhone
 

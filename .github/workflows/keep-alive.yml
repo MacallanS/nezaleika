@@ -1,9 +1,7 @@
+# Disabled schedule: API on Railway with in-process reminder loop.
 name: Keep API warm
 
 on:
-  schedule:
-    # Free Render sleeps ~15m without traffic — ping before that.
-    - cron: '*/12 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,8 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Wake Render free instance
+      - name: Wake API
+        env:
+          API_URL: ${{ vars.NEZALEIKA_API_URL }}
         run: |
+          API_URL="${API_URL:-https://nezaleika.up.railway.app}"
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-delay 15 --retry-all-errors --max-time 90 \
-            "https://nezaleika-api.onrender.com/api/csrf/"
+            "$API_URL/api/csrf/"

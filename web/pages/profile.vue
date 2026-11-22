@@ -144,7 +144,10 @@ async function refreshPushUi() {
     pushHint.value = `Ежедневное напоминание около ${prefs.value.remind_time}. Кнопка ниже отправит тест сразу.`
   } else if (st.permission === 'denied') {
     pushStatusText.value = 'Уведомления запрещены в системе'
-    pushHint.value = 'Разрешите уведомления для Незалейки в настройках iPhone → Незалейка.'
+    pushHint.value = 'Разрешите уведомления для Незалейки в настройках телефона.'
+  } else if (st.subscribed && st.serverSubscriptions === 0) {
+    pushStatusText.value = 'Подписка на телефоне есть, на сервере нет'
+    pushHint.value = 'Нажмите «Подключить push» ещё раз — восстановим связь с сервером.'
   } else {
     pushStatusText.value = 'Push ещё не подключён'
     pushHint.value = pushSupported

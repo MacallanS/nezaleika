@@ -58,17 +58,26 @@ const logoUrl = useNezaleikaLogoUrl()
 const isPhoneOrTablet = useMediaQuery('(max-width: 1024px)')
 
 /** Есть что полить сегодня или просрочено — точка на «Графике», без колокольчика в шапке. */
-const needsWater = computed(() => {
+const urgentCount = computed(() => {
   if (plants.agenda) {
-    return plants.agenda.sections.overdue.length + plants.agenda.sections.today.length > 0
+    return plants.agenda.sections.overdue.length + plants.agenda.sections.today.length
   }
   const cal = plants.calendar
   if (cal) {
     const day = cal.days[cal.today]
-    return (day?.overdue.length ?? 0) + (day?.planned.length ?? 0) > 0
+    return (day?.overdue.length ?? 0) + (day?.planned.length ?? 0)
   }
-  return plants.todoCount > 0
+  return plants.todoCount
 })
+const needsWater = computed(() => urgentCount.value > 0)
+const { setBadge } = useAppBadge()
+watch(
+  urgentCount,
+  (n) => {
+    setBadge(n)
+  },
+  { immediate: true },
+)
 
 const mobileTabs = computed(() => {
   if (!isPhoneOrTablet.value) return []

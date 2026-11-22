@@ -85,15 +85,15 @@
       </section>
 
       <section class="nz-card nz-card--pad nz-notif__actions">
-        <div class="nz-notif__push" :class="{ 'is-ok': pushReady }">
+        <div class="nz-notif__push" :class="{ 'is-ok': pushReady, 'is-bad': pushBlocked }">
           <span class="nz-notif__dot" aria-hidden="true" />
-          <span>{{ pushReady ? 'Push на этом телефоне включён' : 'Push ещё не подключён' }}</span>
+          <span>{{ pushStatusText }}</span>
         </div>
         <AuthRRButton v-if="pushSupported && !pushReady" @click="onEnable">
           Подключить на этом телефоне
         </AuthRRButton>
         <AuthRRButton variant="neutral-secondary" @click="onTest">Проверить уведомление</AuthRRButton>
-        <p class="nz-hint">На iPhone сначала добавьте приложение на экран «Домой».</p>
+        <p class="nz-hint">{{ pushHint }}</p>
       </section>
     </div>
   </RrBottomSheet>
@@ -108,8 +108,46 @@ import { notify } from '~/utils/toast'
 const plants = usePlantsStore()
 const { open, hide } = useNotificationsPanel()
 const { prefs, loaded, load, save } = useNotificationPrefs()
-const { supported: pushSupported, subscribe, sendTest, refreshStatus } = useWebPush()
+const {
+  supported: pushSupported,
+  isIosSafari,
+  subscribe,
+  sendTest,
+  refreshStatus,
+} = useWebPush()
 const pushReady = ref(false)
+const pushBlocked = ref(false)
+const pushStatusText = ref('Проверяем push…')
+const pushHint = ref('На iPhone сначала добавьте приложение на экран «Домой».')
+
+function applyPushStatus(st: Awaited<ReturnType<typeof refreshStatus>>) {
+  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
+  pushBlocked.value = Boolean(isIosSafari() && !st.standalone)
+  if (!st.supported) {
+    pushStatusText.value = 'Браузер не поддерживает push'
+    pushHint.value = 'Откройте Незалейку в Safari и добавьте на экран «Домой».'
+  } else if (isIosSafari() && !st.standalone) {
+    pushStatusText.value = 'Нужно приложение на экране «Домой»'
+    pushHint.value = 'Safari → Поделиться → На экран «Домой», затем подключите push.'
+  } else if (st.vapidConfigured === false) {
+    pushStatusText.value = 'Сервер push не настроен'
+    pushHint.value = 'На сервере нет VAPID-ключей.'
+  } else if (pushReady.value) {
+    pushStatusText.value = 'Push на этом телефоне включён'
+    pushHint.value = `Напоминание около ${prefs.value.remind_time}. Тест уйдёт в шторку сразу.`
+  } else if (st.permission === 'denied') {
+    pushStatusText.value = 'Уведомления запрещены в системе'
+    pushHint.value = 'Разрешите уведомления для Незалейки в настройках телефона.'
+  } else if (st.subscribed && st.serverSubscriptions === 0) {
+    pushStatusText.value = 'Подписка на телефоне есть, на сервере нет'
+    pushHint.value = 'Нажмите «Подключить» ещё раз — восстановим связь с сервером.'
+  } else {
+    pushStatusText.value = 'Push ещё не подключён'
+    pushHint.value = pushSupported
+      ? 'Нажмите «Подключить» и разрешите уведомления.'
+      : 'Этот браузер не умеет push.'
+  }
+}
 
 const overdue = computed((): PlantInfo[] => {
   const agenda = plants.agenda
@@ -133,8 +171,7 @@ watch(open, async (v) => {
     /* ignore */
   }
   void plants.fetchAgenda().catch(() => undefined)
-  const st = await refreshStatus()
-  pushReady.value = st.subscribed && (st.serverSubscriptions == null || st.serverSubscriptions > 0)
+  applyPushStatus(await refreshStatus())
 })
 
 async function onSave() {
@@ -154,7 +191,6 @@ async function onToggleEnabled() {
 
 async function onEnable() {
   const result = await subscribe()
-  pushReady.value = result.ok
   if (result.ok) {
     prefs.value.enabled = true
     await onSave()
@@ -162,12 +198,14 @@ async function onEnable() {
   } else {
     notify(result.detail, 'warn')
   }
+  applyPushStatus(await refreshStatus())
 }
 
 async function onTest() {
   const result = await sendTest()
-  if (result.ok) notify('Проверочное уведомление отправлено')
+  if (result.ok) notify('Проверочное уведомление отправлено — смотрите шторку')
   else notify(result.detail || 'Сначала подключите push', 'warn')
+  applyPushStatus(await refreshStatus())
 }
 
 function openPlant(id: number) {
@@ -258,6 +296,9 @@ function openPlant(id: number) {
 .nz-notif__push.is-ok {
   color: #2e7d32;
 }
+.nz-notif__push.is-bad {
+  color: #c62828;
+}
 .nz-notif__dot {
   width: 8px;
   height: 8px;
@@ -267,5 +308,8 @@ function openPlant(id: number) {
 .nz-notif__push.is-ok .nz-notif__dot {
   background: #2e7d32;
   box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.16);
+}
+.nz-notif__push.is-bad .nz-notif__dot {
+  background: #c62828;
 }
 </style>

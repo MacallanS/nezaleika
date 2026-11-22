@@ -1,8 +1,8 @@
+# Disabled schedule: Railway start.sh already ticks every 15m.
+# workflow_dispatch only — no Actions minutes, correct Railway host.
 name: Watering reminders
 
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,15 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Wake API then send reminders
+      - name: Tick Railway reminders
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_URL: ${{ vars.NEZALEIKA_API_URL }}
         run: |
-          # Free Render: wake with a cheap GET, then run the cron POST.
+          API_URL="${API_URL:-https://nezaleika.up.railway.app}"
           curl --fail-with-body --silent --show-error \
             --retry 3 --retry-delay 20 --retry-all-errors --max-time 120 \
-            "https://nezaleika-api.onrender.com/api/csrf/"
+            "$API_URL/api/csrf/"
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-delay 15 --retry-all-errors --max-time 120 \
             -X POST -H "X-Cron-Secret: $CRON_SECRET" \
-            "https://nezaleika-api.onrender.com/api/push/cron"
+            "$API_URL/api/push/cron"
